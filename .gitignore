@@ -1,0 +1,14 @@
+# Patterns that should NEVER be committed
+.env
+*.local.json
+*.local.yaml
+openclaw.json
+credentials/**
+secrets/**
+auth-profiles.json
+*.pem
+*.key
+*.crt
+.DS_Store
+*.log
+node_modules/

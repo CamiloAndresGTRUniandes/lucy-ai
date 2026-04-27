@@ -1,0 +1,21 @@
+{
+  agents: {
+    defaults: {
+      skills: [
+        "sdd",
+        "github-pr",
+        "zenticalab-pr-review",
+        "csharp-dotnet",
+        "tailwind-4",
+        "typescript",
+        "skill-creator"
+      ],
+      model: {
+        primary: "minimax/MiniMax-M2.7",
+        fallbacks: ["anthropic/claude-opus-4-6"]
+      },
+      thinkingDefault: "medium",
+      elevatedDefault: "on"
+    }
+  }
+}
