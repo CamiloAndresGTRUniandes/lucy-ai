@@ -70,7 +70,8 @@ echo ""
 # ---------------------------------------------------------------------------
 echo "Config checks:"
 check "agent-fragment.json5 exists" "[ -f '$LUCY_DIR/config/agent-fragment.json5' ]"
-check "agent-fragment has agents.defaults" "grep -q 'agents.defaults' '$LUCY_DIR/config/agent-fragment.json5'"
+check "agent-fragment has agents block" "grep -q 'agents:' '$LUCY_DIR/config/agent-fragment.json5'"
+check "agent-fragment has defaults block" "grep -q 'defaults:' '$LUCY_DIR/config/agent-fragment.json5'"
 echo ""
 
 # ---------------------------------------------------------------------------
