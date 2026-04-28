@@ -7,7 +7,6 @@
 ## What you get
 
 - 🧠 **SDD Workflow** — Spec-Driven Development built into the agent
-- 🔍 **PR Review** — ZENTICALAB project PR review patterns
 - 🛠️ **Development Skills** — C#, TypeScript, Tailwind, Angular 21, .NET 10
 - 🌤️ **Auto-installed ClawHub Skills** — weather, browser-automation, acp-router
 - 📁 **Workspace Seed** — SOUL.md, IDENTITY.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md
@@ -53,7 +52,6 @@ cd ~/.openclaw/lucy-agent
 |---|---|
 | `sdd` | Spec-Driven Development workflow (8-phase) |
 | `github-pr` | High-quality PR creation with conventional commits |
-| `zenticalab-pr-review` | PR review for ZENTICALAB .NET + Angular projects |
 | `csharp-dotnet` | C#/.NET Clean Architecture patterns |
 | `tailwind-4` | Tailwind CSS 4 patterns and best practices |
 | `typescript` | TypeScript strict patterns |
