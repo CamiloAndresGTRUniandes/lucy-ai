@@ -14,7 +14,7 @@
 #
 # Flags:
 #   --clone          Clone Lucy's exact config (from lucy-config branch)
-#   --template       Use generic templates (default, same as interactive with no)
+#   --template       Use generic templates (default, same as interactive with no flags)
 #   --skip-clawhub   Skip ClawHub skill installation
 #   --skip-workspace  Skip workspace seeding
 #   --force          Overwrite conflicting files without prompting
@@ -65,6 +65,19 @@ sha256_check() {
   local file="$1"
   if [ -f "$file" ]; then
     sha256sum "$file" | cut -d' ' -f1
+  fi
+}
+
+# Read a line with EOF protection. Returns default if EOF detected.
+# Usage: answer=$(read_line "default_value")
+read_line() {
+  local default="$1"
+  local line
+  if IFS= read -r line; then
+    echo "$line"
+  else
+    # EOF or error — return default
+    echo "$default"
   fi
 }
 
@@ -128,18 +141,13 @@ prompt_install_mode() {
   echo ""
   echo "  [2] Use templates — Start with generic files"
   echo "      USER.md will have placeholders for you to fill in"
-  echo "      (same as running with --template flag)"
   echo ""
-  echo "  [3] Customize — Choose which files to install"
-  echo "      Interactive: select each file individually"
-  echo ""
-  printf "Your choice [1/2/3] (default: 2): "
+  printf "Your choice [1/2] (default: 2): "
   local answer
-  read -r answer
+  answer=$(read_line "2")
   case "$answer" in
     1|1*) CLONE_MODE=true; LUCY_BRANCH="lucy-config"; log_info "Mode: Clone Lucy's config" ;;
     2|"") CLONE_MODE=false; LUCY_BRANCH="main";        log_info "Mode: Generic templates" ;;
-    3)    CLONE_MODE=false; LUCY_BRANCH="main";        log_info "Mode: Customize" ;;
     *)    log_fail "Invalid choice. Aborting."; exit 1 ;;
   esac
 }
