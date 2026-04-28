@@ -3,14 +3,22 @@
 # lucy-agent install.sh — Idempotent single-command installer
 # =============================================================================
 # Usage:
+#   # Interactive (asks you to choose config):
 #   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --skip-clawhub
+#
+#   # Clone mode (installs Lucy's exact config):
+#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --clone
+#
+#   # Template mode (generic templates):
+#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --template
 #
 # Flags:
-#   --skip-clawhub    Skip ClawHub skill installation
+#   --clone          Clone Lucy's exact config (from lucy-config branch)
+#   --template       Use generic templates (default, same as interactive with no)
+#   --skip-clawhub   Skip ClawHub skill installation
 #   --skip-workspace  Skip workspace seeding
-#   --force           Overwrite conflicting files without prompting
-#   --dry-run         Show what would be done without making changes
+#   --force          Overwrite conflicting files without prompting
+#   --dry-run        Show what would be done without making changes
 # =============================================================================
 
 set -euo pipefail
@@ -20,6 +28,10 @@ LUCY_BRANCH="main"
 LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
+
+# Files/dirs to NEVER copy — security sensitive
+EXCLUDE_FILES="openclaw.json .env credentials/ secrets/ auth-profiles.json *.pem *.key *.crt .DS_Store"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -30,6 +42,15 @@ SKIP_CLAWHUB=false
 SKIP_WORKSPACE=false
 FORCE=false
 DRY_RUN=false
+CLONE_MODE=false
+NON_INTERACTIVE_FLAGS=false
+# If stdin is a terminal AND no mode flags → interactive
+# If stdin is NOT a terminal (piped) AND no mode flags → default to template
+if [ -t 0 ]; then
+  INTERACTIVE_PROMPT=true
+else
+  INTERACTIVE_PROMPT=false
+fi
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -41,15 +62,25 @@ log_fail()  { echo -e "${RED}[FAIL]${NC} $*"; }
 log_step()  { echo -e "\n${GREEN}==>${NC} $*"; }
 
 sha256_check() {
-  # Returns checksum of a file, or empty string if missing
   local file="$1"
   if [ -f "$file" ]; then
     sha256sum "$file" | cut -d' ' -f1
   fi
 }
 
+is_excluded() {
+  local filename="$1"
+  # Check against each excluded pattern
+  for pattern in $EXCLUDE_FILES; do
+    case "$filename" in
+      $pattern) return 0 ;;
+      *) ;;
+    esac
+  done
+  return 1
+}
+
 prompt_conflict() {
-  # Usage: prompt_conflict "overwrite/skip/abort" "file/path"
   local file="$2"
   echo ""
   log_warn "File already exists and was modified: $file"
@@ -85,19 +116,61 @@ prompt_skill_conflict() {
   esac
 }
 
+prompt_install_mode() {
+  echo ""
+  echo -e "${BLUE}================================================================${NC}"
+  echo -e "${BLUE}lucy-agent — Choose your configuration${NC}"
+  echo -e "${BLUE}================================================================${NC}"
+  echo ""
+  echo "  [1] Clone Lucy's config — Full replica (recommended)"
+  echo "      SOUL.md, IDENTITY.md, AGENTS.md, TOOLS.md, USER.md, HEARTBEAT.md"
+  echo "      Installs from the lucy-config branch (no personal data from you)"
+  echo ""
+  echo "  [2] Use templates — Start with generic files"
+  echo "      USER.md will have placeholders for you to fill in"
+  echo "      (same as running with --template flag)"
+  echo ""
+  echo "  [3] Customize — Choose which files to install"
+  echo "      Interactive: select each file individually"
+  echo ""
+  printf "Your choice [1/2/3] (default: 2): "
+  local answer
+  read -r answer
+  case "$answer" in
+    1|1*) CLONE_MODE=true; LUCY_BRANCH="lucy-config"; log_info "Mode: Clone Lucy's config" ;;
+    2|"") CLONE_MODE=false; LUCY_BRANCH="main";        log_info "Mode: Generic templates" ;;
+    3)    CLONE_MODE=false; LUCY_BRANCH="main";        log_info "Mode: Customize" ;;
+    *)    log_fail "Invalid choice. Aborting."; exit 1 ;;
+  esac
+}
+
 # ---------------------------------------------------------------------------
 # Flags parsing
 # ---------------------------------------------------------------------------
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --skip-clawhub)  SKIP_CLAWHUB=true; shift ;;
-      --skip-workspace) SKIP_WORKSPACE=true; shift ;;
-      --force)          FORCE=true; shift ;;
-      --dry-run)        DRY_RUN=true; shift ;;
+      --clone)          CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --template)        CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --skip-clawhub)   SKIP_CLAWHUB=true; shift ;;
+      --skip-workspace)  SKIP_WORKSPACE=true; shift ;;
+      --force)           FORCE=true; shift ;;
+      --dry-run)         DRY_RUN=true; shift ;;
+      --help|-h)
+        echo "Usage: install.sh [flags]"
+        echo "Flags:"
+        echo "  --clone          Clone Lucy's exact config (lucy-config branch)"
+        echo "  --template       Use generic templates (default)"
+        echo "  --skip-clawhub   Skip ClawHub skill installation"
+        echo "  --skip-workspace Skip workspace seeding"
+        echo "  --force          Overwrite conflicting files without prompting"
+        echo "  --dry-run        Show what would be done without making changes"
+        echo "  --help, -h       Show this help"
+        exit 0
+        ;;
       *)
         log_fail "Unknown flag: $1"
-        echo "Usage: install.sh [--skip-clawhub] [--skip-workspace] [--force] [--dry-run]"
+        echo "Usage: install.sh [--clone|--template] [--skip-clawhub] [--skip-workspace] [--force] [--dry-run]"
         exit 1
         ;;
     esac
@@ -126,6 +199,7 @@ step_detect_openclaw() {
 # ---------------------------------------------------------------------------
 step_clone_or_pull() {
   log_step "Step 2: Fetching lucy-agent repository"
+  log_info "Branch: $LUCY_BRANCH"
   if [ -d "$LUCY_DIR/.git" ]; then
     log_info "lucy-agent already installed at $LUCY_DIR"
     log_info "Running git pull to update..."
@@ -165,8 +239,15 @@ step_seed_workspace() {
     [ -f "$file" ] || continue
     local filename
     filename="$(basename "$file")"
+
+    # Security: skip excluded files
+    if is_excluded "$filename"; then
+      log_info "Skipped (excluded): $filename"
+      continue
+    fi
+
     local dest="${WORKSPACE_DIR}/${filename}"
-    local repo_sum repo_sum; repo_sum=$(sha256_check "$file")
+    local repo_sum; repo_sum=$(sha256_check "$file")
     local existing_sum; existing_sum=$(sha256_check "$dest")
 
     if [ -z "$existing_sum" ]; then
@@ -336,14 +417,20 @@ step_verify() {
 # Step 8: Report
 # ---------------------------------------------------------------------------
 step_report() {
+  local mode_label="generic templates"
+  if $CLONE_MODE; then
+    mode_label="Lucy's config (clone mode)"
+  fi
+
   echo ""
   echo -e "${GREEN}================================================================${NC}"
   echo -e "${GREEN}lucy-agent installed successfully!${NC}"
   echo -e "${GREEN}================================================================${NC}"
   echo ""
-  echo -e "Repo:       ${BLUE}${LUCY_DIR}${NC}"
-  echo -e "Workspace:  ${BLUE}${WORKSPACE_DIR}${NC}"
-  echo -e "Skills:     ${BLUE}${SKILLS_DIR}${NC}"
+  echo -e "Mode:         ${BLUE}$mode_label${NC}"
+  echo -e "Repo:         ${BLUE}${LUCY_DIR}${NC}"
+  echo -e "Workspace:    ${BLUE}${WORKSPACE_DIR}${NC}"
+  echo -e "Skills:      ${BLUE}${SKILLS_DIR}${NC}"
   echo ""
   echo -e "Update later:"
   echo -e "  cd ${LUCY_DIR} && ./update.sh"
@@ -358,14 +445,29 @@ step_report() {
 # ---------------------------------------------------------------------------
 main() {
   echo ""
-  echo -e "${GREEN}lucy-agent installer${NC} (idempotent, interactive conflicts)"
-  echo -e "Repo: $LUCY_REPO branch: $LUCY_BRANCH"
+  echo -e "${GREEN}lucy-agent installer${NC}"
+  echo -e "Repo: $LUCY_REPO"
   echo ""
   if $DRY_RUN; then
     log_info "DRY-RUN mode — no changes will be made"
   fi
 
   parse_flags "$@"
+
+  # Interactive prompt if no mode flags were passed and stdin is a terminal
+  if ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && $INTERACTIVE_PROMPT; then
+    prompt_install_mode
+  elif ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && ! $INTERACTIVE_PROMPT; then
+    # Piped install with no mode flags → default to template, non-interactive
+    CLONE_MODE=false
+    LUCY_BRANCH="main"
+    log_info "Mode: Generic templates (non-interactive, use --clone for Lucy's config)"
+  elif $CLONE_MODE; then
+    log_info "Mode: Clone Lucy's config"
+  else
+    log_info "Mode: Generic templates"
+  fi
+
   step_detect_openclaw
   step_clone_or_pull
   step_seed_workspace
