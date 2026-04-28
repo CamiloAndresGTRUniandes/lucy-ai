@@ -7,9 +7,10 @@
 
 set -euo pipefail
 
-LUCY_DIR="/home/node/.openclaw/lucy-agent"
-WORKSPACE_DIR="/home/node/.openclaw/workspace"
-SKILLS_DIR="/home/node/.openclaw/workspace/skills"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LUCY_DIR="$SCRIPT_DIR"
+WORKSPACE_DIR="$SCRIPT_DIR/workspace"
+SKILLS_DIR="$SCRIPT_DIR/skills"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
