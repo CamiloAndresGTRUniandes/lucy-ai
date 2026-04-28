@@ -9,7 +9,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LUCY_DIR="$SCRIPT_DIR"
-WORKSPACE_DIR="$SCRIPT_DIR/workspace"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
