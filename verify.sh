@@ -60,7 +60,7 @@ echo ""
 # Check 3: Bundled skills
 # ---------------------------------------------------------------------------
 echo "Bundled skill checks:"
-for skill in sdd github-pr csharp-dotnet tailwind-4 typescript skill-creator; do
+for skill in sdd github-pr pr-review csharp-dotnet tailwind-4 typescript skill-creator; do
   check "skill/$skill exists" "[ -f '$SKILLS_DIR/$skill/SKILL.md' ]"
 done
 echo ""

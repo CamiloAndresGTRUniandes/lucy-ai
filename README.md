@@ -52,6 +52,7 @@ cd ~/.openclaw/lucy-agent
 |---|---|
 | `sdd` | Spec-Driven Development workflow (8-phase) |
 | `github-pr` | High-quality PR creation with conventional commits |
+| `pr-review` | Generic PR review for any project |
 | `csharp-dotnet` | C#/.NET Clean Architecture patterns |
 | `tailwind-4` | Tailwind CSS 4 patterns and best practices |
 | `typescript` | TypeScript strict patterns |
