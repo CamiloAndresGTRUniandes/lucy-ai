@@ -24,13 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Project is now generic** — All project-specific content (ZENTICALAB references) removed
+- **Project is now generic** — All project-specific content removed
 - **USER.md is a template** — No personal data in the repo; users fill their own info post-install
 - **README with badges** — License and version badges added
 
 ### Removed
 
-- **`zenticalab-pr-review` skill** — Project-specific; not appropriate for generic agent
+- **`[project]-pr-review` skill** — Project-specific skills removed; use a generic pr-review skill instead
 
 ### Security
 
