@@ -1,5 +1,8 @@
 # lucy-agent
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/CamiloAndresGTRUniandes/lucy-ai?include_prereleases&label=version)](https://github.com/CamiloAndresGTRUniandes/lucy-ai/releases)
+
 > 🦁 A fully installable AI agent ecosystem for OpenClaw
 
 **lucy-agent** is a public, open-source agent configuration that turns any OpenClaw instance into a fully operational Lucy-ai — a capable AI colleague with personality, development skills, architecture patterns, and community conventions.
