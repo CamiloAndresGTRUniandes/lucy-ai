@@ -1,104 +1,114 @@
-# lucy-agent
+# 🦁 lucy-agent
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/CamiloAndresGTRUniandes/lucy-ai?include_prereleases&label=version)](https://github.com/CamiloAndresGTRUniandes/lucy-ai/releases)
+<!-- HEADER_START -->
+<p align="center">
+  <img src="https://img.shields.io/badge/AI%20Agent-Lucy%20&%20Co.-30%25?style=for-the-badge&logo=robot&logoColor=%2300C853" alt="Lucy-ai">
+  <img src="https://img.shields.io/badge/OpenClaw-Powered-0D1117?style=for-the-badge&logo=claw&logoColor=%2300C853" alt="OpenClaw">
+  <img src="https://img.shields.io/badge/License-MIT-30%25?style=for-the-badge&logo=scroll&logoColor=%2300C853" alt="MIT">
+</p>
 
-> 🦁 A fully installable AI agent ecosystem for OpenClaw
+<p align="center">
+  <strong>Your AI colleague, deployed like your code.</strong><br>
+  A fully installable agent ecosystem for OpenClaw — with personality, skills, and conventions ready to go.
+</p>
 
-**lucy-agent** is a public, open-source agent configuration that turns any OpenClaw instance into a fully operational Lucy-ai — a capable AI colleague with personality, development skills, architecture patterns, and community conventions.
+---
+
+## ⚡ Install in 30 seconds
+
+```bash
+# Clone Lucy's exact setup (recommended)
+curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --clone
+
+# Or start with generic templates
+curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash
+```
+
+> 💡 **New here?** Run without flags for an interactive setup guide.
+
+---
 
 ## What you get
 
-- 🧠 **SDD Workflow** — Spec-Driven Development built into the agent
-- 🛠️ **Development Skills** — C#, TypeScript, Tailwind, Angular 21, .NET 10
-- 🌤️ **Auto-installed ClawHub Skills** — weather, browser-automation, acp-router
-- 📁 **Workspace Seed** — SOUL.md, IDENTITY.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md
-- ⚙️ **Config Fragment** — agent defaults ready to `$include` in `openclaw.json`
+| Component | What's included |
+|-----------|----------------|
+| 🧠 **Personality** | SOUL.md, IDENTITY.md, AGENTS.md — your agent's character, values, and operating rules |
+| 🛠️ **Skills** | SDD workflow, PR review, Clean Architecture patterns, TypeScript, Tailwind, C#/.NET |
+| 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
+| ⚙️ **Config** | Agent defaults, model config, thinking level — all ready to include |
+| ✅ **Verify** | Post-install checks so you know everything is wired up |
 
-## Quick install
+## Install modes
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash
-```
-
-That's it. < 10 minutes from zero to operational Lucy on a fresh OpenClaw instance.
+| Mode | Command | Best for |
+|------|---------|----------|
+| **Clone** | `curl ... \| bash -s -- --clone` | Get Lucy's exact setup — skip the config |
+| **Template** | `curl ... \| bash -s -- --template` | Fresh start with placeholders |
+| **Interactive** | `curl ... \| bash` | Guided setup with friendly prompts |
 
 ## Post-install
 
-1. **Link the config fragment** — Add to `~/.openclaw/openclaw.json`:
-   ```json5
-   { $include: "./lucy-agent/config/agent-fragment.json5" }
-   ```
+```bash
+# 1. Link the config fragment
+echo '{ $include: "./lucy-agent/config/agent-fragment.json5" }' >> ~/.openclaw/openclaw.json
 
-2. **Configure your channels** — Add your Telegram bot token, WhatsApp credentials, etc. to `openclaw.json`
+# 2. Add your channel tokens to openclaw.json (Telegram, WhatsApp, etc.)
 
-3. **Restart OpenClaw:**
-   ```bash
-   openclaw gateway restart
-   ```
+# 3. Restart
+openclaw gateway restart
+```
 
-4. **Configure your USER.md** — Edit `~/.openclaw/workspace/USER.md` with your name and preferences
+## Skills included
 
-## Updating
+| Skill | Purpose |
+|-------|---------|
+| `sdd` | Spec-Driven Development — spec before code, always |
+| `github-pr` | High-quality PRs with conventional commits |
+| `pr-review` | Generic PR review for any codebase |
+| `csharp-dotnet` | Clean Architecture patterns for .NET/C# |
+| `tailwind-4` | Tailwind CSS 4 patterns and best practices |
+| `typescript` | TypeScript strict mode patterns |
+| `skill-creator` | Build new skills for your agent |
+
+### ClawHub (auto-installed)
+
+`weather` · `browser-automation` · `acp-router`
+
+## Update your agent
 
 ```bash
 cd ~/.openclaw/lucy-agent
-./update.sh                  # latest from main branch
-./update.sh --tag v1.0.0     # pin to a specific version
+
+# Latest version
+./update.sh
+
+# Pin to a specific version
+./update.sh --tag v1.1.0
 ```
 
-## What's in the box
-
-### Bundled skills (`skills/`)
-
-| Skill | Description |
-|---|---|
-| `sdd` | Spec-Driven Development workflow (8-phase) |
-| `github-pr` | High-quality PR creation with conventional commits |
-| `pr-review` | Generic PR review for any project |
-| `csharp-dotnet` | C#/.NET Clean Architecture patterns |
-| `tailwind-4` | Tailwind CSS 4 patterns and best practices |
-| `typescript` | TypeScript strict patterns |
-| `skill-creator` | Guide for creating new agent skills |
-
-### ClawHub skills (auto-installed)
-
-- `weather` — Current weather and forecasts
-- `browser-automation` — Web browser control
-- `acp-router` — Routing for coding agent workflows
-
-### Workspace seed (`workspace/`)
-
-- `SOUL.md` — Lucy-ai's persona, tone, and boundaries
-- `IDENTITY.md` — Name (Lucy), emoji (🦁), role (colleague/mentor)
-- `AGENTS.md` — Operating rules, memory protocol, git workflow
-- `USER.md` — User profile template *(replace with your info)*
-- `TOOLS.md` — Tool conventions and notes
-- `HEARTBEAT.md` — Heartbeat checklist (empty by default)
-
-### Config (`config/`)
-
-- `agent-fragment.json5` — Lucy-ai agent defaults (skills allowlist, model, thinking level)
-
-## Security
-
-- ✅ **No secrets committed** — API keys, tokens, and credentials are never in the repo
-- ✅ **Auditable install script** — Read it with `curl` before running
-- ✅ **User-specific files are protected** — Modified `USER.md` and skill files prompt before overwrite
-
-## Flags
+## Verify everything is working
 
 ```bash
-# Installation flags
-install.sh --skip-clawhub    # Skip ClawHub skill installation
-install.sh --skip-workspace # Skip workspace file seeding
-install.sh --force         # Overwrite conflicting files without prompting
-install.sh --dry-run        # Show what would be done without making changes
+cd ~/.openclaw/lucy-agent
+./verify.sh
+```
+
+## All flags
+
+```bash
+# Install flags
+install.sh --clone          # Clone Lucy's exact config
+install.sh --template        # Use generic templates
+install.sh --skip-clawhub    # Skip ClawHub skills
+install.sh --skip-workspace   # Skip workspace seeding
+install.sh --force           # Overwrite without asking
+install.sh --dry-run         # Preview without changes
+install.sh --help            # Show help
 
 # Update flags
-update.sh --tag v1.2.3      # Pin to specific version
-update.sh --force          # Overwrite conflicting files without prompting
-update.sh --dry-run         # Show what would be done without making changes
+update.sh --tag v1.2.3       # Pin to version
+update.sh --force            # Force overwrite
+update.sh --dry-run          # Preview
 ```
 
 ## Repository structure
@@ -108,43 +118,42 @@ lucy-agent/
 ├── install.sh                  ← One-command installer
 ├── update.sh                   ← In-place updater
 ├── verify.sh                   ← Post-install verification
-├── .gitignore
 ├── SKILL.md                    ← Meta-skill documentation
+├── CHANGELOG.md                ← Version history
 ├── clawhub-skills.txt         ← Auto-install list
-├── skills/                     ← Bundled skills (git-tracked)
+├── skills/                     ← Bundled skills
 │   ├── sdd/
 │   ├── github-pr/
+│   ├── pr-review/
 │   └── ...
-├── workspace/                  ← Seed files (git-tracked)
+├── workspace/                  ← Seed files
 │   ├── SOUL.md
 │   ├── IDENTITY.md
+│   ├── AGENTS.md
 │   └── ...
 └── config/
-    └── agent-fragment.json5    ← $include fragment for openclaw.json
+    └── agent-fragment.json5   ← $include for openclaw.json
 ```
 
-## For developers
+## Security
 
-### Forking for your own agent
+- ✅ **No secrets ever** — API keys, tokens, credentials never in the repo
+- ✅ **Auditable** — `curl` the install script before running
+- ✅ **Safe defaults** — Sensitive files (`openclaw.json`, `.env`, `*.key`) always excluded
 
-lucy-agent is designed to be forked. To create your own agent based on lucy-agent:
+## Build your own agent
 
-1. Fork this repository
-2. Edit `workspace/SOUL.md` and `workspace/IDENTITY.md` to define your persona
-3. Edit `workspace/USER.md` — replace Camilo's profile with yours
-4. Adjust `config/agent-fragment.json5` to change skills and model
-5. Run the install script from your fork:
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/YOUR_USER/lucy-agent/main/install.sh | bash
-   ```
+lucy-agent is fork-friendly. To create your own agent:
 
-### Contributing
+1. Fork this repo
+2. Edit `workspace/SOUL.md` and `workspace/IDENTITY.md` for your persona
+3. Adjust `workspace/USER.md` with your preferences
+4. Update `config/agent-fragment.json5` for your skills and model
+5. Run your fork's install script
 
-Contributions welcome! This is an open-source project. Please note:
+## Contributing
 
-- **SDD workflow** — All changes should be discussed via issue before implementation
-- **No secrets** — Never commit API keys, tokens, or credentials
-- **Community-first** — All skills and patterns shared should be useful to the broader OpenClaw community
+Issues and PRs welcome. All changes go through review before merge.
 
 ## License
 
