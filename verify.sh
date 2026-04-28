@@ -7,9 +7,9 @@
 
 set -euo pipefail
 
-LUCY_DIR="/home/node/.openclaw/lucy-agent"
-WORKSPACE_DIR="/home/node/.openclaw/workspace"
-SKILLS_DIR="/home/node/.openclaw/workspace/skills"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LUCY_DIR="$SCRIPT_DIR"
+SKILLS_DIR="$SCRIPT_DIR/skills"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -60,7 +60,7 @@ echo ""
 # Check 3: Bundled skills
 # ---------------------------------------------------------------------------
 echo "Bundled skill checks:"
-for skill in sdd github-pr zenticalab-pr-review csharp-dotnet tailwind-4 typescript skill-creator; do
+for skill in sdd github-pr pr-review csharp-dotnet tailwind-4 typescript skill-creator; do
   check "skill/$skill exists" "[ -f '$SKILLS_DIR/$skill/SKILL.md' ]"
 done
 echo ""
