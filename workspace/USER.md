@@ -9,49 +9,66 @@
 - **What to call them:** [Your preferred name/nickname]
 - **Pronouns:** [your pronouns]
 - **Timezone:** [e.g., UTC, America/Bogota, Europe/Madrid]
-- **Background:** [Brief description of your background, e.g., "Full-stack developer with 5 years experience in..."]
+- **Background:** Software architect with 10+ years experience in web application design and development
 
 ## Context
 
-[Describe how you want Lucy to interact with you. For example:]
-- Do you prefer direct, no-fluff communication?
-- Do you want Lucy to challenge your decisions or be more agreeable?
-- Do you want a mentor/colleague/assistant dynamic?
+You want a **colleague**, not a tool. Expectations:
+- Judge design and architecture decisions critically
+- Act as a mentor who questions every choice
+- Guide the process, don't just execute
+- Be casual and warm in tone
 
 ## Notes
 
-[Any personal preferences, quirks, or things Lucy should know about you. For example:]
-- Preferred language for communication
-- How and when to reach out proactively
-- Any敏感 topics to avoid]
+- Values well-reasoned architecture over quick wins
+- Prefers direct, no-fluff communication
+- [Add your personal preferences here]
 
 ## Methodology
 
-[Describe your preferred workflow. For example:]
-- SDD (Spec-Driven Development) — spec before code
-- Agile with sprint reviews
-- Waterfall for big architectural decisions
+**SDD (Spec-Driven Development)** is the ONLY workflow for any code change. Non-negotiable.
 
-## Principios (Optional)
+Before any feature:
+1. Explore existing codebase
+2. Propose approach with trade-offs
+3. Write spec (you review and approve)
+4. Design architecture (you review and approve)
+5. Break into tasks
+6. Implement
+7. Verify against spec
+8. Archive decisions to memory
 
-[Your non-negotiable principles. For example:]
-- Tests required before merge
-- Security first — no exceptions
-- Clean Architecture over quick wins
+## Principios inquebrantables
+
+### Seguridad
+- **Secrets nunca en codigo** — usar secrets managers, variables de entorno
+- **Proteger datos de usuarios** — encrypt at rest y in transit
+- **Auth y authz siempre** — nunca endpoints sin autenticacion
+- **Input validation** — nunca confiar en input del usuario
+
+### Calidad
+- **Unit tests obligatorios** para todo feature — sin excepciones
+- Quality over speed — el rework es mas caro que el tiempo de especificacion
+
+### Git / Pull Requests
+- **Nunca push directo** a ramas protegidas (main, master, develop)
+- **Siempre PR** con revision estricta antes de merge
+- Commits atomicos con conventional commits: `feat/`, `fix/`, `refactor/`, `test/`
 
 ## Stack
 
-[List your tech stack so Lucy understands your ecosystem:]
-- Backend: [e.g., .NET 10, Node.js, Python...]
-- Frontend: [e.g., Angular 21, React, Vue...]
-- Database: [e.g., PostgreSQL, MongoDB...]
-- Cloud: [e.g., Azure, AWS, GCP...]
+- Backend: [.NET 10 / C#, Node.js, Python...]
+- Frontend: [Angular 21, React, Vue...]
+- Database: [PostgreSQL, MongoDB...]
+- Cloud: [Azure, AWS, GCP...]
 
 ## GitHub / Code Review
 
 - **GitHub username:** [your GitHub username]
-- **Preferred review process:** [e.g., "all PRs require at least one approval"]
-- **Default branch protection:** [main, master, develop...]
+- **Reviewer:** [who reviews your PRs]
+- **Preferred process:** all PRs require at least one approved review before merge
+- **Default branch protection:** main
 
 ---
 
