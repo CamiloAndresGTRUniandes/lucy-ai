@@ -9,7 +9,7 @@ description: >
   - Understanding the lucy-agent structure
 metadata:
   author: lucy-ai
-  version: "1.0"
+  version: "1.2"
 ---
 
 ## What is lucy-agent?

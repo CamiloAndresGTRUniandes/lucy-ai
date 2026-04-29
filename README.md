@@ -18,10 +18,13 @@
 
 ```bash
 # Clone Lucy's exact setup (recommended)
-curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --clone
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --clone
 
 # Or start with generic templates
-curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
+
+# Install a specific version
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.1.0
 ```
 
 > 💡 **New here?** Run without flags for an interactive setup guide.
@@ -37,14 +40,16 @@ curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/mai
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
 | ⚙️ **Config** | Agent defaults, model config, thinking level — all ready to include |
 | ✅ **Verify** | Post-install checks so you know everything is wired up |
+| 🧹 **Uninstall** | Clean removal when you want to start fresh |
 
 ## Install modes
 
 | Mode | Command | Best for |
 |------|---------|----------|
-| **Clone** | `curl ... \| bash -s -- --clone` | Get Lucy's exact setup — skip the config |
-| **Template** | `curl ... \| bash -s -- --template` | Fresh start with placeholders |
-| **Interactive** | `curl ... \| bash` | Guided setup with friendly prompts |
+| **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
+| **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
+| **Specific version** | `curl ... | bash -s -- --tag v1.0.0` | Pin to a known release |
+| **Interactive** | `curl ... | bash` | Guided setup with friendly prompts |
 
 ## Post-install
 
@@ -79,11 +84,14 @@ openclaw gateway restart
 ```bash
 cd ~/.openclaw/lucy-agent
 
-# Latest version
+# Latest version (detects how you installed it)
 ./update.sh
 
 # Pin to a specific version
 ./update.sh --tag v1.1.0
+
+# Show version info
+./update.sh --version
 ```
 
 ## Verify everything is working
@@ -93,22 +101,46 @@ cd ~/.openclaw/lucy-agent
 ./verify.sh
 ```
 
+## Uninstall
+
+```bash
+cd ~/.openclaw/lucy-agent
+./uninstall.sh
+
+# Non-interactive (CI/automation)
+./uninstall.sh --force
+```
+
 ## All flags
 
 ```bash
 # Install flags
-install.sh --clone          # Clone Lucy's exact config
-install.sh --template        # Use generic templates
-install.sh --skip-clawhub    # Skip ClawHub skills
-install.sh --skip-workspace   # Skip workspace seeding
-install.sh --force           # Overwrite without asking
-install.sh --dry-run         # Preview without changes
-install.sh --help            # Show help
+install.sh --clone             # Clone Lucy's exact config
+install.sh --template          # Use generic templates
+install.sh --tag <version>     # Install specific release (e.g. v1.0.0)
+install.sh --skip-clawhub      # Skip ClawHub skills
+install.sh --skip-workspace    # Skip workspace seeding
+install.sh --force             # Overwrite without asking
+install.sh --force-stash        # Stash local changes before pulling
+install.sh --quiet, -q         # Suppress info output (show only warnings)
+install.sh --dry-run           # Preview without changes
+install.sh --version           # Show version and exit
+install.sh --help             # Show help
 
 # Update flags
-update.sh --tag v1.2.3       # Pin to version
-update.sh --force            # Force overwrite
-update.sh --dry-run          # Preview
+update.sh --tag <version>      # Pin to version
+update.sh --force              # Force overwrite / stash local changes
+update.sh --force-stash        # Stash local changes before pulling
+update.sh --quiet, -q          # Suppress info output
+update.sh --dry-run            # Preview
+update.sh --version            # Show version and exit
+
+# Uninstall flags
+uninstall.sh --force           # No confirmation prompt
+uninstall.sh --keep-skills     # Keep bundled skills
+uninstall.sh --keep-workspace  # Keep workspace seed files
+uninstall.sh --dry-run         # Preview
+uninstall.sh --quiet, -q       # Suppress info output
 ```
 
 ## Repository structure
@@ -118,6 +150,9 @@ lucy-agent/
 ├── install.sh                  ← One-command installer
 ├── update.sh                   ← In-place updater
 ├── verify.sh                   ← Post-install verification
+├── uninstall.sh               ← Clean removal
+├── scripts/
+│   └── common.sh              ← Shared helpers (sourced by all scripts)
 ├── SKILL.md                    ← Meta-skill documentation
 ├── CHANGELOG.md                ← Version history
 ├── clawhub-skills.txt         ← Auto-install list
@@ -150,6 +185,25 @@ lucy-agent is fork-friendly. To create your own agent:
 3. Adjust `workspace/USER.md` with your preferences
 4. Update `config/agent-fragment.json5` for your skills and model
 5. Run your fork's install script
+
+### Keeping your fork updated
+
+After forking, keep your copy in sync with upstream:
+
+```bash
+# Add upstream remote (one-time setup)
+git remote add upstream https://github.com/camiloandresgtruniandes/lucy-ai.git
+
+# Fetch latest from upstream
+git fetch upstream
+
+# Merge upstream changes into your main
+git checkout main
+git merge upstream/main
+
+# Or update a specific install
+git checkout upstream/lucy-config   # Get Lucy's latest config
+```
 
 ## Contributing
 

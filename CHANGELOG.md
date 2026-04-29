@@ -5,6 +5,34 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-28
+
+### Added
+
+- **`--tag` / `--version` flags** — Install or pin to specific releases on both `install.sh` and `update.sh`
+- **`--quiet` / `-q` flag** — Suppress informational output, show only warnings and errors (CI-friendly)
+- **`--force-stash` flag** — Stash local changes before pulling, then restore automatically
+- **`--version` on install.sh and update.sh** — Show installed version and latest remote tag
+- **`uninstall.sh`** — Clean removal script: removes repo, bundled skills, and workspace seeds with confirmation
+- **`scripts/common.sh`** — Shared helpers extracted from install.sh/update.sh for DRY compliance
+- **`verify.sh` failure report** — Failed checks are now listed by name at the end of the summary
+- **Fork sync documentation** — README now includes `git remote add upstream` instructions
+
+### Fixed
+
+- **`update.sh` now respects install branch** — After `--clone` install, `update.sh` pulls from `lucy-config`, not `main` (tracked via `.version` file)
+- **`install.sh` local changes handling** — Prompts or stashes before `git pull` instead of failing on uncommitted changes
+- **AGENTS.md no longer references non-existent `angular/*` skills**
+
+### Changed
+
+- **Shared helpers via `scripts/common.sh`** — Color/log/sha256 helpers now sourced from one file (DRY)
+- **Git clone uses `--progress`** — Visible progress on slow connections
+
+### Security
+
+- Version tracking via `.version` file in `${LUCY_DIR}/`
+
 ## [1.1.0] - 2026-04-28
 
 ### Added
