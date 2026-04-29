@@ -52,7 +52,7 @@ Skills define _how_ tools work. This file is for _your_ specifics — things uni
 - **Backend repo**: `CamiloAndresGTRUniandes/BE_ZENTICALAB`
 - **Frontend repo**: `CamiloAndresGTRUniandes/FE_ZENTICALAB`
 - **GitHub user**: `lucygtr` | **Reviewer**: `camiloandresgtruniandes`
-- **Local repos**: `/home/node/.openclaw/repos/ZENTICALAB/backend/` y `/home/node/.openclaw/repos/ZENTICALAB/frontend/`
+- **Local repos**: `/workspace/repos/ZENTICALAB/backend/` y `/workspace/repos/ZENTICALAB/frontend/`
 
 ### Architecture Principles
 
@@ -182,7 +182,7 @@ refactor(HU34): extract row types and mappers out of InventoryAlertService
 
 **Ramas protegidas — SIN EXCEPCIÓN:**
 - `main` y `develop` — **nunca push directo**, siempre via PR con review de `camiloandresgtruniandes`
-- Pre-push hooks activos en `/home/node/.openclaw/repos/ZENTICALAB/backend/` y `/home/node/.openclaw/repos/ZENTICALAB/frontend/` que bloquean push a estas ramas
+- Pre-push hooks activos en `/workspace/repos/ZENTICALAB/backend/` y `/workspace/repos/ZENTICALAB/frontend/` que bloquean push a estas ramas
 - GitHub Free no permite branch protection — los hooks locales son la primera línea de defensa
 
 1. All work on **feature branches** (`feat/huXX-description`)
