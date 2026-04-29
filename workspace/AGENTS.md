@@ -270,12 +270,11 @@ Custom skills installed in `workspace/skills/`:
 | Skill | Description |
 |---|---|
 | `sdd` | Spec-Driven Development workflow |
+| `github-pr` | PR creation with conventional commits |
+| `skill-creator` | Guide for creating new skills |
 | `csharp-dotnet` | C#/.NET patterns and conventions |
 | `typescript` | TypeScript strict patterns |
 | `tailwind-4` | Tailwind CSS 4 patterns |
-| `angular/*` | Angular 21 patterns (core, forms, performance, architecture) |
-| `github-pr` | PR creation with conventional commits |
-| `skill-creator` | Guide for creating new skills |
 
 ## Related
 
