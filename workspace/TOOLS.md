@@ -42,6 +42,8 @@ Skills define _how_ tools work. This file is for _your_ specifics — things uni
 
 ## ZENTICALAB Project Standards
 
+> ⚠️ **NOTE FOR FORK USERS**: This section is Camilo's specific configuration for the ZENTICALAB dental lab management project. Replace the repos, paths, and user references below with your own project details. See the [lucy-ai README](https://github.com/CamiloAndresGTRUniandes/lucy-ai#forking-for-your-own-agent) for guidance on customizing your fork.
+
 > Dental Lab Management SaaS — .NET 10 backend, Angular 21 frontend, PostgreSQL schema-per-tenant
 
 ### Project Identity
