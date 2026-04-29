@@ -10,42 +10,52 @@
 #   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --clone
 #
 #   # Template mode (generic templates):
-#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --template
+#   curl -fsSL https://raw.githubusercontent.com/camiloAndresGTRUniandes/lucy-agent/main/install.sh | bash -s -- --template
+#
+#   # Install specific version:
+#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --tag v1.0.0
 #
 # Flags:
 #   --clone          Clone Lucy's exact config (from lucy-config branch)
 #   --template       Use generic templates (default, same as interactive with no flags)
+#   --tag <version>  Install a specific release tag (e.g. --tag v1.0.0)
 #   --skip-clawhub   Skip ClawHub skill installation
-#   --skip-workspace  Skip workspace seeding
+#   --skip-workspace Skip workspace seeding
 #   --force          Overwrite conflicting files without prompting
+#   --force-stash    Stash local changes before pulling (for existing installs)
+#   --quiet, -q      Suppress informational output
 #   --dry-run        Show what would be done without making changes
+#   --version        Show version and exit
+#   --help, -h       Show this help
 # =============================================================================
 
 set -euo pipefail
+
+# Load shared helpers
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/common.sh
+source "${SCRIPT_DIR}/scripts/common.sh"
 
 LUCY_REPO="https://github.com/camiloandresgtruniandes/lucy-agent"
 LUCY_BRANCH="main"
 LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
+VERSION_FILE="${LUCY_DIR}/.version"
+CURRENT_VERSION="1.2.0"
 
-# Files/dirs to NEVER copy — security sensitive
-EXCLUDE_FILES="openclaw.json .env credentials/ secrets/ auth-profiles.json *.pem *.key *.crt .DS_Store"
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
+# Flags
 SKIP_CLAWHUB=false
 SKIP_WORKSPACE=false
 FORCE=false
+FORCE_STASH=false
 DRY_RUN=false
+QUIET=false
 CLONE_MODE=false
 NON_INTERACTIVE_FLAGS=false
-# If stdin is a terminal AND no mode flags → interactive
-# If stdin is NOT a terminal (piped) AND no mode flags → default to template
+SPECIFIC_TAG=""
+
+# TTY detection: interactive prompt if terminal, otherwise non-interactive
 if [ -t 0 ]; then
   INTERACTIVE_PROMPT=true
 else
@@ -53,80 +63,91 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Helpers (override common.sh for install-specific behavior)
 # ---------------------------------------------------------------------------
-log_info()  { echo -e "${BLUE}[INFO]${NC} $*"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}   $*"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_fail()  { echo -e "${RED}[FAIL]${NC} $*"; }
-log_step()  { echo -e "\n${GREEN}==>${NC} $*"; }
 
-sha256_check() {
-  local file="$1"
-  if [ -f "$file" ]; then
-    sha256sum "$file" | cut -d' ' -f1
+# Override log_info to respect --quiet
+log_info() {
+  if ! $QUIET; then
+    echo -e "${BLUE}[INFO]${NC} $*"
   fi
 }
 
-# Read a line with EOF protection. Returns default if EOF detected.
-# Usage: answer=$(read_line "default_value")
-read_line() {
-  local default="$1"
-  local line
-  if IFS= read -r line; then
-    echo "$line"
-  else
-    # EOF or error — return default
-    echo "$default"
+log_step() {
+  if ! $QUIET; then
+    echo -e "\n${GREEN}==>${NC} $*"
   fi
 }
 
-is_excluded() {
-  local filename="$1"
-  # Check against each excluded pattern
-  for pattern in $EXCLUDE_FILES; do
-    case "$filename" in
-      $pattern) return 0 ;;
-      *) ;;
+# ---------------------------------------------------------------------------
+# Flags parsing
+# ---------------------------------------------------------------------------
+parse_flags() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --clone)          CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --template)        CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --tag)
+        if [[ -z "${2:-}" ]]; then
+          log_fail "--tag requires a value (e.g. --tag v1.0.0)"
+          exit 1
+        fi
+        SPECIFIC_TAG="$2"; shift 2 ;;
+      --skip-clawhub)   SKIP_CLAWHUB=true; shift ;;
+      --skip-workspace)  SKIP_WORKSPACE=true; shift ;;
+      --force)           FORCE=true; shift ;;
+      --force-stash)    FORCE_STASH=true; FORCE=true; shift ;;
+      --dry-run)         DRY_RUN=true; shift ;;
+      --quiet|-q)        QUIET=true; shift ;;
+      --version)
+        show_version; exit 0 ;;
+      --help|-h)
+        show_help; exit 0 ;;
+      *)
+        log_fail "Unknown flag: $1"
+        echo "Usage: install.sh [--clone|--template|--tag <version>] [flags]"
+        exit 1
+        ;;
     esac
   done
-  return 1
 }
 
-prompt_conflict() {
-  local file="$2"
-  echo ""
-  log_warn "File already exists and was modified: $file"
-  echo "  [o] Overwrite with repo version"
-  echo "  [s] Skip (keep your version)"
-  echo "  [a] Abort installation"
-  echo ""
-  printf "Your choice [o/s/a]: "
-  local answer
-  read -r answer
-  case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    a|A) log_fail "Installation aborted by user."; exit 1 ;;
-    *)   log_fail "Invalid choice '$answer'. Aborting."; exit 1 ;;
-  esac
+show_help() {
+  echo "Usage: install.sh [flags]"
+  echo "Flags:"
+  echo "  --clone            Clone Lucy's exact config (lucy-config branch)"
+  echo "  --template         Use generic templates (default)"
+  echo "  --tag <version>    Install a specific release (e.g. v1.0.0)"
+  echo "  --skip-clawhub    Skip ClawHub skill installation"
+  echo "  --skip-workspace  Skip workspace seeding"
+  echo "  --force            Overwrite conflicting files without prompting"
+  echo "  --force-stash      Stash local changes before pulling"
+  echo "  --quiet, -q        Suppress informational output"
+  echo "  --dry-run          Show what would be done without making changes"
+  echo "  --version          Show version and exit"
+  echo "  --help, -h         Show this help"
 }
 
-prompt_skill_conflict() {
-  local skill="$1"
+show_version() {
+  echo "lucy-agent installer v${CURRENT_VERSION}"
   echo ""
-  log_warn "Skill already exists and may be modified: $skill"
-  echo "  [o] Overwrite (use repo version)"
-  echo "  [s] Skip (keep your version)"
+  if [ -f "$VERSION_FILE" ]; then
+    echo "Installed version:"
+    # shellcheck source=scripts/common.sh
+    source "${SCRIPT_DIR}/scripts/common.sh" 2>/dev/null || true
+    local branch tag version
+    branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+    tag=$(grep '"tag"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' | grep -v 'null' || true)
+    version=$(grep '"version"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+    echo "  Branch:  ${branch:-unknown}"
+    echo "  Tag:    ${tag:-none}"
+    echo "  Version: ${version:-unknown}"
+  else
+    echo "Not installed (or no .version file)"
+  fi
   echo ""
-  printf "Your choice [o/s]: "
-  local answer
-  read -r answer
-  case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    *)   return 1 ;;
-  esac
+  echo "Latest remote:"
+  git ls-remote --tags "$LUCY_REPO" 2>/dev/null | awk -F/ '{print $3}' | grep -v '\^{}$' | sort -V | tail -1 | xargs -I{} echo "  Latest tag: {}" || echo "  (could not fetch)"
 }
 
 prompt_install_mode() {
@@ -153,39 +174,6 @@ prompt_install_mode() {
 }
 
 # ---------------------------------------------------------------------------
-# Flags parsing
-# ---------------------------------------------------------------------------
-parse_flags() {
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --clone)          CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
-      --template)        CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
-      --skip-clawhub)   SKIP_CLAWHUB=true; shift ;;
-      --skip-workspace)  SKIP_WORKSPACE=true; shift ;;
-      --force)           FORCE=true; shift ;;
-      --dry-run)         DRY_RUN=true; shift ;;
-      --help|-h)
-        echo "Usage: install.sh [flags]"
-        echo "Flags:"
-        echo "  --clone          Clone Lucy's exact config (lucy-config branch)"
-        echo "  --template       Use generic templates (default)"
-        echo "  --skip-clawhub   Skip ClawHub skill installation"
-        echo "  --skip-workspace Skip workspace seeding"
-        echo "  --force          Overwrite conflicting files without prompting"
-        echo "  --dry-run        Show what would be done without making changes"
-        echo "  --help, -h       Show this help"
-        exit 0
-        ;;
-      *)
-        log_fail "Unknown flag: $1"
-        echo "Usage: install.sh [--clone|--template] [--skip-clawhub] [--skip-workspace] [--force] [--dry-run]"
-        exit 1
-        ;;
-    esac
-  done
-}
-
-# ---------------------------------------------------------------------------
 # Step 1: Detect environment
 # ---------------------------------------------------------------------------
 step_detect_openclaw() {
@@ -207,21 +195,101 @@ step_detect_openclaw() {
 # ---------------------------------------------------------------------------
 step_clone_or_pull() {
   log_step "Step 2: Fetching lucy-agent repository"
-  log_info "Branch: $LUCY_BRANCH"
+
+  local skip_pull=false
+  local did_stash=false
+
+  # Handle specific tag
+  if [ -n "$SPECIFIC_TAG" ]; then
+    LUCY_BRANCH="tags/$SPECIFIC_TAG"
+    log_info "Target: specific tag $SPECIFIC_TAG"
+  else
+    log_info "Branch: $LUCY_BRANCH"
+  fi
+
   if [ -d "$LUCY_DIR/.git" ]; then
     log_info "lucy-agent already installed at $LUCY_DIR"
-    log_info "Running git pull to update..."
-    if ! $DRY_RUN; then
-      cd "$LUCY_DIR" && git pull origin "$LUCY_BRANCH"
+
+    # Stash local changes if requested/needed
+    if git_is_dirty "$LUCY_DIR"; then
+      if $FORCE_STASH; then
+        log_info "Stashing local changes (--force-stash)..."
+        git -C "$LUCY_DIR" stash push -m "lucy-agent pre-install stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        did_stash=true
+      elif $FORCE; then
+        if ! git_stash_and_pull "$LUCY_DIR" "install"; then
+          skip_pull=true
+        fi
+      else
+        log_warn "Local changes detected in $LUCY_DIR"
+        echo "  [1] Stash changes, pull, then restore"
+        echo "  [2] Skip pull (keep local version)"
+        echo "  [3] Abort"
+        echo ""
+        printf "Your choice [1/2/3]: "
+        local answer
+        read -r answer
+        case "$answer" in
+          1)
+            log_info "Stashing and pulling..."
+            git -C "$LUCY_DIR" stash push -m "lucy-agent pre-install stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            did_stash=true
+            ;;
+          2) log_info "Skipping pull..."; skip_pull=true ;;
+          *) log_fail "Installation aborted."; exit 1 ;;
+        esac
+      fi
     fi
-    log_ok "Updated to latest $LUCY_BRANCH"
+
+    if ! $DRY_RUN && ! $skip_pull; then
+      cd "$LUCY_DIR" && git fetch --tags origin 2>/dev/null || true
+      if [ -n "$SPECIFIC_TAG" ]; then
+        if ! git checkout "$SPECIFIC_TAG" 2>/dev/null; then
+          log_fail "Tag '$SPECIFIC_TAG' not found"
+          exit 1
+        fi
+      else
+        git pull origin "${LUCY_BRANCH#tags/}"
+      fi
+    fi
+
+    # Restore stashed changes if any were stashed
+    if $did_stash || [ "${STASHED_CHANGES:-0}" = "1" ]; then
+      if git -C "$LUCY_DIR" stash pop 2>/dev/null; then
+        log_info "Restored local changes from stash"
+      else
+        log_warn "Could not pop stash (conflicts may exist). Run: git stash list"
+      fi
+    fi
+
+    log_ok "Updated to $LUCY_BRANCH"
   else
     log_info "Cloning lucy-agent into $LUCY_DIR"
     if ! $DRY_RUN; then
       mkdir -p "$(dirname "$LUCY_DIR")"
-      git clone --branch "$LUCY_BRANCH" --depth 1 "$LUCY_REPO" "$LUCY_DIR"
+      git clone --branch "${LUCY_BRANCH#tags/}" --tags --progress \
+        "$LUCY_REPO" "$LUCY_DIR" 2>&1 | \
+        while IFS= read -r line; do
+          log_info "$line"
+        done
     fi
     log_ok "Cloned lucy-agent ($LUCY_BRANCH)"
+  fi
+
+  # Write version file
+  if ! $DRY_RUN; then
+    local installed_branch
+    if [ -n "$SPECIFIC_TAG" ]; then
+      # When installing a specific tag, we're on detached HEAD;
+      # record 'main' as the logical branch for future updates
+      installed_branch="main"
+    elif [ "$CLONE_MODE" = true ]; then
+      installed_branch="lucy-config"
+    else
+      installed_branch="${LUCY_BRANCH#tags/}"
+    fi
+    write_version_file "$VERSION_FILE" "$installed_branch" "${SPECIFIC_TAG:-}" "$CURRENT_VERSION"
+    log_info "Version file written: $VERSION_FILE"
   fi
 }
 
@@ -248,7 +316,6 @@ step_seed_workspace() {
     local filename
     filename="$(basename "$file")"
 
-    # Security: skip excluded files
     if is_excluded "$filename"; then
       log_info "Skipped (excluded): $filename"
       continue
@@ -259,13 +326,11 @@ step_seed_workspace() {
     local existing_sum; existing_sum=$(sha256_check "$dest")
 
     if [ -z "$existing_sum" ]; then
-      # File doesn't exist — copy
       if ! $DRY_RUN; then
         cp "$file" "$dest"
       fi
       log_ok "Created $filename"
     elif [ "$existing_sum" != "$repo_sum" ]; then
-      # File exists and differs
       if $FORCE; then
         if ! $DRY_RUN; then
           cp "$file" "$dest"
@@ -313,7 +378,6 @@ step_install_bundled_skills() {
     fi
 
     if [ -d "$dest" ]; then
-      # Skill exists — check if modified
       local existing_sum; existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
       local repo_sum; repo_sum=$(sha256_check "$skill_file")
       if [ "$existing_sum" != "$repo_sum" ]; then
@@ -363,7 +427,6 @@ step_install_clawhub_skills() {
   local installed=0
   local failed=0
   while IFS= read -r skill || [ -n "$skill" ]; do
-    # Skip empty lines and comments
     [[ -z "$skill" ]] && continue
     [[ "$skill" =~ ^# ]] && continue
     skill=$(echo "$skill" | xargs)
@@ -428,6 +491,8 @@ step_report() {
   local mode_label="generic templates"
   if $CLONE_MODE; then
     mode_label="Lucy's config (clone mode)"
+  elif [ -n "$SPECIFIC_TAG" ]; then
+    mode_label="specific tag $SPECIFIC_TAG"
   fi
 
   echo ""
@@ -436,9 +501,10 @@ step_report() {
   echo -e "${GREEN}================================================================${NC}"
   echo ""
   echo -e "Mode:         ${BLUE}$mode_label${NC}"
+  echo -e "Version:      ${BLUE}${CURRENT_VERSION}${NC}"
   echo -e "Repo:         ${BLUE}${LUCY_DIR}${NC}"
   echo -e "Workspace:    ${BLUE}${WORKSPACE_DIR}${NC}"
-  echo -e "Skills:      ${BLUE}${SKILLS_DIR}${NC}"
+  echo -e "Skills:       ${BLUE}${SKILLS_DIR}${NC}"
   echo ""
   echo -e "Update later:"
   echo -e "  cd ${LUCY_DIR} && ./update.sh"
@@ -456,20 +522,18 @@ main() {
   echo -e "${GREEN}lucy-agent installer${NC}"
   echo -e "Repo: $LUCY_REPO"
   echo ""
-  if $DRY_RUN; then
-    log_info "DRY-RUN mode — no changes will be made"
-  fi
 
   parse_flags "$@"
 
   # Interactive prompt if no mode flags were passed and stdin is a terminal
-  if ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && $INTERACTIVE_PROMPT; then
+  if ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && [ -z "$SPECIFIC_TAG" ] && $INTERACTIVE_PROMPT; then
     prompt_install_mode
-  elif ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && ! $INTERACTIVE_PROMPT; then
-    # Piped install with no mode flags → default to template, non-interactive
+  elif ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && [ -z "$SPECIFIC_TAG" ] && ! $INTERACTIVE_PROMPT; then
     CLONE_MODE=false
     LUCY_BRANCH="main"
     log_info "Mode: Generic templates (non-interactive, use --clone for Lucy's config)"
+  elif [ -n "$SPECIFIC_TAG" ]; then
+    log_info "Mode: Specific tag ($SPECIFIC_TAG)"
   elif $CLONE_MODE; then
     log_info "Mode: Clone Lucy's config"
   else

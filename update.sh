@@ -5,45 +5,51 @@
 # Usage:
 #   cd ~/.openclaw/lucy-agent && ./update.sh
 #   cd ~/.openclaw/lucy-agent && ./update.sh --tag v1.2.3
-#   cd ~/.openclaw/lucy-agent && ./update.sh --tag v1.2.3 --force
+#   cd ~/.openclaw/lucy-agent && ./update.sh --force
 #
 # Flags:
-#   --tag <version>   Pin to a specific semver tag (e.g. v1.0.0)
+#   --tag <version>   Override: pin to a specific semver tag (e.g. v1.0.0)
 #   --force           Overwrite conflicting files without prompting
+#   --force-stash     Stash local changes before pulling
 #   --dry-run         Show what would be done without making changes
+#   --version         Show current version and exit
 # =============================================================================
 
 set -euo pipefail
 
+# Load shared helpers
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/common.sh
+source "${SCRIPT_DIR}/scripts/common.sh"
+
 LUCY_DIR="${HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+VERSION_FILE="${LUCY_DIR}/.version"
+CURRENT_VERSION="1.2.0"
 
 TAG=""
 FORCE=false
+FORCE_STASH=false
 DRY_RUN=false
+QUIET=false
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-log_info()  { echo -e "${BLUE}[INFO]${NC} $*"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}   $*"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_fail()  { echo -e "${RED}[FAIL]${NC} $*"; }
-log_step()  { echo -e "\n${GREEN}==>${NC} $*"; }
-
-sha256_check() {
-  local file="$1"
-  if [ -f "$file" ]; then
-    sha256sum "$file" | cut -d' ' -f1
+# Override log_info and log_step to respect --quiet
+log_info() {
+  if ! $QUIET; then
+    echo -e "${BLUE}[INFO]${NC} $*"
   fi
 }
 
+log_step() {
+  if ! $QUIET; then
+    echo -e "\n${GREEN}==>${NC} $*"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Helpers (override common.sh for update-specific behavior)
+# ---------------------------------------------------------------------------
 prompt_skill_conflict() {
   local skill="$1"
   echo ""
@@ -85,18 +91,51 @@ parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --tag)
+        if [[ -z "${2:-}" ]]; then
+          log_fail "--tag requires a value (e.g. --tag v1.0.0)"
+          exit 1
+        fi
         TAG="$2"; shift 2 ;;
       --force)
         FORCE=true; shift ;;
+      --force-stash)
+        FORCE_STASH=true; FORCE=true; shift ;;
       --dry-run)
         DRY_RUN=true; shift ;;
+      --quiet|-q)
+        QUIET=true; shift ;;
+      --version)
+        show_version; exit 0 ;;
       *)
         log_fail "Unknown flag: $1"
-        echo "Usage: update.sh [--tag <version>] [--force] [--dry-run]"
+        echo "Usage: update.sh [--tag <version>] [--force] [--dry-run] [--version]"
         exit 1
         ;;
     esac
   done
+}
+
+show_version() {
+  echo "lucy-agent updater v${CURRENT_VERSION}"
+  echo ""
+  if [ -f "$VERSION_FILE" ]; then
+    local branch tag version installed_at
+    branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+    tag=$(grep '"tag"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' | grep -v 'null' || true)
+    version=$(grep '"version"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+    installed_at=$(grep '"installed_at"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+    echo "Installed:"
+    echo "  Branch:    ${branch:-unknown}"
+    echo "  Tag:      ${tag:-none}"
+    echo "  Version:  ${version:-unknown}"
+    echo "  At:       ${installed_at:-unknown}"
+  else
+    echo "No .version file found (pre-v1.2.0 install?)"
+  fi
+  echo ""
+  echo "Remote tags:"
+  git ls-remote --tags "https://github.com/camiloandresgtruniandes/lucy-agent" 2>/dev/null | \
+    awk -F/ '{print $3}' | grep -v '\\^{}$' | sort -V | tail -5 | xargs -I{} echo "  {}" || echo "  (could not fetch)"
 }
 
 # ---------------------------------------------------------------------------
@@ -111,30 +150,128 @@ step_verify_installed() {
   fi
   log_ok "lucy-agent found at $LUCY_DIR"
   cd "$LUCY_DIR"
-  log_info "Current branch/tag: $(git branch --show-current 2>/dev/null || git describe --tags 2>/dev/null || echo 'unknown')"
+
+  # Detect current state
+  local current_branch
+  current_branch=$(git branch --show-current 2>/dev/null || echo "")
+  if [ -z "$current_branch" ]; then
+    # Detached HEAD (tag)
+    current_branch="(tag: $(git describe --tags 2>/dev/null || 'unknown'))"
+  fi
+  log_info "Current branch/tag: $current_branch"
 }
 
 # ---------------------------------------------------------------------------
-# Step 2: Git pull or checkout tag
+# Step 2: Git pull or checkout tag — respects .version branch
 # ---------------------------------------------------------------------------
 step_git_update() {
   log_step "Step 2: Updating git repository"
+
+  local skip_pull=false
+  local did_stash=false
+
+  # Determine target branch from .version file or --tag flag
+  local target_branch=""
+  local target_tag=""
+
   if [ -n "$TAG" ]; then
-    log_info "Checking out tag: $TAG"
-    if ! $DRY_RUN; then
-      if ! git checkout "tags/$TAG" 2>/dev/null; then
-        log_fail "Tag '$TAG' not found"
+    target_tag="$TAG"
+    target_branch="tags/$TAG"
+    log_info "Override: targeting specific tag $TAG"
+  elif [ -f "$VERSION_FILE" ]; then
+    # Read branch from .version
+    local stored_branch stored_tag
+    stored_branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+    stored_tag=$(grep '"tag"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' | grep -v 'null' || true)
+    if [ -n "$stored_tag" ]; then
+      target_tag="$stored_tag"
+      target_branch="tags/$stored_tag"
+      log_info "Version file: targeting tag $stored_tag (from $stored_branch)"
+    elif [ -n "$stored_branch" ]; then
+      target_branch="$stored_branch"
+      log_info "Version file: targeting branch $stored_branch"
+    fi
+  fi
+
+  # Default to current branch if nothing found
+  if [ -z "$target_branch" ]; then
+    target_branch=$(git branch --show-current 2>/dev/null || echo "main")
+    if [ -z "$target_branch" ]; then
+      target_branch="main"
+    fi
+    log_info "No .version file; targeting current branch: $target_branch"
+  fi
+
+  # Handle local changes
+  if git_is_dirty "$LUCY_DIR"; then
+    if $FORCE_STASH; then
+      log_info "Stashing local changes (--force-stash)..."
+      git -C "$LUCY_DIR" stash push -m "lucy-agent pre-update stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      did_stash=true
+    elif $FORCE; then
+      if ! git_stash_and_pull "$LUCY_DIR" "update"; then
+        skip_pull=true
+      fi
+    else
+      log_warn "Local changes detected in $LUCY_DIR"
+      echo "  [1] Stash changes, pull, then restore"
+      echo "  [2] Skip pull (keep local version)"
+      echo "  [3] Abort"
+      echo ""
+      printf "Your choice [1/2/3]: "
+      local answer
+      read -r answer
+      case "$answer" in
+        1)
+          log_info "Stashing and pulling..."
+          git -C "$LUCY_DIR" stash push -m "lucy-agent pre-update stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          did_stash=true
+          ;;
+        2) log_info "Skipping pull..."; skip_pull=true ;;
+        *) log_fail "Update aborted."; exit 1 ;;
+      esac
+    fi
+  fi
+
+  if ! $DRY_RUN && ! $skip_pull; then
+    git -C "$LUCY_DIR" fetch --tags origin 2>/dev/null || true
+    if [ -n "$target_tag" ]; then
+      if ! git -C "$LUCY_DIR" checkout "$target_tag" 2>/dev/null; then
+        log_fail "Tag '$target_tag' not found"
         exit 1
       fi
+    else
+      # Checkout target branch first to avoid merging into wrong branch
+      git -C "$LUCY_DIR" checkout "$target_branch" 2>/dev/null || true
+      git -C "$LUCY_DIR" pull origin "$target_branch" 2>/dev/null || log_fail "Failed to pull $target_branch"
     fi
-    log_ok "Checked out: $TAG"
-  else
-    log_info "Pulling latest from main branch"
-    if ! $DRY_RUN; then
-      git pull origin main
-    fi
-    log_ok "Updated to latest main"
   fi
+
+  # Restore stashed changes if any were stashed
+  if $did_stash || [ "${STASHED_CHANGES:-0}" = "1" ]; then
+    if git -C "$LUCY_DIR" stash pop 2>/dev/null; then
+      log_info "Restored local changes from stash"
+    else
+      log_warn "Could not pop stash (conflicts may exist). Run: git stash list"
+    fi
+  fi
+
+  if ! $skip_pull; then
+    # Update .version file
+    local version_branch
+    if [ -n "$target_tag" ]; then
+      # When targeting a tag, record the original branch, not the tag name
+      version_branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' || echo "")
+      version_branch="${version_branch:-main}"
+    elif [ -f "$VERSION_FILE" ]; then
+      version_branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' || echo "")
+      version_branch="${version_branch:-main}"
+    else
+      version_branch="${target_branch#tags/}"
+    fi
+    write_version_file "$VERSION_FILE" "$version_branch" "${target_tag:-}" "$CURRENT_VERSION"
+  fi
+  log_ok "Updated to $target_branch"
 }
 
 # ---------------------------------------------------------------------------
@@ -161,14 +298,12 @@ step_sync_bundled_skills() {
     fi
 
     if [ ! -d "$dest" ]; then
-      # New skill
       if ! $DRY_RUN; then
         mkdir -p "$SKILLS_DIR" && cp -r "$skill_dir" "$dest"
       fi
       log_ok "New skill installed: $skill_name"
       installed=$((installed + 1))
     else
-      # Existing — check if modified
       local existing_sum; existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
       local repo_sum; repo_sum=$(sha256_check "$skill_file")
 
@@ -192,7 +327,6 @@ step_sync_bundled_skills() {
           fi
         fi
       else
-        # Unchanged — still sync in case files were added
         if ! $DRY_RUN; then
           cp -u "$skill_dir"/* "$dest/" 2>/dev/null || true
         fi
