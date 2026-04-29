@@ -10,7 +10,8 @@ Skills define _how_ tools work. This file is for _your_ specifics — things uni
 
 ### OpenClaw Session
 
-- **Thinking level**: Can be set per-session from the dashboard/web UI (chat settings). Currently: high.
+- **Thinking level**: `high` — OBLIGATORIO para TODOS los cambios de código, arquitectura y decisiones técnicas. Solo bajar a `low` o `off` cuando sea solo conversación casual.
+- Can be set per-session from the dashboard/web UI (chat settings). Currently: high.
 
 ### What goes here
 
