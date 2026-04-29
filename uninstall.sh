@@ -98,6 +98,7 @@ step_verify_installed() {
 # Step 2: Confirmation prompt
 # ---------------------------------------------------------------------------
 step_confirm() {
+  log_step "Step 2: Confirmation prompt"
   if $FORCE; then
     log_info "Running in --force mode (no confirmation required)"
     return
@@ -137,7 +138,7 @@ step_confirm() {
 # Step 3: Remove lucy-agent repo
 # ---------------------------------------------------------------------------
 step_remove_repo() {
-  log_step "Step 2: Removing lucy-agent repository"
+  log_step "Step 3: Removing lucy-agent repository"
   if [ -d "$LUCY_DIR" ]; then
     if ! $DRY_RUN; then
       rm -rf "$LUCY_DIR"
@@ -153,11 +154,11 @@ step_remove_repo() {
 # ---------------------------------------------------------------------------
 step_remove_skills() {
   if $KEEP_SKILLS; then
-    log_step "Step 3: Skipping skill removal (--keep-skills)"
+    log_step "Step 4: Skipping skill removal (--keep-skills)"
     return
   fi
 
-  log_step "Step 3: Removing bundled skills"
+  log_step "Step 4: Removing bundled skills"
   local removed=0
   for skill in $BUNDLED_SKILLS; do
     local skill_path="${SKILLS_DIR}/${skill}"
@@ -177,11 +178,11 @@ step_remove_skills() {
 # ---------------------------------------------------------------------------
 step_remove_workspace() {
   if $KEEP_WORKSPACE; then
-    log_step "Step 4: Skipping workspace seed removal (--keep-workspace)"
+    log_step "Step 5: Skipping workspace seed removal (--keep-workspace)"
     return
   fi
 
-  log_step "Step 4: Removing workspace seed files"
+  log_step "Step 5: Removing workspace seed files"
   local removed=0
   for file in $WORKSPACE_SEEDS; do
     local file_path="${WORKSPACE_DIR}/${file}"
@@ -200,7 +201,7 @@ step_remove_workspace() {
 # Step 6: Final instructions
 # ---------------------------------------------------------------------------
 step_final_instructions() {
-  log_step "Step 5: Final notes"
+  log_step "Step 6: Final notes"
   echo ""
   echo -e "${YELLOW}NOTE:${NC} The following were NOT modified:"
   echo "  • Your openclaw.json (you may want to remove the \$include line)"

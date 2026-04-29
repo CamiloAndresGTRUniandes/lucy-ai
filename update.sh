@@ -91,6 +91,10 @@ parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --tag)
+        if [[ -z "${2:-}" ]]; then
+          log_fail "--tag requires a value (e.g. --tag v1.0.0)"
+          exit 1
+        fi
         TAG="$2"; shift 2 ;;
       --force)
         FORCE=true; shift ;;
@@ -131,7 +135,7 @@ show_version() {
   echo ""
   echo "Remote tags:"
   git ls-remote --tags "https://github.com/camiloandresgtruniandes/lucy-agent" 2>/dev/null | \
-    awk -F/ '{print $3}' | sort -V | tail -5 | xargs -I{} echo "  {}" || echo "  (could not fetch)"
+    awk -F/ '{print $3}' | grep -v '\\^{}$' | sort -V | tail -5 | xargs -I{} echo "  {}" || echo "  (could not fetch)"
 }
 
 # ---------------------------------------------------------------------------
@@ -162,6 +166,9 @@ step_verify_installed() {
 # ---------------------------------------------------------------------------
 step_git_update() {
   log_step "Step 2: Updating git repository"
+
+  local skip_pull=false
+  local did_stash=false
 
   # Determine target branch from .version file or --tag flag
   local target_branch=""
@@ -200,8 +207,11 @@ step_git_update() {
     if $FORCE_STASH; then
       log_info "Stashing local changes (--force-stash)..."
       git -C "$LUCY_DIR" stash push -m "lucy-agent pre-update stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      did_stash=true
     elif $FORCE; then
-      git_stash_and_pull "$LUCY_DIR" "update"
+      if ! git_stash_and_pull "$LUCY_DIR" "update"; then
+        skip_pull=true
+      fi
     else
       log_warn "Local changes detected in $LUCY_DIR"
       echo "  [1] Stash changes, pull, then restore"
@@ -215,14 +225,15 @@ step_git_update() {
         1)
           log_info "Stashing and pulling..."
           git -C "$LUCY_DIR" stash push -m "lucy-agent pre-update stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          did_stash=true
           ;;
-        2) log_info "Skipping pull..."; return ;;
+        2) log_info "Skipping pull..."; skip_pull=true ;;
         *) log_fail "Update aborted."; exit 1 ;;
       esac
     fi
   fi
 
-  if ! $DRY_RUN; then
+  if ! $DRY_RUN && ! $skip_pull; then
     git -C "$LUCY_DIR" fetch --tags origin 2>/dev/null || true
     if [ -n "$target_tag" ]; then
       if ! git -C "$LUCY_DIR" checkout "$target_tag" 2>/dev/null; then
@@ -230,11 +241,35 @@ step_git_update() {
         exit 1
       fi
     else
-      git -C "$LUCY_DIR" pull origin "$target_branch"
+      # Checkout target branch first to avoid merging into wrong branch
+      git -C "$LUCY_DIR" checkout "$target_branch" 2>/dev/null || true
+      git -C "$LUCY_DIR" pull origin "$target_branch" 2>/dev/null || log_fail "Failed to pull $target_branch"
     fi
+  fi
 
+  # Restore stashed changes if any were stashed
+  if $did_stash || [ "${STASHED_CHANGES:-0}" = "1" ]; then
+    if git -C "$LUCY_DIR" stash pop 2>/dev/null; then
+      log_info "Restored local changes from stash"
+    else
+      log_warn "Could not pop stash (conflicts may exist). Run: git stash list"
+    fi
+  fi
+
+  if ! $skip_pull; then
     # Update .version file
-    write_version_file "$VERSION_FILE" "${target_branch#tags/}" "${target_tag:-}" "$CURRENT_VERSION"
+    local version_branch
+    if [ -n "$target_tag" ]; then
+      # When targeting a tag, record the original branch, not the tag name
+      version_branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' || echo "")
+      version_branch="${version_branch:-main}"
+    elif [ -f "$VERSION_FILE" ]; then
+      version_branch=$(grep '"branch"' "$VERSION_FILE" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' || echo "")
+      version_branch="${version_branch:-main}"
+    else
+      version_branch="${target_branch#tags/}"
+    fi
+    write_version_file "$VERSION_FILE" "$version_branch" "${target_tag:-}" "$CURRENT_VERSION"
   fi
   log_ok "Updated to $target_branch"
 }

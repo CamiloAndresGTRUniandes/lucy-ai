@@ -109,7 +109,7 @@ is_excluded() {
 }
 
 # Check if git repo has uncommitted changes
-# Returns 0 if clean, 1 if dirty
+# Returns 0 if dirty (has changes), 1 if clean
 git_is_dirty() {
   if [ -d "$1/.git" ]; then
     if [ -n "$(git -C "$1" status --short 2>/dev/null)" ]; then
@@ -173,7 +173,7 @@ read_version_file() {
   # Simple JSON read without jq
   local branch tag version installed_at
   branch=$(grep '"branch"' "$version_file" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
-  tag=$(grep '"tag"' "$version_file" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' | grep -v 'null')
+  tag=$(grep '"tag"' "$version_file" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/' | grep -v 'null' || true)
   version=$(grep '"version"' "$version_file" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
   installed_at=$(grep '"installed_at"' "$version_file" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
   echo "{"
@@ -192,10 +192,16 @@ write_version_file() {
   local tag="${3:-}"
   local version="$4"
   local installed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  local tag_json
+  if [ -n "$tag" ]; then
+    tag_json="\"$tag\""
+  else
+    tag_json="null"
+  fi
   cat > "$version_file" <<EOF
 {
   "branch": "$branch",
-  "tag": ${tag:+"\"$tag\""}${tag:-null},
+  "tag": $tag_json,
   "version": "$version",
   "installed_at": "$installed_at"
 }
