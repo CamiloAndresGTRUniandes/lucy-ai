@@ -88,6 +88,10 @@ parse_flags() {
       --clone)          CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
       --template)        CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
       --tag)
+        if [[ -z "${2:-}" ]]; then
+          log_fail "--tag requires a value (e.g. --tag v1.0.0)"
+          exit 1
+        fi
         SPECIFIC_TAG="$2"; shift 2 ;;
       --skip-clawhub)   SKIP_CLAWHUB=true; shift ;;
       --skip-workspace)  SKIP_WORKSPACE=true; shift ;;
@@ -143,7 +147,7 @@ show_version() {
   fi
   echo ""
   echo "Latest remote:"
-  git ls-remote --tags "$LUCY_REPO" 2>/dev/null | awk -F/ '{print $3}' | sort -V | tail -1 | xargs -I{} echo "  Latest tag: {}" || echo "  (could not fetch)"
+  git ls-remote --tags "$LUCY_REPO" 2>/dev/null | awk -F/ '{print $3}' | grep -v '\^{}$' | sort -V | tail -1 | xargs -I{} echo "  Latest tag: {}" || echo "  (could not fetch)"
 }
 
 prompt_install_mode() {
@@ -192,6 +196,9 @@ step_detect_openclaw() {
 step_clone_or_pull() {
   log_step "Step 2: Fetching lucy-agent repository"
 
+  local skip_pull=false
+  local did_stash=false
+
   # Handle specific tag
   if [ -n "$SPECIFIC_TAG" ]; then
     LUCY_BRANCH="tags/$SPECIFIC_TAG"
@@ -208,8 +215,11 @@ step_clone_or_pull() {
       if $FORCE_STASH; then
         log_info "Stashing local changes (--force-stash)..."
         git -C "$LUCY_DIR" stash push -m "lucy-agent pre-install stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        did_stash=true
       elif $FORCE; then
-        git_stash_and_pull "$LUCY_DIR" "install"
+        if ! git_stash_and_pull "$LUCY_DIR" "install"; then
+          skip_pull=true
+        fi
       else
         log_warn "Local changes detected in $LUCY_DIR"
         echo "  [1] Stash changes, pull, then restore"
@@ -223,14 +233,15 @@ step_clone_or_pull() {
           1)
             log_info "Stashing and pulling..."
             git -C "$LUCY_DIR" stash push -m "lucy-agent pre-install stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            did_stash=true
             ;;
-          2) log_info "Skipping pull..." ;;
+          2) log_info "Skipping pull..."; skip_pull=true ;;
           *) log_fail "Installation aborted."; exit 1 ;;
         esac
       fi
     fi
 
-    if ! $DRY_RUN; then
+    if ! $DRY_RUN && ! $skip_pull; then
       cd "$LUCY_DIR" && git fetch --tags origin 2>/dev/null || true
       if [ -n "$SPECIFIC_TAG" ]; then
         if ! git checkout "$SPECIFIC_TAG" 2>/dev/null; then
@@ -241,6 +252,16 @@ step_clone_or_pull() {
         git pull origin "${LUCY_BRANCH#tags/}"
       fi
     fi
+
+    # Restore stashed changes if any were stashed
+    if $did_stash || [ "${STASHED_CHANGES:-0}" = "1" ]; then
+      if git -C "$LUCY_DIR" stash pop 2>/dev/null; then
+        log_info "Restored local changes from stash"
+      else
+        log_warn "Could not pop stash (conflicts may exist). Run: git stash list"
+      fi
+    fi
+
     log_ok "Updated to $LUCY_BRANCH"
   else
     log_info "Cloning lucy-agent into $LUCY_DIR"
@@ -257,7 +278,16 @@ step_clone_or_pull() {
 
   # Write version file
   if ! $DRY_RUN; then
-    local installed_branch="${LUCY_BRANCH#tags/}"
+    local installed_branch
+    if [ -n "$SPECIFIC_TAG" ]; then
+      # When installing a specific tag, we're on detached HEAD;
+      # record 'main' as the logical branch for future updates
+      installed_branch="main"
+    elif [ "$CLONE_MODE" = true ]; then
+      installed_branch="lucy-config"
+    else
+      installed_branch="${LUCY_BRANCH#tags/}"
+    fi
     write_version_file "$VERSION_FILE" "$installed_branch" "${SPECIFIC_TAG:-}" "$CURRENT_VERSION"
     log_info "Version file written: $VERSION_FILE"
   fi
