@@ -1,16 +1,31 @@
-# 🦁 lucy-agent
+<div align="center">
 
-<!-- HEADER_START -->
+```
+  _      ____ ____   ____ _   _ _____  ______ ____ _____ _   _  ____  
+ | |    / ___/ ___| / ___| | | |_   _|| ____/ ___|_   _| \ | |/ ___| 
+ | |   | |  | |    | |   | |_| | | |  |  _|| |     | | |  \| | |  _  
+ | |___| |__| |___ | |___|  _  | | |  | |__| |___  | | | |\  | |_| | 
+ |_____|____\____| \____|_| |_| |_|  |_____\____| |_| |_| \_|\____| 
+                                                                     
+```
+
+</div>
+
 <p align="center">
-  <img src="https://img.shields.io/badge/AI%20Agent-Lucy%20&%20Co.-30%25?style=for-the-badge&logo=robot&logoColor=%2300C853" alt="Lucy-ai">
-  <img src="https://img.shields.io/badge/OpenClaw-Powered-0D1117?style=for-the-badge&logo=claw&logoColor=%2300C853" alt="OpenClaw">
-  <img src="https://img.shields.io/badge/License-MIT-30%25?style=for-the-badge&logo=scroll&logoColor=%2300C853" alt="MIT">
-  <img src="https://img.shields.io/badge/Version-1.3.0-0D1117?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.3.0">
+  <sup><i>under the coding yield</i></sup>
 </p>
 
 <p align="center">
   <strong>Your AI colleague, deployed like your code.</strong><br>
-  A fully installable agent ecosystem for OpenClaw — with personality, skills, and conventions ready to go.
+  A fully installable agent ecosystem for OpenClaw — with personality, skills,<br>
+  and conventions ready to go.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/SDD-Agent-0D1117?style=for-the-badge&logoColor=%2300C853" alt="SDD Agent">
+  <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
+  <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
+  <img src="https://img.shields.io/badge/Version-1.3.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.3.0">
 </p>
 
 ---
