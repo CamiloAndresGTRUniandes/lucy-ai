@@ -258,7 +258,9 @@ para mantener contexto limpio y modelo correcto por fase.
 - Apply → Pro, `context: isolated`
 
 **Fases directas (Lucy):**
-- Propose (Pro) y Archive (Flash) — no se delegan
+- Propose (Pro) — no se delega
+- PR Review + Address Changes — Lucy maneja el feedback directo
+- Archive (Flash) — solo cuando PR está mergeado o Camilo decide cerrar
 
 **Reglas inquebrantables:**
 - Sub-agentes **nunca** hacen git commits — solo Lucy tras revisión con Camilo
@@ -266,6 +268,7 @@ para mantener contexto limpio y modelo correcto por fase.
 - Camilo aprueba Spec y Design explícitamente antes de continuar
 - Artefactos en `sdd/{project}/{feature}/` con templates estandarizados
 - Validación estricta de outputs: fail si falta sección requerida
+- **Archive es condicional al merge de PR** — no archivar hasta que PR esté mergeado o Camilo decida cerrar
 
 ## Git Branching Policy (OBLIGATORIO)
 

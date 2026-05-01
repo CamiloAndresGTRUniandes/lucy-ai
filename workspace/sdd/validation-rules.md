@@ -98,6 +98,23 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 - Cada checklist debe tener al menos 1 item con ✅ o ❌
 - Final Verdict debe ser explícito (✅ Aprobado / ❌ Rechazado)
 
+### PR Review (post-Verify, antes de Archive)
+
+**NO NEGOCIABLE:** Esta fase no se delega. Lucy maneja el feedback directo.
+
+**Validación de feedback de Camilo:**
+1. Leer comments de la PR (Lucy lo hace manual)
+2. Clasificar cada comment:
+   - **Minor** → fix directo sin re-delegar
+   - **Moderate** → Tasks → Apply → Verify (delegado)
+   - **Major** → Spec → Design → Tasks → Apply → Verify (ciclo completo)
+3. Proponer clasificación a Camilo antes de actuar
+4. Documentar cada comment resuelto en ARCHIVE.md
+
+**Condición para Archive:**
+- [ ] PR mergeada en main/develop, O
+- [ ] Camilo decide explícitamente cerrar el ciclo (con rationale en state.json)
+
 ---
 
 ## Formato de Reporte de Validación

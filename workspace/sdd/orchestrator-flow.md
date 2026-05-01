@@ -32,6 +32,8 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 | Tasks | **Sí** | Flash | isolated |
 | Apply | **Sí** | Pro | isolated |
 | Verify | **Sí** | Flash | isolated |
+| PR Review | **No, Camilo human review** | — | — |
+| Address changes | **Lucy directo** | Pro/Flash | — |
 | Archive | **No, Lucy directo** | Flash | — |
 
 ---
@@ -141,9 +143,60 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 6. Si PASS → presenta diff/output a Camilo para revisión conjunta
 7. Si FAIL → retry
 
-**Nota:** Los sub-agentes NO comitean. Lucy revisa con Camilo y solo entonces hace commit via PR.
+**Nota:** Los sub-agentes NO comitean. Lucy revisa con Camilo, crea branch, commit, push y PR. Esto dispara Phase 7.5 (PR Review).
 
-### 7. Verify (delegado)
+### 7.5 PR Review and Address Changes (NO NEGOCIABLE)
+
+**Trigger:** Verify aprobado → PR creado → Camilo review.
+
+La review de la PR es parte del SDD cycle. **No se archive hasta que el PR está mergeado o Camilo decide cerrarlo.**
+
+#### Flujo de feedback
+
+```
+Verify → Lucy crea PR → Camilo review
+                                ↓
+               ┌────────────────┤
+               ↓                ↓
+         ¿Cambios?          ¿Approved?
+               │                │
+               Sí                Sí
+               ↓                 ↓
+      ┌────────┤          Archive (PR mergeado)
+      │        │
+  ¿Alcance?    │
+      │        │
+  Minor ───── Apply fix → Re-verify
+      │        │
+      ↓        ↓
+  Moderate ── Tasks → Apply → Verify
+      │
+      ↓
+  Major ── Spec → Design → Tasks → Apply → Verify
+```
+
+#### Reglas de clasificación:
+
+| Tipo de cambio | Ejemplo | Ruta |
+|---------------|---------|------|
+| **Minor** | Typos, naming, error msg, log level | Apply fix → Re-verify → Archive |
+| **Moderate** | Nueva variable/constante, cambio de validación | Tasks → Apply → Verify |
+| **Major** | Cambio de comportamiento, nuevo endpoint | Spec → Design → Tasks → Apply → Verify |
+
+**Lucy clasifica y presenta a Camilo:**
+
+> "Camilo, tus comments son minor (3 typos) y moderate (1 validation change).
+> Minor los resuelvo directo, moderate entra como T1 nuevo. ¿Dale?"
+
+**NO NEGOCIABLE:** Archive solo ocurre cuando:
+- PR mergeado, O
+- Camilo decide explícitamente cerrar el ciclo sin merge (con rationale documentado)
+
+---
+
+### 8. Archive (Lucy directo)
+
+**Trigger:** PR mergeado O Camilo decide cerrar ciclo explícitamente.
 
 **Trigger:** Apply completado.
 
@@ -163,7 +216,7 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 
 ### 8. Archive (Lucy directo)
 
-**Trigger:** Verify aprobado.
+**Trigger:** PR mergeado O Camilo decide cerrar ciclo explícitamente.
 
 **Lucy hace:**
 1. Mueve `sdd/{project}/{feature}/` → `sdd/{project}/{feature-dd/MM/YYYY}/`
@@ -175,6 +228,18 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 ---
 
 ## Manejo de Errores
+
+### Timeout personalizado por fase
+
+| Fase | Timeout | Rationale |
+|------|---------|-----------|
+| Spec | 300s | Flash, task estructurada, <5k tokens output |
+| Design | **600s** | Pro, fork, requiere leer todo el transcript previo |
+| Tasks | 300s | Flash, template estructurado |
+| Apply | **600s** | Pro, múltiples archivos, puede incluir tests |
+| Verify | 600s | Flash pero requiere leer múltiples inputs |
+
+---
 
 ### Timeout (>5 min sin completar)
 
@@ -231,3 +296,18 @@ Cada proyecto tiene su propio `sdd/{project}/state.json`. Lucy mantiene la pista
 - [ ] Verificar que todos los templates existen en `sdd/templates/`
 - [ ] Arrancar con la fase correcta según el estado
 - [ ] Si es nuevo ciclo: empezar por Explore → Propose
+
+## Check-list de Finalización (Archive condicional)
+
+- [ ] PR creado y reviewer asignado
+- [ ] Camilo aprobó la PR (o decidió cerrar ciclo)
+- [ ] Address changes loops completados (si hubo feedback)
+- [ ] `state.json` actualizado con resultado final y PR URL
+- [ ] Archive solo cuando: PR mergeado O Camilo decide cerrar
+
+## Reglas NO NEGOCIABLES
+
+1. **Archive es condicional al merge de PR** — No archivar hasta que PR esté mergeado o Camilo explícitamente decida cerrar.
+2. **Lucy clasifica el feedback** — Decir si es minor/moderate/major y la ruta propuesta.
+3. **Sin PR mergeado, no hay ciclo cerrado.**
+4. **Si Camilo decide cerrar sin merge,** documentar rationale en ARCHIVE.md.
