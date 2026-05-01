@@ -1,0 +1,50 @@
+# Tasks: {feature}
+
+## Status: Draft
+
+## Task List
+
+- [ ] **T1:** {title}
+  - **Description:** {what, why, approach}
+  - **Input:** {artifacts/files to read}
+  - **Output:** {artifacts/files to produce}
+  - **Standards:** {skills/conventions to follow}
+  - **Estimate:** {time in minutes or hours}
+
+- [ ] **T2:** {title}
+  - **Description:** {what, why, approach}
+  - **Input:** {artifacts/files to read}
+  - **Output:** {artifacts/files to produce}
+  - **Standards:** {skills/conventions to follow}
+  - **Estimate:** {time in minutes or hours}
+
+- [ ] **T3:** {title}
+  - **Description:** {what, why, approach}
+  - **Input:** {artifacts/files to read}
+  - **Output:** {artifacts/files to produce}
+  - **Standards:** {skills/conventions to follow}
+  - **Estimate:** {time in minutes or hours}
+
+## Dependencies
+
+```
+T1 ← T2 ← T3 ...
+```
+
+- T1 puede correr independiente
+- T2 necesita T1 completado
+- etc.
+
+## Estimated Effort
+
+| Task | Estimado |
+|------|----------|
+| T1 | |
+| T2 | |
+| **Total** | |
+
+## Decisiones aprobadas por Camilo
+
+| Decisión | Valor |
+|----------|-------|
+| | |

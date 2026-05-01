@@ -1,0 +1,34 @@
+# Apply: {feature}
+
+## Files Modified
+
+| File | Action | Description |
+|------|--------|-------------|
+| | created / modified / deleted | |
+
+## What Was Implemented
+
+- **Feature:** Resumen de lo implementado.
+- **Key decisions:** Decisiones de implementación que se tomaron durante Apply.
+- **Deviation from design:** Si hubo desviación del design, detallar.
+- **Reason for deviation:** Por qué se desvió.
+
+## Tests
+
+| Test file | Type | What it covers |
+|-----------|------|----------------|
+| | Unit / Integration | |
+
+## Notes
+
+- Cualquier nota adicional sobre la implementación.
+- Problemas encontrados.
+- Dependencias no previstas.
+
+## Verification Instructions
+
+Pasos para verificar manualmente que el feature funciona:
+
+1.
+2.
+3.

@@ -75,6 +75,24 @@ done
 echo ""
 
 # ---------------------------------------------------------------------------
+# Check 2.1: SDD Orchestrator files (added in v1.3.0)
+# ---------------------------------------------------------------------------
+echo "SDD Orchestrator checks:"
+check "workspace/sdd/ directory exists" "[ -d '$LUCY_DIR/workspace/sdd' ]" "sdd-dir-exists"
+check "workspace/sdd/templates/ directory exists" "[ -d '$LUCY_DIR/workspace/sdd/templates' ]" "sdd-templates-dir"
+
+for doc in orchestrator-flow.md task-string-format.md validation-rules.md; do
+  check "workspace/sdd/$doc exists" "[ -f '$LUCY_DIR/workspace/sdd/$doc' ]" "sdd-$doc"
+done
+
+for tmpl in spec.md.in design.md.in tasks.md.in apply.md.in verify.md.in state.json.in; do
+  check "workspace/sdd/templates/$tmpl exists" "[ -f '$LUCY_DIR/workspace/sdd/templates/$tmpl' ]" "sdd-tmpl-$tmpl"
+done
+
+check "AGENTS.md has SDD Orchestrator reference" "grep -q 'SDD Orchestrator' '$LUCY_DIR/workspace/AGENTS.md'" "sdd-agents-orchestrator"
+echo ""
+
+# ---------------------------------------------------------------------------
 # Check 3: Bundled skills
 # ---------------------------------------------------------------------------
 echo "Bundled skill checks:"
