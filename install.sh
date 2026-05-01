@@ -42,7 +42,7 @@ LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.2.0"
+CURRENT_VERSION="1.3.0"
 
 # Flags
 SKIP_CLAWHUB=false
@@ -350,6 +350,44 @@ step_seed_workspace() {
       log_info "Unchanged: $filename (matches repo)"
     fi
   done
+
+  # Seed sdd/ orchestrator files
+  if [ -d "${ws_src}/sdd" ]; then
+    while IFS= read -r -d '' sdd_file; do
+      local sdd_rel="${sdd_file#$ws_src/}"
+      local sdd_dest="${WORKSPACE_DIR}/${sdd_rel}"
+      local sdd_dest_dir; sdd_dest_dir="$(dirname "$sdd_dest")"
+      local repo_sum; repo_sum=$(sha256_check "$sdd_file")
+      local existing_sum; existing_sum=$(sha256_check "$sdd_dest")
+
+      mkdir -p "$sdd_dest_dir"
+
+      if [ -z "$existing_sum" ]; then
+        if ! $DRY_RUN; then
+          cp "$sdd_file" "$sdd_dest"
+        fi
+        log_ok "Created $sdd_rel"
+      elif [ "$existing_sum" != "$repo_sum" ]; then
+        if $FORCE; then
+          if ! $DRY_RUN; then
+            cp "$sdd_file" "$sdd_dest"
+          fi
+          log_ok "Forced overwrite: $sdd_rel"
+        else
+          if prompt_conflict "overwrite/skip/abort" "$sdd_dest"; then
+            if ! $DRY_RUN; then
+              cp "$sdd_file" "$sdd_dest"
+            fi
+            log_ok "Overwrote: $sdd_rel"
+          else
+            log_info "Skipped (kept your version): $sdd_rel"
+          fi
+        fi
+      else
+        log_info "Unchanged: $sdd_rel (matches repo)"
+      fi
+    done < <(find "${ws_src}/sdd" -type f -print0)
+  fi
 }
 
 # ---------------------------------------------------------------------------
