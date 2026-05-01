@@ -1,0 +1,28 @@
+{
+  "project": "{project-name}",
+  "currentFeature": "{feature-slug}",
+  "status": "in_progress",
+  "currentPhase": "explore",
+  "currentModel": "pro",
+  "feedback": {
+    "pending": null,
+    "resolvedAt": null
+  },
+  "retries": {
+    "phase": null,
+    "max": 3,
+    "count": 0,
+    "lastError": null
+  },
+  "pr": {
+    "url": null,
+    "branch": null,
+    "status": "not_created",
+    "reviewComments": [],
+    "resolvedComments": []
+  },
+  "archiveDecision": null,
+  "history": [],
+  "startedAt": "{ISO8601}",
+  "updatedAt": "{ISO8601}"
+}

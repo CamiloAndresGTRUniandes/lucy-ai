@@ -5,6 +5,21 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-05-01
+
+### Added
+
+- **SDD Orchestrator** — orchestrator-flow.md, task-string-format.md, validation-rules.md, and 6 phase templates (spec, design, tasks, apply, verify, state)
+- **SDD Model Configuration** in AGENTS.md — 8-phase model/thinking table with escalation rules
+- **SDD Orchestrator section** in AGENTS.md — delegation rules, doc references, constraints
+- **12 new verify.sh checks** — sdd/ directory, templates, and AGENTS.md orchestrator reference
+
+### Changed
+
+- **install.sh** — extended `step_seed_workspace()` to copy `sdd/` directory recursively with sha256 conflict detection
+- **SPEC.md** — updated to v1.3.0 SDD Orchestrator Integration
+- **CURRENT_VERSION** — bumped to 1.3.0
+
 ## [1.2.0] - 2026-04-28
 
 ### Added

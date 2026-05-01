@@ -1,0 +1,52 @@
+# Design: {feature}
+
+## Status: Draft
+
+## Architecture Decisions
+
+| Decision | Choice | Rationale | Alternative Rejected |
+|----------|--------|-----------|---------------------|
+| | | | |
+
+## Data Model
+
+- **Entities:** Lista de entidades principales y su propósito.
+- **Schema:** Estructura de datos, relaciones, constraints.
+- **Migrations:** Cambios al schema existente (si aplica).
+
+## API Design
+
+- **Endpoints:** Verbos, rutas, request/response contracts.
+- **Auth:** Mecanismo de autenticación y autorización.
+- **Versioning:** Estrategia de versionado.
+
+## Security
+
+- **Auth/Authz:** ¿Quién puede hacer qué?
+- **Data handling:** ¿Cómo se protegen los datos?
+- **Input validation:** ¿Dónde se valida el input?
+- **Audit:** ¿Qué se loguea y qué no?
+
+## Error Handling
+
+- **Failure modes:** ¿Qué puede fallar?
+- **Recovery:** ¿Cómo se recupera cada fallo?
+- **User feedback:** ¿Qué ve el usuario cuando falla algo?
+
+## Observability
+
+- **Logging:** ¿Qué eventos se loguean?
+- **Metrics:** ¿Qué métricas se recolectan?
+- **Alerts:** ¿Qué condiciones generan alertas?
+
+## Migration Plan
+
+- **Breaking changes:** ¿Hay cambios que rompen compatibilidad?
+- **Rollback:** ¿Cómo se revierte si algo sale mal?
+- **Deployment steps:** Orden de despliegue.
+
+## Decisiones aprobadas por Camilo
+
+| Decisión | Valor | Rationale |
+|----------|-------|-----------|
+| | | |

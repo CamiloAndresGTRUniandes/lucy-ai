@@ -223,6 +223,57 @@ Our development methodology is **Spec-Driven Development (SDD)**. See `skills/sd
 
 **Scope:** SDD se aplica a TODO cambio que involucre codigo. No hay excepciones.
 
+### SDD Model Configuration (OBLIGATORIO)
+
+Cada fase del SDD tiene un modelo y thinking fijos. Lucy cambia automáticamente
+al entrar a cada fase. **NO NEGOCIABLE** — no requiere solicitud de Camilo.
+
+| # | Fase | Modelo | Thinking |
+|---|------|--------|----------|
+| 1 | Explore | `deepseek/deepseek-v4-pro` | `high` |
+| 2 | Propose | `deepseek/deepseek-v4-pro` | `high` |
+| 3 | Spec | `deepseek/deepseek-v4-flash` | `high` |
+| 4 | Design | `deepseek/deepseek-v4-pro` | `high` |
+| 5 | Tasks | `deepseek/deepseek-v4-flash` | `high` |
+| 6 | Apply | `deepseek/deepseek-v4-pro` | `high` |
+| 7 | Verify | `deepseek/deepseek-v4-flash` | `high` |
+| 8 | Archive | `deepseek/deepseek-v4-flash` | `high` |
+| — | Conversación casual | `deepseek/deepseek-v4-flash` | `high` |
+
+**Escalación:** Si durante una fase con Flash se requiere razonamiento
+profundo no previsto, Lucy debe pedir permiso explícito a Camilo antes de
+subir a Pro.
+
+### SDD Orchestrator (OBLIGATORIO)
+
+Los ciclos SDD se ejecutan delegando fases a sub-agentes (`sessions_spawn`)
+para mantener contexto limpio.
+
+**Fuente de verdad para modelos:** La tabla `SDD Model Configuration`
+de arriba. Cada fase usa el modelo indicado en esa tabla, ya sea ejecutada
+por Lucy directo o por un sub-agente delegado.
+
+**Documentación:** `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`,
+`sdd/validation-rules.md`, `sdd/templates/`
+
+**Fases delegadas (sub-agentes):**
+- Explore, Spec, Tasks, Verify → `context: isolated`
+- Design → `context: fork` (hereda decisiones previas)
+- Apply → `context: isolated`
+
+**Fases directas (Lucy):**
+- Propose (Pro) — no se delega
+- PR Review + Address Changes — Lucy maneja el feedback directo
+- Archive (Flash) — solo cuando PR está mergeado o Camilo decide cerrar
+
+**Reglas inquebrantables:**
+- Sub-agentes **nunca** hacen git commits — solo Lucy tras revisión con Camilo
+- Sub-agente fallido → re-spawn con misma instrucción exacta → max 3 intentos
+- Camilo aprueba Spec y Design explícitamente antes de continuar
+- Artefactos en `sdd/{project}/{feature}/` con templates estandarizados
+- Validación estricta de outputs: fail si falta sección requerida
+- **Archive es condicional al merge de PR** — no archivar hasta que PR esté mergeado o Camilo decida cerrar
+
 ## Git Branching Policy (OBLIGATORIO)
 
 **Nunca hacer push/merge directo a ramas protegidas.**
