@@ -14,6 +14,14 @@
     "count": 0,
     "lastError": null
   },
+  "pr": {
+    "url": null,
+    "branch": null,
+    "status": "not_created",
+    "reviewComments": [],
+    "resolvedComments": []
+  },
+  "archiveDecision": null,
   "history": [],
   "startedAt": "{ISO8601}",
   "updatedAt": "{ISO8601}"
