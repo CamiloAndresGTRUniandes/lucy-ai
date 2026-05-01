@@ -33,7 +33,7 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 - [ ] `## Context` — no vacío, contener al menos Problem + Business value
 - [ ] `## Requirements` — con subtablas Functional y/o Non-Functional (al menos 1 requirement)
 - [ ] `## User Scenarios` — al menos 1 escenario con Given/When/Then
-- [ ] `## Acceptance Criteria` — al menos 1 criterio con formato `[ ] AC1:`
+- [ ] `## Acceptance Criteria` — al menos 1 criterio con formato checklist (aceptar tanto `[ ] AC1:` como `- [ ] **AC1:**`)
 - [ ] `## Out of Scope` (opcional pero recomendado)
 
 **Validación extra:**
@@ -53,7 +53,7 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 - [ ] `## Observability` — logging, metrics
 
 **Validación extra:**
-- Cada Architecture Decision debe tener: Decision, Choice, Rationale, Alternative
+- Cada Architecture Decision debe tener: Decision, Choice, Rationale, Alternative Rejected
 
 ### Tasks
 

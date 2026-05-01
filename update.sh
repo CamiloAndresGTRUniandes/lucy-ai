@@ -26,7 +26,7 @@ LUCY_DIR="${HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.2.0"
+CURRENT_VERSION="1.3.0"
 
 TAG=""
 FORCE=false
@@ -404,6 +404,50 @@ step_sync_workspace() {
     fi
   done
   log_ok "Workspace — updated: $updated, skipped: $skipped"
+
+  # Sync sdd/ orchestrator files (same pattern as install.sh)
+  local sdd_updated=0 sdd_skipped=0
+  if [ -d "${ws_src}/sdd" ]; then
+    while IFS= read -r -d '' sdd_file; do
+      local sdd_rel="${sdd_file#$ws_src/}"
+      local sdd_dest="${WORKSPACE_DIR}/${sdd_rel}"
+      local sdd_dest_dir; sdd_dest_dir="$(dirname "$sdd_dest")"
+      local repo_sum; repo_sum=$(sha256_check "$sdd_file")
+      local existing_sum; existing_sum=$(sha256_check "$sdd_dest")
+
+      mkdir -p "$sdd_dest_dir"
+
+      if [ -z "$existing_sum" ]; then
+        if ! $DRY_RUN; then
+          cp "$sdd_file" "$sdd_dest"
+        fi
+        log_ok "New sdd/: $sdd_rel"
+        sdd_updated=$((sdd_updated + 1))
+      elif [ "$existing_sum" != "$repo_sum" ]; then
+        if $FORCE; then
+          if ! $DRY_RUN; then
+            cp "$sdd_file" "$sdd_dest"
+          fi
+          log_ok "Forced sdd/: $sdd_rel"
+          sdd_updated=$((sdd_updated + 1))
+        else
+          if prompt_workspace_conflict "$sdd_rel"; then
+            if ! $DRY_RUN; then
+              cp "$sdd_file" "$sdd_dest"
+            fi
+            log_ok "Updated sdd/: $sdd_rel"
+            sdd_updated=$((sdd_updated + 1))
+          else
+            log_info "Skipped (kept local): $sdd_rel"
+            sdd_skipped=$((sdd_skipped + 1))
+          fi
+        fi
+      else
+        log_info "Unchanged sdd/: $sdd_rel"
+      fi
+    done < <(find "${ws_src}/sdd" -type f -print0)
+    log_ok "SDD — updated: $sdd_updated, skipped: $sdd_skipped"
+  fi
 }
 
 # ---------------------------------------------------------------------------

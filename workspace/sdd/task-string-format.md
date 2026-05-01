@@ -110,7 +110,8 @@ sdd/zenticalab/inventory-alerts-v2/spec.md
 
 1. **Todo task string empieza con "## SDD Phase:"** — es lo primero que ve el sub-agente
 2. **El template se inyecta COMPLETO** — no references, no shortcuts
-3. **Los inputs se listan siempre como paths absolutos** — el sub-agente los lee con `read`
-4. **Los outputs se listan como paths absolutos** — el sub-agente los escribe con `write`
+3. **Los inputs se listan siempre como paths relativos a la raíz del workspace** — por ejemplo `sdd/{project}/{feature}/input.md`; el sub-agente los lee con `read`
+4. **Los outputs se listan como paths relativos a la raíz del workspace** — por ejemplo `sdd/{project}/{feature}/output.md`; el sub-agente los escribe con `write`
+5. **Excepción:** En el contexto fork de Design, Lucy resuelve los paths relativos al workspace antes de pasarlos al sub-agente
 5. **Las validation rules se incluyen** — para que el sub-agente pueda auto-verificar su output
 6. **Constraints son obligatorias** — no se asume nada

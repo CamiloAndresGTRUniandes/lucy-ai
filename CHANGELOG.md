@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **install.sh** — extended `step_seed_workspace()` to copy `sdd/` directory recursively with sha256 conflict detection
-- **SPEC.md** — updated to v1.3.0 SDD Orchestrator Integration
 - **CURRENT_VERSION** — bumped to 1.3.0
 
 ## [1.2.0] - 2026-04-28
