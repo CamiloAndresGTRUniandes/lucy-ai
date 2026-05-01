@@ -1,0 +1,43 @@
+# Verification: {feature}
+
+## Status: {Draft/Approved/Rejected}
+
+## Spec Compliance
+
+- [ ] **F1:** {requirement} → {✅/❌}
+- [ ] **F2:** {requirement} → {✅/❌}
+
+## Acceptance Criteria
+
+- [ ] **AC1:** {description} → {✅/❌}
+- [ ] **AC2:** {description} → {✅/❌}
+
+## Code Quality
+
+- [ ] Follows project conventions → {✅/❌}
+- [ ] No hardcoded values → {✅/❌}
+- [ ] Error handling complete → {✅/❌}
+- [ ] Tests cover core logic → {✅/❌}
+- [ ] Tests pass → {✅/❌}
+
+## Security
+
+- [ ] Auth/authz as designed → {✅/❌}
+- [ ] Input validation in place → {✅/❌}
+- [ ] No sensitive data in logs → {✅/❌}
+
+## Integration
+
+- [ ] Builds successfully → {✅/❌}
+- [ ] No breaking changes → {✅/❌}
+- [ ] All tests pass → {✅/❌}
+
+## Issues Found
+
+| Severity | Issue | Status |
+|----------|-------|--------|
+| blocker/major/minor | | fixed/pending |
+
+## Final Verdict
+
+{✅ Aprobado / ❌ Rechazado — detalles de por qué}
