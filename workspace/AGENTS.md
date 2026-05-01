@@ -247,15 +247,19 @@ subir a Pro.
 ### SDD Orchestrator (OBLIGATORIO)
 
 Los ciclos SDD se ejecutan delegando fases a sub-agentes (`sessions_spawn`)
-para mantener contexto limpio y modelo correcto por fase.
+para mantener contexto limpio.
+
+**Fuente de verdad para modelos:** La tabla `SDD Model Configuration`
+de arriba. Cada fase usa el modelo indicado en esa tabla, ya sea ejecutada
+por Lucy directo o por un sub-agente delegado.
 
 **Documentación:** `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`,
 `sdd/validation-rules.md`, `sdd/templates/`
 
 **Fases delegadas (sub-agentes):**
-- Explore, Spec, Tasks, Verify → Flash, `context: isolated`
-- Design → Pro, `context: fork` (hereda decisiones previas)
-- Apply → Pro, `context: isolated`
+- Explore, Spec, Tasks, Verify → `context: isolated`
+- Design → `context: fork` (hereda decisiones previas)
+- Apply → `context: isolated`
 
 **Fases directas (Lucy):**
 - Propose (Pro) — no se delega

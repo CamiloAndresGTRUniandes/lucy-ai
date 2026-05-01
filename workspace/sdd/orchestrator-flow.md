@@ -10,30 +10,33 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 
 ### Parámetros base
 
-```json
+```text
 {
   "task": "## SDD Phase: {phase}\n... (task string armado con task-string-format.md)",
   "label": "sdd-{project}-{phase}-{attempt}",
-  "model": "{según tabla SDD}",
+  "model": "{según tabla SDD en AGENTS.md}",
   "thinking": "high",
-  "context": "isolated" | "fork",
+  "context": "{isolated|fork}",
   "runTimeoutSeconds": 300
 }
 ```
 
 ### Fases que delegar, fases que no
 
-| Fase | Delegar? | Modelo | Contexto |
-|------|----------|--------|----------|
-| Explore | **Sí** | Flash | isolated |
-| Propose | **No, Lucy directo** | Pro | — |
-| Spec | **Sí** | Flash | isolated |
-| Design | **Sí** | Pro | **fork** |
-| Tasks | **Sí** | Flash | isolated |
-| Apply | **Sí** | Pro | isolated |
-| Verify | **Sí** | Flash | isolated |
-| PR Review | **No, Camilo human review** | — | — |
-| Address changes | **Lucy directo** | Pro/Flash | — |
+**Fuente de verdad para modelos:** `AGENTS.md` → sección SDD Model Configuration.
+Esta tabla define solo delegación y contexto, no modelo.
+
+| Fase | Delegar? | Contexto |
+|------|----------|----------|
+| Explore | **Sí** | isolated |
+| Propose | **No, Lucy directo** | — |
+| Spec | **Sí** | isolated |
+| Design | **Sí** | **fork** |
+| Tasks | **Sí** | isolated |
+| Apply | **Sí** | isolated |
+| Verify | **Sí** | isolated |
+| PR Review | **No, Camilo human review** | — |
+| Address changes | **Lucy directo** | — |
 | Archive | **No, Lucy directo** | Flash | — |
 
 ---
@@ -219,7 +222,7 @@ Verify → Lucy crea PR → Camilo review
 **Trigger:** PR mergeado O Camilo decide cerrar ciclo explícitamente.
 
 **Lucy hace:**
-1. Mueve `sdd/{project}/{feature}/` → `sdd/{project}/{feature-dd/MM/YYYY}/`
+1. Mueve `sdd/{project}/{feature}/` → `sdd/{project}/{feature-YYYY-MM-DD}/`
 2. Actualiza `state.json` → `status: completed`
 3. Escribe resumen en `memory/YYYY-MM-DD-{project}-{feature}.md`
 4. Presenta resumen final a Camilo
