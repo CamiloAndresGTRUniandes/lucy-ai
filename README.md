@@ -1,15 +1,28 @@
-# 🦁 lucy-agent
+<div align="center">
 
-<!-- HEADER_START -->
-<p align="center">
-  <img src="https://img.shields.io/badge/AI%20Agent-Lucy%20&%20Co.-30%25?style=for-the-badge&logo=robot&logoColor=%2300C853" alt="Lucy-ai">
-  <img src="https://img.shields.io/badge/OpenClaw-Powered-0D1117?style=for-the-badge&logo=claw&logoColor=%2300C853" alt="OpenClaw">
-  <img src="https://img.shields.io/badge/License-MIT-30%25?style=for-the-badge&logo=scroll&logoColor=%2300C853" alt="MIT">
-</p>
+```
+  #       #   #     ###     #   #
+  #       #   #    #        # #
+  #       #   #    #         #
+  #       #   #    #         #
+  #####    ###      ###      #
+```
+
+**Lucy Under the Coding Yield**
+
+</div>
 
 <p align="center">
   <strong>Your AI colleague, deployed like your code.</strong><br>
-  A fully installable agent ecosystem for OpenClaw — with personality, skills, and conventions ready to go.
+  A fully installable agent ecosystem for OpenClaw — with personality, skills,<br>
+  and conventions ready to go.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/SDD-Agent-0D1117?style=for-the-badge&logoColor=%2300C853" alt="SDD Agent">
+  <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
+  <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
+  <img src="https://img.shields.io/badge/Version-1.3.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.3.0">
 </p>
 
 ---
@@ -24,7 +37,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
 
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.1.0
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.3.0
 ```
 
 > 💡 **New here?** Run without flags for an interactive setup guide.
@@ -36,7 +49,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | Component | What's included |
 |-----------|----------------|
 | 🧠 **Personality** | SOUL.md, IDENTITY.md, AGENTS.md — your agent's character, values, and operating rules |
-| 🛠️ **Skills** | SDD workflow, PR review, Clean Architecture patterns, TypeScript, Tailwind, C#/.NET |
+| 🛠️ **Skills** | SDD workflow + Orchestrator, PR review, Clean Architecture, TypeScript, Tailwind, C#/.NET |
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
 | ⚙️ **Config** | Agent defaults, model config, thinking level — all ready to include |
 | ✅ **Verify** | Post-install checks so you know everything is wired up |
@@ -48,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 |------|---------|----------|
 | **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
 | **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
-| **Specific version** | `curl ... | bash -s -- --tag v1.0.0` | Pin to a known release |
+| **Specific version** | `curl ... | bash -s -- --tag v1.3.0` | Pin to a known release |
 | **Interactive** | `curl ... | bash` | Guided setup with friendly prompts |
 
 ## Post-install
@@ -67,7 +80,7 @@ openclaw gateway restart
 
 | Skill | Purpose |
 |-------|---------|
-| `sdd` | Spec-Driven Development — spec before code, always |
+| `sdd` | Spec-Driven Development + SDD Orchestrator — sub-agent delegation, phase templates, validation |
 | `github-pr` | High-quality PRs with conventional commits |
 | `pr-review` | Generic PR review for any codebase |
 | `csharp-dotnet` | Clean Architecture patterns for .NET/C# |
@@ -88,7 +101,7 @@ cd ~/.openclaw/lucy-agent
 ./update.sh
 
 # Pin to a specific version
-./update.sh --tag v1.1.0
+./update.sh --tag v1.3.0
 
 # Show version info
 ./update.sh --version
@@ -162,6 +175,7 @@ lucy-agent/
 │   ├── pr-review/
 │   └── ...
 ├── workspace/                  ← Seed files
+│   ├── sdd/                      ← SDD Orchestrator (docs + templates)
 │   ├── SOUL.md
 │   ├── IDENTITY.md
 │   ├── AGENTS.md
