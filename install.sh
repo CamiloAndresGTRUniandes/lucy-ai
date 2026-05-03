@@ -19,6 +19,8 @@
 #   --clone          Clone Lucy's exact config (from lucy-config branch)
 #   --template       Use generic templates (default, same as interactive with no flags)
 #   --tag <version>  Install a specific release tag (e.g. --tag v1.0.0)
+#   --skip-engram    Skip Engram memory system installation
+#   --engram-tag     Pin Engram to a specific version (default: latest)
 #   --skip-clawhub   Skip ClawHub skill installation
 #   --skip-workspace Skip workspace seeding
 #   --force          Overwrite conflicting files without prompting
@@ -42,7 +44,7 @@ LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.3.0"
+CURRENT_VERSION="1.4.0"
 
 # Flags
 SKIP_CLAWHUB=false
@@ -54,6 +56,8 @@ QUIET=false
 CLONE_MODE=false
 NON_INTERACTIVE_FLAGS=false
 SPECIFIC_TAG=""
+SKIP_ENGRAM=false
+ENGRAM_TAG=""
 
 # TTY detection: interactive prompt if terminal, otherwise non-interactive
 if [ -t 0 ]; then
@@ -80,6 +84,71 @@ log_step() {
 }
 
 # ---------------------------------------------------------------------------
+# Engram helpers
+# ---------------------------------------------------------------------------
+
+# Detect the platform in Engram's release naming convention: {os}_{arch}
+# Output: linux_amd64, linux_arm64, darwin_amd64, darwin_arm64
+# Returns 1 and prints error on unsupported platform
+detect_platform() {
+  local os arch
+  os=$(uname -s | tr '[:upper:]' '[:lower:]')
+  arch=$(uname -m)
+
+  # Validate OS
+  case "$os" in
+    linux|darwin) ;;
+    *)
+      log_warn "Unsupported OS: $os. Engram supports macOS (darwin) and Linux."
+      return 1
+      ;;
+  esac
+
+  # Normalize architecture
+  case "$arch" in
+    x86_64|amd64) arch="amd64" ;;
+    aarch64|arm64)  arch="arm64" ;;
+    *)
+      log_warn "Unsupported architecture: $arch. Engram supports amd64 and arm64."
+      return 1
+      ;;
+  esac
+
+  echo "${os}_${arch}"
+  return 0
+}
+
+# Resolve the Engram version to install.
+# Uses --engram-tag if set, otherwise fetches latest from GitHub API.
+# Output: version string without 'v' prefix (e.g. "1.15.4")
+# Returns 1 on failure (non-fatal to caller)
+resolve_engram_version() {
+  local version
+
+  if [ -n "${ENGRAM_TAG:-}" ]; then
+    version="${ENGRAM_TAG#v}"
+    log_info "Engram: using pinned version $version (--engram-tag)"
+    echo "$version"
+    return 0
+  fi
+
+  log_info "Engram: fetching latest release version..."
+  version=$(curl -fsSL \
+    "https://api.github.com/repos/Gentleman-Programming/engram/releases/latest" \
+    2>/dev/null | grep '"tag_name":' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+
+  if [ -z "$version" ]; then
+    log_warn "Engram: could not determine latest version from GitHub API"
+    return 1
+  fi
+
+  version="${version#v}"
+  log_info "Engram latest version: $version"
+  echo "$version"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
 # Flags parsing
 # ---------------------------------------------------------------------------
 parse_flags() {
@@ -95,6 +164,13 @@ parse_flags() {
         SPECIFIC_TAG="$2"; shift 2 ;;
       --skip-clawhub)   SKIP_CLAWHUB=true; shift ;;
       --skip-workspace)  SKIP_WORKSPACE=true; shift ;;
+      --skip-engram)    SKIP_ENGRAM=true; shift ;;
+      --engram-tag)
+        if [[ -z "${2:-}" ]]; then
+          log_fail "--engram-tag requires a value (e.g. --engram-tag v1.15.4)"
+          exit 1
+        fi
+        ENGRAM_TAG="$2"; shift 2 ;;
       --force)           FORCE=true; shift ;;
       --force-stash)    FORCE_STASH=true; FORCE=true; shift ;;
       --dry-run)         DRY_RUN=true; shift ;;
@@ -120,6 +196,8 @@ show_help() {
   echo "  --tag <version>    Install a specific release (e.g. v1.0.0)"
   echo "  --skip-clawhub    Skip ClawHub skill installation"
   echo "  --skip-workspace  Skip workspace seeding"
+  echo "  --skip-engram     Skip Engram memory system installation"
+  echo "  --engram-tag <ver> Install a specific Engram version (default: latest)"
   echo "  --force            Overwrite conflicting files without prompting"
   echo "  --force-stash      Stash local changes before pulling"
   echo "  --quiet, -q        Suppress informational output"
@@ -191,10 +269,110 @@ step_detect_openclaw() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 2: Clone or pull repo
+# Step 2: Install Engram (technical memory)
+# ---------------------------------------------------------------------------
+step_install_engram() {
+  log_step "Step 2: Installing Engram (technical memory)"
+
+  # ---- Guard: --skip-engram ----
+  if $SKIP_ENGRAM; then
+    log_info "○ Skipped: Engram (--skip-engram)"
+    return 0
+  fi
+
+  # ---- Guard: --dry-run ----
+  if $DRY_RUN; then
+    log_info "[DRY-RUN] Would install Engram"
+    return 0
+  fi
+
+  # ---- Detect platform ----
+  local platform
+  platform=$(detect_platform) || true
+  if [ -z "$platform" ]; then
+    log_warn "Engram installation skipped: unsupported platform"
+    return 0
+  fi
+
+  # ---- Resolve version ----
+  local version
+  version=$(resolve_engram_version) || true
+  if [ -z "$version" ]; then
+    log_warn "Engram installation skipped: version resolution failed"
+    return 0
+  fi
+
+  # ---- Check if already installed ----
+  local ENGRAM_BIN="${HOME}/.local/bin/engram"
+  if [ -f "$ENGRAM_BIN" ] && [ -x "$ENGRAM_BIN" ]; then
+    local installed_version
+    installed_version=$("$ENGRAM_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+    if [ "$installed_version" = "$version" ] && ! $FORCE; then
+      log_ok "Unchanged: engram v$installed_version"
+      return 0
+    fi
+  fi
+
+  # ---- Ensure target directory exists ----
+  mkdir -p "${HOME}/.local/bin"
+
+  # ---- Construct download URL ----
+  local asset="engram_v${version}_${platform}.tar.gz"
+  local url="https://github.com/Gentleman-Programming/engram/releases/download/v${version}/${asset}"
+
+  # ---- Download ----
+  log_info "Engram: downloading v${version} (${platform})..."
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap "rm -rf '$tmpdir'" EXIT
+
+  if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
+    log_warn "Engram download failed for v${version}/${platform}"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  # ---- Extract ----
+  log_info "Engram: extracting..."
+  if ! tar -xzf "$tmpdir/$asset" -C "$tmpdir"; then
+    log_warn "Engram extraction failed"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  # Find the engram binary in extracted files
+  local engram_extracted
+  engram_extracted=$(find "$tmpdir" -name "engram" -type f | head -1)
+  if [ -z "$engram_extracted" ]; then
+    log_warn "Engram binary not found in archive"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  # ---- Install binary ----
+  cp "$engram_extracted" "$ENGRAM_BIN"
+  chmod +x "$ENGRAM_BIN"
+
+  # ---- Initialize database ----
+  # Run search to verify binary and initialize database at configured path
+  log_info "Verifying Engram binary and initializing database..."
+  if ENGRAM_DATA_DIR="${ENGRAM_DATA_DIR:-$HOME/.local/share/engram}" "$ENGRAM_BIN" context >/dev/null 2>&1; then
+    log_ok "Engram v${version} installed to ~/.local/bin/engram"
+  else
+    log_warn "Engram binary installed but --version check failed"
+    log_info "Database will be initialized on first use"
+  fi
+
+  # ---- Cleanup ----
+  rm -rf "$tmpdir"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# Step 3: Clone or pull repo
 # ---------------------------------------------------------------------------
 step_clone_or_pull() {
-  log_step "Step 2: Fetching lucy-agent repository"
+  log_step "Step 3: Fetching lucy-agent repository"
 
   local skip_pull=false
   local did_stash=false
@@ -294,7 +472,7 @@ step_clone_or_pull() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 3: Seed workspace files
+# Step 4: Seed workspace files
 # ---------------------------------------------------------------------------
 step_seed_workspace() {
   if $SKIP_WORKSPACE; then
@@ -302,7 +480,7 @@ step_seed_workspace() {
     return
   fi
 
-  log_step "Step 3: Seeding workspace files"
+  log_step "Step 4: Seeding workspace files"
   mkdir -p "$WORKSPACE_DIR"
 
   local ws_src="${LUCY_DIR}/workspace"
@@ -391,10 +569,10 @@ step_seed_workspace() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 4: Install bundled skills
+# Step 5: Install bundled skills
 # ---------------------------------------------------------------------------
 step_install_bundled_skills() {
-  log_step "Step 4: Installing bundled skills"
+  log_step "Step 5: Installing bundled skills"
   mkdir -p "$SKILLS_DIR"
 
   local skills_src="${LUCY_DIR}/skills"
@@ -447,7 +625,7 @@ step_install_bundled_skills() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 5: Install ClawHub skills
+# Step 6: Install ClawHub skills
 # ---------------------------------------------------------------------------
 step_install_clawhub_skills() {
   if $SKIP_CLAWHUB; then
@@ -455,7 +633,7 @@ step_install_clawhub_skills() {
     return
   fi
 
-  log_step "Step 5: Installing ClawHub skills"
+  log_step "Step 6: Installing ClawHub skills"
   local clawhub_file="${LUCY_DIR}/clawhub-skills.txt"
   if [ ! -f "$clawhub_file" ]; then
     log_warn "No clawhub-skills.txt found; skipping ClawHub install"
@@ -486,10 +664,10 @@ step_install_clawhub_skills() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 6: Config fragment instructions
+# Step 7: Config fragment instructions
 # ---------------------------------------------------------------------------
 step_print_config_instructions() {
-  log_step "Step 6: Gateway config"
+  log_step "Step 7: Gateway config"
   echo ""
   echo -e "${BLUE}================================================================${NC}"
   echo -e "${BLUE}Next step: Link lucy-agent config in your openclaw.json${NC}"
@@ -510,10 +688,10 @@ step_print_config_instructions() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 7: Verify
+# Step 8: Verify
 # ---------------------------------------------------------------------------
 step_verify() {
-  log_step "Step 7: Verifying installation"
+  log_step "Step 8: Verifying installation"
   if ! $DRY_RUN; then
     cd "$LUCY_DIR" && bash verify.sh
     log_ok "verify.sh passed"
@@ -523,7 +701,7 @@ step_verify() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 8: Report
+# Step 9: Report
 # ---------------------------------------------------------------------------
 step_report() {
   local mode_label="generic templates"
@@ -579,6 +757,7 @@ main() {
   fi
 
   step_detect_openclaw
+  step_install_engram
   step_clone_or_pull
   step_seed_workspace
   step_install_bundled_skills
