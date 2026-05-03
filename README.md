@@ -37,7 +37,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
 
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.3.0
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.4.0
 ```
 
 > 💡 **New here?** Run without flags for an interactive setup guide.
@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 |------|---------|----------|
 | **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
 | **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
-| **Specific version** | `curl ... | bash -s -- --tag v1.3.0` | Pin to a known release |
+| **Specific version** | `curl ... | bash -s -- --tag v1.4.0` | Pin to a known release |
 | **Interactive** | `curl ... | bash` | Guided setup with friendly prompts |
 
 ## Post-install
@@ -102,7 +102,7 @@ cd ~/.openclaw/lucy-agent
 ./update.sh
 
 # Pin to a specific version
-./update.sh --tag v1.3.0
+./update.sh --tag v1.4.0
 
 # Show version info
 ./update.sh --version
