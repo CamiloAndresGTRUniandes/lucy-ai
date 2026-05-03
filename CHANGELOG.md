@@ -5,6 +5,17 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-05-03
+
+### Added
+
+- **Engram technical memory system integration** — install.sh Step 2 installs Engram binary to ~/.local/bin
+- **Engram update check** in update.sh
+- **Engram verification** — verify.sh validates binary+DB
+- **MCP server config** — agent-fragment.json5 includes Engram as an MCP server
+- **AGENTS.md Engram protocol** — structured technical memory for all agents and sub-agents
+- **SDD skill v1.1** — Engram Memory Protocol for all delegated SDD phases
+
 ## [1.3.0] - 2026-05-01
 
 ### Added

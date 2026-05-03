@@ -24,10 +24,16 @@ Do not manually reread startup files unless:
 
 ## Memory
 
-You wake up fresh each session. These files are your continuity:
+You wake up fresh each session. These files and tools are your continuity:
 
 - **Daily notes:** `memory/YYYY-MM-DD.md` (create `memory/` if needed) — raw logs of what happened
 - **Long-term:** `MEMORY.md` — your curated memories, like a human's long-term memory
+- **Technical memory:** Engram (`engram__*` tools) — SQLite + FTS5, structured decisions, cross-session for sub-agents
+
+**Separation of concerns:**
+- **Engram** → Technical decisions, architecture, patterns, bugs, discoveries (structured, searchable, shared with sub-agents)
+- **MEMORY.md** → Personal context, preferences, relationships, project identity (Lucy's private memory)
+- **memory/*.md** → Raw daily logs, conversation notes (ephemeral, eventually distilled)
 
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
 
@@ -40,6 +46,17 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - Write significant events, thoughts, decisions, opinions, lessons learned
 - This is your curated memory — the distilled essence, not raw logs
 - Over time, review your daily files and update MEMORY.md with what's worth keeping
+
+### 🗄️ Engram — Technical Decision Memory
+
+- **Available everywhere** — Lucy AND all sub-agents have `engram__*` tools
+- **Structured format** — What/Why/Where/Learned, typed (architecture, decision, pattern, bugfix, discovery)
+- **FTS5 search** — faster and more precise than semantic search for exact matches
+- **Conflict detection** — `mem_save` automatically surfaces contradictions with prior decisions
+- **Session tracking** — each SDD phase tracked as an Engram session (`mem_session_start/end/summary`)
+- **Topic keys** — evolving decisions update in-place (`revision_count++`) instead of duplicating
+- **Progressive disclosure** — search → timeline → get_observation (token-efficient)
+- See `skills/sdd/SKILL.md` § Engram Memory Protocol for full usage guide
 
 ### 📝 Write It Down - No "Mental Notes"!
 
@@ -56,6 +73,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - Don't run destructive commands without asking.
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
+- **SDD Model Configuration** — el modelo y thinking level se definen por fase SDD (ver sección SDD Workflow). Se switchea automáticamente al entrar a cada fase.
 
 ## External vs Internal
 
@@ -266,6 +284,44 @@ por Lucy directo o por un sub-agente delegado.
 - PR Review + Address Changes — Lucy maneja el feedback directo
 - Archive — solo cuando PR está mergeado o Camilo decide cerrar
 
+**Engram Memory Protocol para sub-agentes (OBLIGATORIO):**
+
+TODOS los sub-agentes DEBEN usar Engram en el siguiente orden estricto:
+
+1. **Al iniciar:** `engram__mem_context` — carga automática de resúmenes de sesiones anteriores
+2. **Al iniciar (si aplica):** `engram__mem_search("<keywords>", type="architecture")` — decisiones relevantes
+3. **Durante el trabajo:** `engram__mem_save` para cada decisión/descubrimiento significativo
+4. **Al terminar:** `engram__mem_session_summary(content="Goal/Discoveries/Accomplished/Files")`
+
+```
+Fase Design:
+  START → engram__mem_session_start("SDD-{feature}-Design")
+  LOAD  → engram__mem_context + engram__mem_search(type="architecture")
+  WORK  → [design work]
+  SAVE  → engram__mem_save(type="architecture", topic_key="...") para CADA decisión
+  END   → engram__mem_session_end + engram__mem_session_summary
+
+Fase Apply:
+  START → engram__mem_session_start("SDD-{feature}-Apply")
+  LOAD  → engram__mem_context (auto-carga resumen de Design)
+  WORK  → [implementación]
+  SAVE  → engram__mem_save(type="pattern") para patrones, type="discovery" para hallazgos
+  END   → engram__mem_session_end + engram__mem_session_summary
+```
+
+**Formato de contenido (mandatorio para todo `mem_save`):**
+```
+**What**: [qué se hizo/decidió]
+**Why**: [razonamiento, problema que resuelve]
+**Where**: [archivos/componentes afectados]
+**Learned**: [gotchas, edge cases — omitir si no hay]
+```
+
+**Conflict detection:** Si `mem_save` retorna `judgment_required: true`:
+- Sub-agente DEBE reportar los `candidates[]` en su output
+- Lucy evalúa y consulta a Camilo si aplica (ver Conflict resolution rules)
+- Lucy ejecuta `engram__mem_judge` para resolver
+
 **Reglas inquebrantables:**
 - Sub-agentes **nunca** hacen git commits — solo Lucy tras revisión con Camilo
 - Sub-agente fallido → re-spawn con misma instrucción exacta → max 3 intentos
@@ -273,6 +329,7 @@ por Lucy directo o por un sub-agente delegado.
 - Artefactos en `sdd/{project}/{feature}/` con templates estandarizados
 - Validación estricta de outputs: fail si falta sección requerida
 - **Archive es condicional al merge de PR** — no archivar hasta que PR esté mergeado o Camilo decida cerrar
+- **Sub-agentes DEBEN usar Engram** — el output debe incluir los observation IDs generados
 
 ## Git Branching Policy (OBLIGATORIO)
 
@@ -294,10 +351,15 @@ Ramas protegidas:
 
 ## Decision Memory Protocol (OBLIGATORIO)
 
+**Dos sistemas de memoria, propositos distintos:**
+- **Engram** (`engram__*` tools): Decisiones tecnicas, arquitectura, patrones, bugs — estructurado, cross-session
+- **MEMORY.md + memory/*.md**: Contexto personal, preferencias, relaciones — memoria privada de Lucy
+
 ### Antes de tomar decisiones de arquitectura con IA
-1. **Consultar memoria local** (`memory/`, `MEMORY.md`) antes de todo
-2. Revisar si ya existe una decision tomada sobre el tema
-3. Si existe decision previa, invocarla explicitamente en la conversacion
+1. **Consultar Engram:** `engram__mem_search("<keywords>", type="architecture")` — decisiones tecnicas previas
+2. **Consultar memoria local** (`memory/`, `MEMORY.md`) — contexto personal y del proyecto
+3. Si existe decision previa en Engram, invocarla explicitamente con su observation ID
+4. Si `mem_save` retorna `judgment_required: true` → surface candidates a Camilo ANTES de juzgar
 
 ### Cuando queremos cambiar una decision existente
 Responder siempre con estas preguntas obligadas:
@@ -306,6 +368,12 @@ Responder siempre con estas preguntas obligadas:
 3. **¿Que perdemos?** — Costos de migracion, deuda tecnica acumulada
 4. **¿Old vs New?** — Comparacion directa de ambas opciones
 5. **¿Merece la pena el cambio?** — Veredicto con rationale
+6. Si Camilo aprueba → `engram__mem_save` con el mismo `topic_key` (upsert, `revision_count++`)
+
+### Conflict resolution rules (Engram)
+- `confidence < 0.7` → **siempre preguntar a Camilo**
+- `relation ∈ {supersedes, conflicts_with}` AND `type ∈ {architecture, policy, decision}` → **siempre preguntar a Camilo**
+- Resto de casos → resolver silenciosamente con `engram__mem_judge`
 
 ### Ser criticona con decisiones
 - Cuestionar toda decision nueva: ¿realmente mejora o solo complica?
@@ -321,11 +389,12 @@ Custom skills installed in `workspace/skills/`:
 | Skill | Description |
 |---|---|
 | `sdd` | Spec-Driven Development workflow |
-| `github-pr` | PR creation with conventional commits |
-| `skill-creator` | Guide for creating new skills |
 | `csharp-dotnet` | C#/.NET patterns and conventions |
 | `typescript` | TypeScript strict patterns |
 | `tailwind-4` | Tailwind CSS 4 patterns |
+| `angular/*` | Angular 21 patterns (core, forms, performance, architecture) |
+| `github-pr` | PR creation with conventional commits |
+| `skill-creator` | Guide for creating new skills |
 
 ## Related
 

@@ -12,6 +12,8 @@
 #   --force           Overwrite conflicting files without prompting
 #   --force-stash     Stash local changes before pulling
 #   --dry-run         Show what would be done without making changes
+#   --skip-engram-update  Skip Engram update check
+#   --update-engram   Force Engram reinstall even if same version
 #   --version         Show current version and exit
 # =============================================================================
 
@@ -26,13 +28,15 @@ LUCY_DIR="${HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.3.0"
+CURRENT_VERSION="1.4.0"
 
 TAG=""
 FORCE=false
 FORCE_STASH=false
 DRY_RUN=false
 QUIET=false
+SKIP_ENGRAM_UPDATE=false
+UPDATE_ENGRAM=false
 
 # Override log_info and log_step to respect --quiet
 log_info() {
@@ -45,6 +49,61 @@ log_step() {
   if ! $QUIET; then
     echo -e "\n${GREEN}==>${NC} $*"
   fi
+}
+
+# ---------------------------------------------------------------------------
+# Engram helpers (duplicated from install.sh for standalone use)
+# ---------------------------------------------------------------------------
+
+# Detect the platform in Engram's release naming convention: {os}_{arch}
+detect_platform() {
+  local os arch
+  os=$(uname -s | tr '[:upper:]' '[:lower:]')
+  arch=$(uname -m)
+
+  case "$os" in
+    linux|darwin) ;;
+    *)
+      log_warn "Unsupported OS: $os. Engram supports macOS (darwin) and Linux."
+      return 1
+      ;;
+  esac
+
+  case "$arch" in
+    x86_64)  arch="amd64" ;;
+    aarch64) arch="arm64" ;;
+    *)
+      log_warn "Unsupported architecture: $arch. Engram supports amd64 and arm64."
+      return 1
+      ;;
+  esac
+
+  echo "${os}_${arch}"
+  return 0
+}
+
+# Resolve the Engram version to check.
+# Uses --engram-tag if set, otherwise fetches latest from GitHub API.
+resolve_engram_version() {
+  local version
+
+  if [ -n "${ENGRAM_TAG:-}" ]; then
+    # update.sh does not support --engram-tag; use install.sh for pinned versions
+    version=""
+  fi
+
+  version=$(curl -fsSL \
+    "https://api.github.com/repos/Gentleman-Programming/engram/releases/latest" \
+    2>/dev/null | grep '"tag_name":' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+
+  if [ -z "$version" ]; then
+    log_warn "Engram: could not determine latest version from GitHub API"
+    return 1
+  fi
+
+  version="${version#v}"
+  echo "$version"
+  return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -104,11 +163,13 @@ parse_flags() {
         DRY_RUN=true; shift ;;
       --quiet|-q)
         QUIET=true; shift ;;
+      --skip-engram-update) SKIP_ENGRAM_UPDATE=true; shift ;;
+      --update-engram)      UPDATE_ENGRAM=true; shift ;;
       --version)
         show_version; exit 0 ;;
       *)
         log_fail "Unknown flag: $1"
-        echo "Usage: update.sh [--tag <version>] [--force] [--dry-run] [--version]"
+        echo "Usage: update.sh [--tag <version>] [--force] [--dry-run] [--skip-engram-update] [--update-engram] [--version]"
         exit 1
         ;;
     esac
@@ -159,6 +220,106 @@ step_verify_installed() {
     current_branch="(tag: $(git describe --tags 2>/dev/null || 'unknown'))"
   fi
   log_info "Current branch/tag: $current_branch"
+}
+
+# ---------------------------------------------------------------------------
+# Step 1.5: Check Engram updates
+# ---------------------------------------------------------------------------
+step_check_engram_update() {
+  log_step "Step 1.5: Checking Engram updates"
+
+  # ---- Guard: --skip-engram-update ----
+  if $SKIP_ENGRAM_UPDATE; then
+    log_info "○ Skipped: Engram update check (--skip-engram-update)"
+    return 0
+  fi
+
+  # ---- Guard: --dry-run ----
+  if $DRY_RUN; then
+    log_info "[DRY-RUN] Would check for Engram updates"
+    return 0
+  fi
+
+  # ---- Check if engram is installed ----
+  local ENGRAM_BIN="${HOME}/.local/bin/engram"
+  if [ ! -x "$ENGRAM_BIN" ]; then
+    log_info "Engram not installed or not executable. Run install.sh first."
+    return 0
+  fi
+
+  # ---- Get current version ----
+  local current
+  current=$("$ENGRAM_BIN" --version 2>/dev/null | grep -oP 'v?\K[\d.]+' || echo "0.0.0")
+
+  # ---- Get latest version ----
+  local latest
+  latest=$(resolve_engram_version) || true
+  if [ -z "$latest" ]; then
+    log_warn "Could not check for Engram updates"
+    return 0
+  fi
+
+  # ---- Compare versions ----
+  if [ "$current" = "$latest" ] && ! $UPDATE_ENGRAM; then
+    log_ok "Engram is up to date (v${current})"
+    return 0
+  fi
+
+  if [ "$current" != "$latest" ]; then
+    log_info "→ Updating engram: v${current} → v${latest}"
+  else
+    log_info "→ Reinstalling engram v${latest} (--update-engram)"
+  fi
+
+  # ---- Detect platform ----
+  local platform
+  platform=$(detect_platform) || true
+  if [ -z "$platform" ]; then
+    log_warn "Engram update skipped: unsupported platform"
+    return 0
+  fi
+
+  # ---- Download and install ----
+  local asset="engram_v${latest}_${platform}.tar.gz"
+  local url="https://github.com/Gentleman-Programming/engram/releases/download/v${latest}/${asset}"
+
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap 'rm -rf "$tmpdir"' EXIT
+
+  log_info "Engram: downloading v${latest} (${platform})..."
+  if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
+    log_warn "Engram update download failed"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  if ! tar -xzf "$tmpdir/$asset" -C "$tmpdir"; then
+    log_warn "Engram extraction failed"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  local engram_extracted
+  engram_extracted=$(find "$tmpdir" -name "engram" -type f | head -1)
+  if [ -z "$engram_extracted" ]; then
+    log_warn "Engram binary not found in archive"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  mkdir -p "${HOME}/.local/bin"
+  cp "$engram_extracted" "$ENGRAM_BIN"
+  chmod +x "$ENGRAM_BIN"
+
+  if "$ENGRAM_BIN" --version >/dev/null 2>&1; then
+    log_ok "Engram updated to v${latest}"
+  else
+    log_warn "Engram update --version check failed"
+  fi
+
+  rm -rf "$tmpdir"
+  return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -473,6 +634,7 @@ main() {
 
   parse_flags "$@"
   step_verify_installed
+  step_check_engram_update
   step_git_update
   step_sync_bundled_skills
   step_update_clawhub
