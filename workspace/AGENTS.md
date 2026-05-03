@@ -280,9 +280,9 @@ por Lucy directo o por un sub-agente delegado.
 - Apply → `context: isolated`
 
 **Fases directas (Lucy):**
-- Propose — no se delega
+- Propose (Pro) — no se delega
 - PR Review + Address Changes — Lucy maneja el feedback directo
-- Archive — solo cuando PR está mergeado o Camilo decide cerrar
+- Archive (Flash) — solo cuando PR está mergeado o Camilo decide cerrar
 
 **Engram Memory Protocol para sub-agentes (OBLIGATORIO):**
 

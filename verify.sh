@@ -121,7 +121,7 @@ ENGRAM_DATA_DIR="${HOME}/.local/share/engram"
 
 if [ ! -f "$ENGRAM_BIN" ]; then
   echo -e "  ${YELLOW}!${NC} Engram binary not found — skipping Engram checks"
-  echo -e "    (install with --skip-engram, or run install.sh to add Engram)"
+  echo -e "    (run install.sh without --skip-engram to add Engram)"
 else
   check "Engram binary exists" \
     "[ -f '$ENGRAM_BIN' ]" \

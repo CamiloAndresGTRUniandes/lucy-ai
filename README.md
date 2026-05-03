@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/SDD-Agent-0D1117?style=for-the-badge&logoColor=%2300C853" alt="SDD Agent">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
-  <img src="https://img.shields.io/badge/Version-1.4.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.3.0">
+  <img src="https://img.shields.io/badge/Version-1.4.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.4.0">
 </p>
 
 ---

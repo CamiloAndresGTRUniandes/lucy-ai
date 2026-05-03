@@ -106,8 +106,8 @@ detect_platform() {
 
   # Normalize architecture
   case "$arch" in
-    x86_64)  arch="amd64" ;;
-    aarch64) arch="arm64" ;;
+    x86_64|amd64) arch="amd64" ;;
+    aarch64|arm64)  arch="arm64" ;;
     *)
       log_warn "Unsupported architecture: $arch. Engram supports amd64 and arm64."
       return 1
@@ -306,7 +306,7 @@ step_install_engram() {
   local ENGRAM_BIN="${HOME}/.local/bin/engram"
   if [ -f "$ENGRAM_BIN" ] && [ -x "$ENGRAM_BIN" ]; then
     local installed_version
-    installed_version=$("$ENGRAM_BIN" --version 2>/dev/null | grep -oP 'v?\K[\d.]+' || echo "unknown")
+    installed_version=$("$ENGRAM_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
     if [ "$installed_version" = "$version" ] && ! $FORCE; then
       log_ok "Unchanged: engram v$installed_version"
       return 0
@@ -324,7 +324,7 @@ step_install_engram() {
   log_info "Engram: downloading v${version} (${platform})..."
   local tmpdir
   tmpdir=$(mktemp -d)
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "rm -rf '$tmpdir'" EXIT
 
   if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
     log_warn "Engram download failed for v${version}/${platform}"
@@ -354,8 +354,9 @@ step_install_engram() {
   chmod +x "$ENGRAM_BIN"
 
   # ---- Initialize database ----
-  log_info "Engram: initializing database..."
-  if "$ENGRAM_BIN" --version >/dev/null 2>&1; then
+  # Run --version to verify binary and initialize database
+  log_info "Verifying Engram binary..."
+  if ENGRAM_DATA_DIR="${ENGRAM_DATA_DIR:-$HOME/.local/share/engram}" "$ENGRAM_BIN" --version >/dev/null 2>&1; then
     log_ok "Engram v${version} installed to ~/.local/bin/engram"
   else
     log_warn "Engram binary installed but --version check failed"

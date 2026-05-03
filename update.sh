@@ -70,8 +70,8 @@ detect_platform() {
   esac
 
   case "$arch" in
-    x86_64)  arch="amd64" ;;
-    aarch64) arch="arm64" ;;
+    x86_64|amd64) arch="amd64" ;;
+    aarch64|arm64)  arch="arm64" ;;
     *)
       log_warn "Unsupported architecture: $arch. Engram supports amd64 and arm64."
       return 1
@@ -83,14 +83,10 @@ detect_platform() {
 }
 
 # Resolve the Engram version to check.
-# Uses --engram-tag if set, otherwise fetches latest from GitHub API.
+# Fetches latest from GitHub API.
+# Note: update.sh does not support --engram-tag; use install.sh for pinned versions.
 resolve_engram_version() {
   local version
-
-  if [ -n "${ENGRAM_TAG:-}" ]; then
-    # update.sh does not support --engram-tag; use install.sh for pinned versions
-    version=""
-  fi
 
   version=$(curl -fsSL \
     "https://api.github.com/repos/Gentleman-Programming/engram/releases/latest" \
@@ -249,7 +245,7 @@ step_check_engram_update() {
 
   # ---- Get current version ----
   local current
-  current=$("$ENGRAM_BIN" --version 2>/dev/null | grep -oP 'v?\K[\d.]+' || echo "0.0.0")
+  current=$("$ENGRAM_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "0.0.0")
 
   # ---- Get latest version ----
   local latest
@@ -285,7 +281,7 @@ step_check_engram_update() {
 
   local tmpdir
   tmpdir=$(mktemp -d)
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "rm -rf '$tmpdir'" EXIT
 
   log_info "Engram: downloading v${latest} (${platform})..."
   if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
