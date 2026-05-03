@@ -17,5 +17,16 @@
       thinkingDefault: "medium",
       elevatedDefault: "on"
     }
+  },
+  mcp: {
+    servers: {
+      engram: {
+        command: "~/.local/bin/engram",
+        args: [],
+        env: {
+          ENGRAM_HOME: "~/.local/share/engram"
+        }
+      }
+    }
   }
 }

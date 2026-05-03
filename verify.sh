@@ -108,6 +108,41 @@ echo "Config checks:"
 check "agent-fragment.json5 exists" "[ -f '$LUCY_DIR/config/agent-fragment.json5' ]" "config-fragment"
 check "agent-fragment has agents block" "grep -q 'agents:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-agents"
 check "agent-fragment has defaults block" "grep -q 'defaults:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-defaults"
+check "agent-fragment has Engram MCP block" "grep -q 'engram:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-engram-mcp"
+echo ""
+
+# ---------------------------------------------------------------------------
+# Check 4.5: Engram technical memory system
+# ---------------------------------------------------------------------------
+echo "Engram checks:"
+
+ENGRAM_BIN="${HOME}/.local/bin/engram"
+ENGRAM_DATA_DIR="${HOME}/.local/share/engram"
+
+if [ ! -f "$ENGRAM_BIN" ]; then
+  echo -e "  ${YELLOW}!${NC} Engram binary not found — skipping Engram checks"
+  echo -e "    (run install.sh without --skip-engram to add Engram)"
+else
+  check "Engram binary exists" \
+    "[ -f '$ENGRAM_BIN' ]" \
+    "engram-binary-exists"
+
+  check "Engram binary is executable" \
+    "[ -x '$ENGRAM_BIN' ]" \
+    "engram-binary-executable"
+
+  check "engram --version works" \
+    "'$ENGRAM_BIN' --version >/dev/null 2>&1" \
+    "engram-version-works"
+
+  check "Engram data directory exists" \
+    "[ -d '$ENGRAM_DATA_DIR' ]" \
+    "engram-data-dir-exists"
+
+  check "Engram database exists" \
+    "[ -f '$ENGRAM_DATA_DIR/engram.db' ]" \
+    "engram-db-exists"
+fi
 echo ""
 
 # ---------------------------------------------------------------------------
