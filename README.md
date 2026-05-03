@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/SDD-Agent-0D1117?style=for-the-badge&logoColor=%2300C853" alt="SDD Agent">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
-  <img src="https://img.shields.io/badge/Version-1.3.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.3.0">
+  <img src="https://img.shields.io/badge/Version-1.4.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.4.0">
 </p>
 
 ---
@@ -52,8 +52,9 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | 🛠️ **Skills** | SDD workflow + Orchestrator, PR review, Clean Architecture, TypeScript, Tailwind, C#/.NET |
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
 | ⚙️ **Config** | Agent defaults, model config, thinking level — all ready to include |
-| ✅ **Verify** | Post-install checks so you know everything is wired up |
-| 🧹 **Uninstall** | Clean removal when you want to start fresh |
+| ✅ **Verify** | Post-install checks so you know everything is wired up
+| 🧹 **Uninstall** | Clean removal when you want to start fresh
+| 🪶 **Engram** | Technical decision memory (FTS5, conflict detection, session tracking) |
 
 ## Install modes
 
@@ -131,6 +132,8 @@ cd ~/.openclaw/lucy-agent
 install.sh --clone             # Clone Lucy's exact config
 install.sh --template          # Use generic templates
 install.sh --tag <version>     # Install specific release (e.g. v1.0.0)
+install.sh --skip-engram       # Skip Engram memory system
+install.sh --engram-tag <ver>  # Pin Engram version (default: latest)
 install.sh --skip-clawhub      # Skip ClawHub skills
 install.sh --skip-workspace    # Skip workspace seeding
 install.sh --force             # Overwrite without asking
@@ -141,8 +144,10 @@ install.sh --version           # Show version and exit
 install.sh --help             # Show help
 
 # Update flags
-update.sh --tag <version>      # Pin to version
-update.sh --force              # Force overwrite / stash local changes
+update.sh --tag <version>           # Pin to version
+update.sh --skip-engram-update      # Skip Engram version check
+update.sh --update-engram           # Force Engram reinstall
+update.sh --force                   # Force overwrite / stash local changes
 update.sh --force-stash        # Stash local changes before pulling
 update.sh --quiet, -q          # Suppress info output
 update.sh --dry-run            # Preview
