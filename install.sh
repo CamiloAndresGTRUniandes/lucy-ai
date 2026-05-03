@@ -354,9 +354,9 @@ step_install_engram() {
   chmod +x "$ENGRAM_BIN"
 
   # ---- Initialize database ----
-  # Run --version to verify binary and initialize database
-  log_info "Verifying Engram binary..."
-  if ENGRAM_DATA_DIR="${ENGRAM_DATA_DIR:-$HOME/.local/share/engram}" "$ENGRAM_BIN" --version >/dev/null 2>&1; then
+  # Run search to verify binary and initialize database at configured path
+  log_info "Verifying Engram binary and initializing database..."
+  if ENGRAM_DATA_DIR="${ENGRAM_DATA_DIR:-$HOME/.local/share/engram}" "$ENGRAM_BIN" context >/dev/null 2>&1; then
     log_ok "Engram v${version} installed to ~/.local/bin/engram"
   else
     log_warn "Engram binary installed but --version check failed"
