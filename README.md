@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/SDD-Agent-0D1117?style=for-the-badge&logoColor=%2300C853" alt="SDD Agent">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
-  <img src="https://img.shields.io/badge/Version-1.4.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.4.0">
+  <img src="https://img.shields.io/badge/Version-1.5.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.5.0">
 </p>
 
 ---
@@ -38,6 +38,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 
 # Install a specific version
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.3.0
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.5.0
 ```
 
 > 💡 **New here?** Run without flags for an interactive setup guide.
@@ -63,6 +64,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
 | **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
 | **Specific version** | `curl ... | bash -s -- --tag v1.3.0` | Pin to a known release |
+| **Specific version** | `curl ... | bash -s -- --tag v1.5.0` | Pin to a known release |
 | **Interactive** | `curl ... | bash` | Guided setup with friendly prompts |
 
 ## Post-install
@@ -103,6 +105,7 @@ cd ~/.openclaw/lucy-agent
 
 # Pin to a specific version
 ./update.sh --tag v1.3.0
+./update.sh --tag v1.5.0
 
 # Show version info
 ./update.sh --version

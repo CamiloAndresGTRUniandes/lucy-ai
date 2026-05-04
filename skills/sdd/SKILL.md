@@ -2,11 +2,11 @@
 name: sdd
 description: >
   Spec-Driven Development workflow for OpenClaw. Triggers when Camilo wants to build something new, implement a feature, make architectural decisions, or plan a change.
-  Follows 8 phases: Explore → Propose → Spec → Design → Tasks → Apply → Verify → Archive.
+  Follows these phases: Explore → Propose → Spec → Design → Tasks → Apply → Verify → Archive.
   Core principle: Spec before code. Lucy questions, Camilo decides.
 metadata:
   author: lucy-camilo
-  version: "1.1"
+  version: "1.2"
 ---
 
 ## Core Principle
@@ -15,15 +15,30 @@ metadata:
 
 **Lucy questions, Camilo decides.** My job is to ensure specs and designs are solid before implementation.
 
+> **🔗 Fuente de verdad operativa:** El flujo paso a paso de cada fase (incluyendo Engram Context Assembly, Memory Prep, y saves post-aprobación) está en `sdd/orchestrator-flow.md`. Este skill define el qué; el orchestrator-flow.md define el cómo exacto.
+
 ---
 
 ## When to Trigger
+
+**Referencia cruzada:** Ver `sdd/orchestrator-flow.md` § Step-by-Step por Fase para la implementación operativa de cada phase, incluyendo los pasos de Engram Memory Prep y persistencia de decisiones.
 
 Load this skill when Camilo:
 - Says "build", "implement", "we should add", "I need"
 - Wants to plan a feature or significant change
 - Asks to review architecture or design
 - Wants to approach a problem but doesn't know where to start
+
+## Templates
+
+| Template | Phase | Output |
+|----------|-------|--------|
+| `sdd/templates/explore.md.in` | Explore | Codebase overview, patterns found, dependencies & risks, recommendations |
+| `sdd/templates/spec.md.in` | Spec | Context, requirements, user scenarios, acceptance criteria |
+| `sdd/templates/design.md.in` | Design | Architecture decisions, data model, API design, security, error handling, observability |
+| `sdd/templates/tasks.md.in` | Tasks | Task list with titles, descriptions, effort estimates, dependencies |
+| `sdd/templates/apply.md.in` | Apply | Files modified, implementation summary, tests |
+| `sdd/templates/verify.md.in` | Verify | Spec compliance, acceptance criteria check, code quality, security, final verdict |
 
 ## Decision Memory Protocol
 
@@ -49,6 +64,13 @@ Load this skill when Camilo:
 - Architecture decisions → `topic_key="architecture/<slug>"`
 - If `mem_save` returns `judgment_required: true` → surface conflict to Camilo via `engram__mem_judge`
 - Conflicts with `confidence < 0.7` or `relation ∈ {supersedes, conflicts_with}` AND `type ∈ {architecture, policy, decision}` → **always ask Camilo** before judging
+
+**Be critical of decisions:**
+- Question every new decision: does it really improve things or just add complexity?
+- Keep existing decisions unless there's a significant, demonstrable improvement
+- Consistency is value — changing for the sake of change is not progress
+- If a decision has worked well for a long time, you need strong reasons to change it
+- Architecture scrutiny is mandatory, not optional
 
 This applies to: patterns chosen, library selections, architectural approaches, naming conventions, team norms.
 
@@ -96,7 +118,16 @@ Each delegated SDD phase should be tracked as an Engram session:
 ## SDD Phases
 
 ### Phase 1: Explore
-Investigate before proposing.
+Investigate before proposing. Delegado a sub-agente.
+
+**Flujo delegado:**
+1. **Pre-flight Engram Context Assembly:** Lucy carga contexto de Engram (sesiones recientes, decisiones de arquitectura) y ensambla el Pre-loaded Engram Context Block.
+2. **Spawn sub-agente:** Lucy usa el task string de `sdd/task-string-format.md` con template `explore.md.in`. Contexto `isolated`. Inyecta el Pre-loaded Engram Context Block como sección del task string.
+3. **Validación:** Lucy valida el output del sub-agente contra `sdd/validation-rules.md` § Explore.
+4. **Persistencia en Engram:** Si pasa validación, Lucy inicia sesión Engram (`engram__mem_session_start`), guarda descubrimientos con `engram__mem_save(type="discovery")`, y cierra sesión (`engram__mem_session_end`). Esto ocurre **post-aprobación de Camilo** (cuando sea parte de un SDD cycle completo).
+5. **Retry:** Máximo 3 intentos. Si falla 3 veces, escalar a Camilo.
+
+> **🔗 Detalles operativos:** Ver `sdd/orchestrator-flow.md` § 1. Explore para el flujo completo incluyendo state.json updates, error handling (Engram no disponible, timeout), y edge cases.
 
 **Do:**
 - Read existing code related to the problem
@@ -279,13 +310,47 @@ Validate implementation against spec.
 
 ---
 
-### Phase 8: Archive
-Sync results and update memory.
+### Phase 7.5: PR Review & Address Changes
+Post-Verify: PR review por Camilo y resolución de feedback. **NO NEGOCIABLE.**
 
-1. Create or update `SPEC.md` in project root
-2. Save session summary: `engram__mem_session_summary(content="Goal/Discoveries/Accomplished/Files")`
-3. Update `memory/` with personal context and daily notes
-4. Summarize what was built for future reference
+**Clasificación de feedback de Camilo:**
+| Tipo | Ejemplo | Ruta |
+|------|---------|------|
+| **Minor** | Typos, naming, error msg, log level | Apply fix → Re-verify → Archive |
+| **Moderate** | Nueva variable/constante, cambio de validación | Tasks → Apply → Verify |
+| **Major** | Cambio de comportamiento, nuevo endpoint | Spec → Design → Tasks → Apply → Verify |
+
+**Reglas de ruta:**
+- Lucy clasifica cada comment y propone la ruta a Camilo antes de actuar
+- Minor: Lucy resuelve directo en Apply fix, luego re-verify
+- Moderate: nuevo sub-ciclo Tasks → Apply → Verify
+- Major: ciclo completo Spec → Design → Tasks → Apply → Verify
+
+**Condición para Archive:**
+Archive solo ocurre cuando:
+- PR mergeado en `main`/`develop`, **O**
+- Camilo decide explícitamente cerrar el ciclo sin merge (con rationale documentado)
+
+> **🔗 Detalles operativos:** Ver `sdd/orchestrator-flow.md` § 7.5 para el flujo completo incluyendo el árbol de decisión de feedback y las reglas NO NEGOCIABLES.
+
+**Ask Camilo:**
+- "Camilo, tus comments son minor (N typos) y moderate (1 validation change). Minor los resuelvo directo, moderate entra como T1 nuevo. ¿Dale?"
+
+---
+
+### Phase 8: Archive
+Sync results and update memory. Lucy directo (no delegado).
+
+1. **Engram session summary:** `engram__mem_session_summary(session_id=cycleSessionId)` con Goal, Discoveries, Accomplished, Relevant Files.
+2. **Sync decisiones finales:** Itera por todas las fases en `state.engram.observations`, guarda decisiones pendientes, verifica que todas las decisiones de arquitectura estén persistidas.
+3. **Guardar en state:** `state.engram.observations.archive` con las decisiones finales del ciclo.
+4. **Mover directorio:** `sdd/{project}/{feature}/` → `sdd/{project}/{feature-YYYY-MM-DD}/`.
+5. **Actualizar state.json:** `status: completed`, bloque `engram` completo con todos los observation IDs.
+6. **Escribir resumen en memory/:** `memory/YYYY-MM-DD-{project}-{feature}.md` con resumen del ciclo.
+7. **Presentar resumen final a Camilo:** Lo que se construyó, decisiones tomadas, estado del PR.
+8. **Preguntar:** "¿Archivamos y pasamos al próximo feature?"
+
+> **🔗 Detalles operativos:** Ver `sdd/orchestrator-flow.md` § 8. Archive para el flujo completo incluyendo edge cases (Camilo decide cerrar sin merge) y reglas NO NEGOCIABLES.
 
 ---
 

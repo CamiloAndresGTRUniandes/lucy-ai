@@ -8,10 +8,18 @@
 
 Skills define _how_ tools work. This file is for _your_ specifics — things unique to your setup, shared across all projects.
 
-### OpenClaw Session
+### SDD Model Configuration (OBLIGATORIO)
 
-- **Thinking level**: `high` — OBLIGATORIO para TODOS los cambios de código, arquitectura y decisiones técnicas. Solo bajar a `low` o `off` cuando sea solo conversación casual.
-- Can be set per-session from the dashboard/web UI (chat settings). Currently: high.
+El modelo y thinking level dependen de la fase SDD activa. Ver `AGENTS.md`
+para la tabla completa. Lucy cambia automáticamente al entrar a cada fase.
+
+- **Mecanismo de switch:** `session_status(model="deepseek/deepseek-v4-{pro|flash}")`
+- **Regla de escalación:** Si Lucy necesita Pro durante fase Flash, debe pedir
+  permiso explícito a Camilo.
+- **Modelos disponibles:** `deepseek/deepseek-v4-pro` (1.6T params, 49B activos)
+  y `deepseek/deepseek-v4-flash` (284B params, 13B activos, ~12x más barato).
+- **Thinking siempre `high`** — DeepSeek es binario en la práctica: `high` es
+  el único nivel de reasoning habilitado (además de `off`).
 
 ### What goes here
 

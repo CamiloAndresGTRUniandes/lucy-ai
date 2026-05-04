@@ -27,6 +27,8 @@
 #   --force-stash    Stash local changes before pulling (for existing installs)
 #   --quiet, -q      Suppress informational output
 #   --dry-run        Show what would be done without making changes
+#   --no-tui         Force text prompts even when dialog is available
+#   --accept-defaults Accept all defaults non-interactively
 #   --version        Show version and exit
 #   --help, -h       Show this help
 # =============================================================================
@@ -44,7 +46,7 @@ LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.4.0"
+CURRENT_VERSION="1.5.0"
 
 # Flags
 SKIP_CLAWHUB=false
@@ -58,6 +60,13 @@ NON_INTERACTIVE_FLAGS=false
 SPECIFIC_TAG=""
 SKIP_ENGRAM=false
 ENGRAM_TAG=""
+NO_TUI=false
+ACCEPT_DEFAULTS=false
+TUI_MODE=false
+
+declare -A PHASE_CONFIG
+declare -A COMPONENTS
+declare -a SDD_PHASES=(Explore Propose Spec Design Tasks Apply Verify Archive)
 
 # TTY detection: interactive prompt if terminal, otherwise non-interactive
 if [ -t 0 ]; then
@@ -154,31 +163,41 @@ resolve_engram_version() {
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --clone)          CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
-      --template)        CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --clone) CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --template) CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
       --tag)
         if [[ -z "${2:-}" ]]; then
-          log_fail "--tag requires a value (e.g. --tag v1.0.0)"
+          log_fail "--tag requires a value (e.g. --tag v1.5.0)"
           exit 1
         fi
-        SPECIFIC_TAG="$2"; shift 2 ;;
-      --skip-clawhub)   SKIP_CLAWHUB=true; shift ;;
-      --skip-workspace)  SKIP_WORKSPACE=true; shift ;;
-      --skip-engram)    SKIP_ENGRAM=true; shift ;;
+        SPECIFIC_TAG="$2"
+        shift 2
+        ;;
+      --skip-clawhub) SKIP_CLAWHUB=true; shift ;;
+      --skip-workspace) SKIP_WORKSPACE=true; shift ;;
+      --skip-engram) SKIP_ENGRAM=true; shift ;;
       --engram-tag)
         if [[ -z "${2:-}" ]]; then
           log_fail "--engram-tag requires a value (e.g. --engram-tag v1.15.4)"
           exit 1
         fi
-        ENGRAM_TAG="$2"; shift 2 ;;
-      --force)           FORCE=true; shift ;;
-      --force-stash)    FORCE_STASH=true; FORCE=true; shift ;;
-      --dry-run)         DRY_RUN=true; shift ;;
-      --quiet|-q)        QUIET=true; shift ;;
+        ENGRAM_TAG="$2"
+        shift 2
+        ;;
+      --force) FORCE=true; shift ;;
+      --force-stash) FORCE_STASH=true; FORCE=true; shift ;;
+      --dry-run) DRY_RUN=true; shift ;;
+      --no-tui) NO_TUI=true; shift ;;
+      --accept-defaults) ACCEPT_DEFAULTS=true; shift ;;
+      --quiet|-q) QUIET=true; shift ;;
       --version)
-        show_version; exit 0 ;;
+        show_version
+        exit 0
+        ;;
       --help|-h)
-        show_help; exit 0 ;;
+        show_help
+        exit 0
+        ;;
       *)
         log_fail "Unknown flag: $1"
         echo "Usage: install.sh [--clone|--template|--tag <version>] [flags]"
@@ -191,19 +210,21 @@ parse_flags() {
 show_help() {
   echo "Usage: install.sh [flags]"
   echo "Flags:"
-  echo "  --clone            Clone Lucy's exact config (lucy-config branch)"
-  echo "  --template         Use generic templates (default)"
-  echo "  --tag <version>    Install a specific release (e.g. v1.0.0)"
-  echo "  --skip-clawhub    Skip ClawHub skill installation"
-  echo "  --skip-workspace  Skip workspace seeding"
-  echo "  --skip-engram     Skip Engram memory system installation"
-  echo "  --engram-tag <ver> Install a specific Engram version (default: latest)"
-  echo "  --force            Overwrite conflicting files without prompting"
-  echo "  --force-stash      Stash local changes before pulling"
-  echo "  --quiet, -q        Suppress informational output"
-  echo "  --dry-run          Show what would be done without making changes"
-  echo "  --version          Show version and exit"
-  echo "  --help, -h         Show this help"
+  echo "  --clone             Clone Lucy's exact config (lucy-config branch)"
+  echo "  --template          Use generic templates (default)"
+  echo "  --tag <version>     Install a specific release (e.g. v1.5.0)"
+  echo "  --skip-clawhub      Skip ClawHub skill installation"
+  echo "  --skip-workspace    Skip workspace seeding"
+  echo "  --skip-engram       Skip Engram memory system installation"
+  echo "  --engram-tag <ver>  Install a specific Engram version (default: latest)"
+  echo "  --force             Overwrite conflicting files without prompting"
+  echo "  --force-stash       Stash local changes before pulling"
+  echo "  --dry-run           Show what would be done without making changes"
+  echo "  --no-tui            Force text prompts even when dialog is available"
+  echo "  --accept-defaults   Accept all defaults non-interactively"
+  echo "  --quiet, -q         Suppress informational output"
+  echo "  --version           Show version and exit"
+  echo "  --help, -h          Show this help"
 }
 
 show_version() {
@@ -226,6 +247,451 @@ show_version() {
   echo ""
   echo "Latest remote:"
   git ls-remote --tags "$LUCY_REPO" 2>/dev/null | awk -F/ '{print $3}' | grep -v '\^{}$' | sort -V | tail -1 | xargs -I{} echo "  Latest tag: {}" || echo "  (could not fetch)"
+}
+
+phase_default_primary() {
+  case "$1" in
+    Explore|Propose|Design) echo "deepseek/deepseek-v4-pro" ;;
+    Spec) echo "github-copilot/gpt-5.4" ;;
+    Tasks|Archive) echo "deepseek/deepseek-v4-flash" ;;
+    Apply) echo "openai-codex/gpt-5.4" ;;
+    Verify) echo "openai-codex/gpt-5.3-codex" ;;
+    *) echo "deepseek/deepseek-v4-pro" ;;
+  esac
+}
+
+phase_default_fallback() {
+  case "$1" in
+    Explore|Propose|Design) echo "openai-codex/gpt-5.4" ;;
+    Spec|Verify) echo "deepseek/deepseek-v4-flash" ;;
+    Tasks|Archive) echo "github-copilot/gpt-5.4" ;;
+    Apply) echo "deepseek/deepseek-v4-pro" ;;
+    *) echo "openai-codex/gpt-5.4" ;;
+  esac
+}
+
+phase_default_thinking() {
+  echo "high"
+}
+
+phase_index() {
+  case "$1" in
+    Explore) echo 1 ;;
+    Propose) echo 2 ;;
+    Spec) echo 3 ;;
+    Design) echo 4 ;;
+    Tasks) echo 5 ;;
+    Apply) echo 6 ;;
+    Verify) echo 7 ;;
+    Archive) echo 8 ;;
+    *) echo "?" ;;
+  esac
+}
+
+provider_from_model() {
+  case "${1%%/*}" in
+    deepseek) echo "DeepSeek" ;;
+    openai-codex) echo "OpenAI Codex" ;;
+    github-copilot) echo "GitHub Copilot" ;;
+    manual) echo "Manual edit" ;;
+    *) echo "$1" ;;
+  esac
+}
+
+fallback_for_primary() {
+  case "$1" in
+    deepseek/deepseek-v4-pro) echo "openai-codex/gpt-5.4" ;;
+    deepseek/deepseek-v4-flash) echo "github-copilot/gpt-5.4" ;;
+    openai-codex/gpt-5.4) echo "deepseek/deepseek-v4-pro" ;;
+    openai-codex/gpt-5.3-codex) echo "deepseek/deepseek-v4-flash" ;;
+    github-copilot/gpt-5.4) echo "deepseek/deepseek-v4-flash" ;;
+    *) echo "deepseek/deepseek-v4-pro" ;;
+  esac
+}
+
+set_phase_config() {
+  local phase="$1"
+  local primary="$2"
+  local fallback="$3"
+  local thinking="$4"
+  local mode="$5"
+
+  PHASE_CONFIG["$phase.primary"]="$primary"
+  PHASE_CONFIG["$phase.fallback"]="$fallback"
+  PHASE_CONFIG["$phase.thinking"]="$thinking"
+  PHASE_CONFIG["$phase.mode"]="$mode"
+}
+
+compute_tui_mode() {
+  if $NO_TUI || $ACCEPT_DEFAULTS; then
+    TUI_MODE=false
+    return
+  fi
+
+  if $INTERACTIVE_PROMPT && command -v dialog >/dev/null 2>&1; then
+    TUI_MODE=true
+  else
+    TUI_MODE=false
+  fi
+}
+
+tui_load_sdd_defaults() {
+  local phase
+  for phase in "${SDD_PHASES[@]}"; do
+    set_phase_config \
+      "$phase" \
+      "$(phase_default_primary "$phase")" \
+      "$(phase_default_fallback "$phase")" \
+      "$(phase_default_thinking "$phase")" \
+      "default"
+  done
+}
+
+count_mode_phases() {
+  local wanted_mode="$1"
+  local total=0
+  local phase
+  for phase in "${SDD_PHASES[@]}"; do
+    if [ "${PHASE_CONFIG["$phase.mode"]:-default}" = "$wanted_mode" ]; then
+      total=$((total + 1))
+    fi
+  done
+  echo "$total"
+}
+
+count_customized_phases() {
+  count_mode_phases "customized"
+}
+
+render_phase_summary_text() {
+  printf "%-9s | %-15s | %-30s | %s\n" "Phase" "Provider" "Model" "Effort"
+  printf '%s\n' "----------|-----------------|--------------------------------|--------"
+
+  local phase model provider thinking mode suffix
+  for phase in "${SDD_PHASES[@]}"; do
+    model="${PHASE_CONFIG["$phase.primary"]:-$(phase_default_primary "$phase")}"
+    provider=$(provider_from_model "$model")
+    thinking="${PHASE_CONFIG["$phase.thinking"]:-high}"
+    mode="${PHASE_CONFIG["$phase.mode"]:-default}"
+    suffix=""
+
+    if [ "$mode" = "customized" ]; then
+      suffix=" *"
+    elif [ "$mode" = "skipped" ]; then
+      suffix=" (manual)"
+    fi
+
+    printf "%-9s | %-15s | %-30s | %s%s\n" \
+      "$phase" "$provider" "$model" "$thinking" "$suffix"
+  done
+}
+
+log_sdd_configuration() {
+  log_info "SDD phase configuration: $(count_customized_phases) customized, $(count_mode_phases "skipped") manual placeholders"
+  while IFS= read -r line; do
+    log_info "$line"
+  done < <(render_phase_summary_text)
+}
+
+tui_generate_sdd_table() {
+  cat <<EOF
+| # | Fase | Modelo Primario | Fallback | Thinking |
+|---|------|-----------------|----------|----------|
+EOF
+
+  local phase idx primary fallback thinking
+  for phase in "${SDD_PHASES[@]}"; do
+    idx=$(phase_index "$phase")
+    primary="${PHASE_CONFIG["$phase.primary"]:-$(phase_default_primary "$phase")}"
+    fallback="${PHASE_CONFIG["$phase.fallback"]:-$(phase_default_fallback "$phase")}"
+    thinking="${PHASE_CONFIG["$phase.thinking"]:-high}"
+    printf '| %s | %s | `%s` | `%s` | `%s` |\n' \
+      "$idx" "$phase" "$primary" "$fallback" "$thinking"
+  done
+
+  printf '| — | Lucy Orchestrator | `deepseek/deepseek-v4-pro` | — | `high` |\n'
+}
+
+apply_sdd_table_to_agents_file() {
+  local agents_file="$1"
+  local table_file output_file
+
+  if [ ! -f "$agents_file" ]; then
+    log_warn "AGENTS.md source not found: $agents_file"
+    return 1
+  fi
+
+  if ! grep -q '<!-- SDD_TABLE_START -->' "$agents_file" || ! grep -q '<!-- SDD_TABLE_END -->' "$agents_file"; then
+    log_warn "AGENTS.md missing SDD table sentinels; leaving file unchanged"
+    return 1
+  fi
+
+  if [ -z "${PHASE_CONFIG["Explore.primary"]:-}" ]; then
+    tui_load_sdd_defaults
+  fi
+
+  table_file=$(mktemp)
+  output_file=$(mktemp)
+  tui_generate_sdd_table > "$table_file"
+
+  sed -e "/<!-- SDD_TABLE_START -->/,/<!-- SDD_TABLE_END -->/{
+    /<!-- SDD_TABLE_START -->/{
+      p
+      r $table_file
+    }
+    /<!-- SDD_TABLE_END -->/p
+    d
+  }" "$agents_file" > "$output_file"
+
+  mv "$output_file" "$agents_file"
+  rm -f "$table_file"
+}
+
+tui_welcome() {
+  dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "Installer" \
+    --msgbox "Welcome to lucy-agent.\n\nThis wizard lets you review the SDD phase model matrix, choose the install mode, and confirm optional components before installation starts." \
+    12 78 >/dev/null
+}
+
+tui_phase_picker() {
+  local phase="$1"
+  local default_primary default_provider default_choice choice provider model thinking fallback
+
+  default_primary=$(phase_default_primary "$phase")
+  default_provider="${default_primary%%/*}"
+
+  if ! choice=$(dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "SDD Phase ${phase_index "$phase"}: $phase" \
+    --default-item default \
+    --menu "Choose how to configure $phase." 14 78 3 \
+      default "Use Camilo's suggested defaults" \
+      customize "Pick provider, model, and thinking" \
+      skip "Leave manual placeholders in AGENTS.md"); then
+    log_info "Installer cancelled during SDD phase configuration"
+    exit 0
+  fi
+
+  case "$choice" in
+    default)
+      set_phase_config \
+        "$phase" \
+        "$default_primary" \
+        "$(phase_default_fallback "$phase")" \
+        "$(phase_default_thinking "$phase")" \
+        "default"
+      return
+      ;;
+    skip)
+      set_phase_config "$phase" "manual/select-primary" "manual/select-fallback" "manual" "skipped"
+      return
+      ;;
+  esac
+
+  if ! provider=$(dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "Provider — $phase" \
+    --radiolist "Select the primary provider for $phase." 14 78 3 \
+      deepseek "DeepSeek" "$([ "$default_provider" = "deepseek" ] && echo on || echo off)" \
+      openai-codex "OpenAI Codex" "$([ "$default_provider" = "openai-codex" ] && echo on || echo off)" \
+      github-copilot "GitHub Copilot" "$([ "$default_provider" = "github-copilot" ] && echo on || echo off)"); then
+    log_info "Installer cancelled during provider selection"
+    exit 0
+  fi
+
+  case "$provider" in
+    deepseek)
+      default_choice="$([ "$default_primary" = "deepseek/deepseek-v4-pro" ] && echo pro || echo flash)"
+      if ! model=$(dialog --stdout \
+        --backtitle "lucy-agent v${CURRENT_VERSION}" \
+        --title "Model — $phase" \
+        --default-item "$default_choice" \
+        --menu "Choose the DeepSeek model for $phase." 14 78 2 \
+          pro "deepseek/deepseek-v4-pro" \
+          flash "deepseek/deepseek-v4-flash"); then
+        log_info "Installer cancelled during model selection"
+        exit 0
+      fi
+
+      case "$model" in
+        pro) model="deepseek/deepseek-v4-pro" ;;
+        flash) model="deepseek/deepseek-v4-flash" ;;
+      esac
+      ;;
+    openai-codex)
+      default_choice="$([ "$default_primary" = "openai-codex/gpt-5.3-codex" ] && echo codex53 || echo codex54)"
+      if ! model=$(dialog --stdout \
+        --backtitle "lucy-agent v${CURRENT_VERSION}" \
+        --title "Model — $phase" \
+        --default-item "$default_choice" \
+        --menu "Choose the OpenAI Codex model for $phase." 14 78 2 \
+          codex54 "openai-codex/gpt-5.4" \
+          codex53 "openai-codex/gpt-5.3-codex"); then
+        log_info "Installer cancelled during model selection"
+        exit 0
+      fi
+
+      case "$model" in
+        codex54) model="openai-codex/gpt-5.4" ;;
+        codex53) model="openai-codex/gpt-5.3-codex" ;;
+      esac
+      ;;
+    github-copilot)
+      model="github-copilot/gpt-5.4"
+      ;;
+  esac
+
+  if ! thinking=$(dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "Thinking — $phase" \
+    --default-item high \
+    --menu "Choose the thinking level for $phase." 15 78 4 \
+      high "High (recommended)" \
+      medium "Medium" \
+      low "Low" \
+      off "Off"); then
+    log_info "Installer cancelled during thinking selection"
+    exit 0
+  fi
+
+  fallback=$(fallback_for_primary "$model")
+  if [ "$fallback" = "$model" ]; then
+    fallback=$(phase_default_fallback "$phase")
+  fi
+
+  set_phase_config "$phase" "$model" "$fallback" "$thinking" "customized"
+}
+
+tui_phase_summary() {
+  dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "SDD phase summary" \
+    --msgbox "$(render_phase_summary_text)" 20 110 >/dev/null
+}
+
+tui_sdd_phase_config() {
+  tui_load_sdd_defaults
+
+  local phase
+  for phase in "${SDD_PHASES[@]}"; do
+    tui_phase_picker "$phase"
+  done
+
+  tui_phase_summary
+}
+
+set_component_defaults() {
+  COMPONENTS[engram]="$([ "$SKIP_ENGRAM" = false ] && echo true || echo false)"
+  COMPONENTS[clawhub]="$([ "$SKIP_CLAWHUB" = false ] && echo true || echo false)"
+  COMPONENTS[workspace]="$([ "$SKIP_WORKSPACE" = false ] && echo true || echo false)"
+  COMPONENTS[force]="$([ "$FORCE" = true ] && echo true || echo false)"
+}
+
+sync_component_flags_from_state() {
+  SKIP_ENGRAM=$([ "${COMPONENTS[engram]:-true}" = true ] && echo false || echo true)
+  SKIP_CLAWHUB=$([ "${COMPONENTS[clawhub]:-true}" = true ] && echo false || echo true)
+  SKIP_WORKSPACE=$([ "${COMPONENTS[workspace]:-true}" = true ] && echo false || echo true)
+  FORCE=$([ "${COMPONENTS[force]:-false}" = true ] && echo true || echo false)
+
+  if [ "$FORCE" = false ]; then
+    FORCE_STASH=false
+  fi
+}
+
+tui_install_mode() {
+  local selection tag_input
+
+  if ! selection=$(dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "Install mode" \
+    --default-item clone \
+    --menu "Choose how lucy-agent should be installed." 15 84 3 \
+      clone "Lucy's config (lucy-config branch)" \
+      template "Generic templates" \
+      tag "Specific release tag"); then
+    log_info "Installer cancelled during install mode selection"
+    exit 0
+  fi
+
+  case "$selection" in
+    clone)
+      CLONE_MODE=true
+      LUCY_BRANCH="lucy-config"
+      SPECIFIC_TAG=""
+      ;;
+    template)
+      CLONE_MODE=false
+      LUCY_BRANCH="main"
+      SPECIFIC_TAG=""
+      ;;
+    tag)
+      if ! tag_input=$(dialog --stdout \
+        --backtitle "lucy-agent v${CURRENT_VERSION}" \
+        --title "Specific tag" \
+        --inputbox "Enter the release tag to install (example: v1.5.0)." 10 72 "v${CURRENT_VERSION}"); then
+        log_info "Installer cancelled during tag entry"
+        exit 0
+      fi
+
+      if [ -z "$tag_input" ]; then
+        log_fail "Specific tag cannot be empty"
+        exit 1
+      fi
+
+      CLONE_MODE=false
+      LUCY_BRANCH="main"
+      SPECIFIC_TAG="$tag_input"
+      ;;
+  esac
+}
+
+tui_component_checklist() {
+  local selection item
+
+  if ! selection=$(dialog --stdout --separate-output \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "Optional components" \
+    --checklist "Toggle optional install components." 16 88 4 \
+      engram "Install Engram memory system" "$([ "${COMPONENTS[engram]}" = true ] && echo on || echo off)" \
+      clawhub "Sync ClawHub skills" "$([ "${COMPONENTS[clawhub]}" = true ] && echo on || echo off)" \
+      workspace "Seed workspace files" "$([ "${COMPONENTS[workspace]}" = true ] && echo on || echo off)" \
+      force "Force overwrite conflicts" "$([ "${COMPONENTS[force]}" = true ] && echo on || echo off)"); then
+    log_info "Installer cancelled during component selection"
+    exit 0
+  fi
+
+  COMPONENTS[engram]=false
+  COMPONENTS[clawhub]=false
+  COMPONENTS[workspace]=false
+  COMPONENTS[force]=false
+
+  while IFS= read -r item; do
+    case "$item" in
+      engram|clawhub|workspace|force) COMPONENTS["$item"]=true ;;
+    esac
+  done <<< "$selection"
+
+  sync_component_flags_from_state
+}
+
+tui_install_confirm() {
+  local mode_label
+
+  if [ -n "$SPECIFIC_TAG" ]; then
+    mode_label="Specific tag ($SPECIFIC_TAG)"
+  elif $CLONE_MODE; then
+    mode_label="Lucy's config (clone mode)"
+  else
+    mode_label="Generic templates"
+  fi
+
+  dialog --stdout \
+    --backtitle "lucy-agent v${CURRENT_VERSION}" \
+    --title "Confirm installation" \
+    --yesno "Mode: $mode_label\nEngram: $([ "$SKIP_ENGRAM" = false ] && echo yes || echo no)\nClawHub: $([ "$SKIP_CLAWHUB" = false ] && echo yes || echo no)\nWorkspace: $([ "$SKIP_WORKSPACE" = false ] && echo yes || echo no)\nForce overwrite: $([ "$FORCE" = true ] && echo yes || echo no)\nCustomized phases: $(count_customized_phases)\nManual placeholders: $(count_mode_phases skipped)\n\n$(render_phase_summary_text)\n\nProceed with installation?" \
+    24 110 >/dev/null
 }
 
 prompt_install_mode() {
@@ -256,6 +722,12 @@ prompt_install_mode() {
 # ---------------------------------------------------------------------------
 step_detect_openclaw() {
   log_step "Step 1: Checking environment"
+
+  if $DRY_RUN; then
+    log_info "[DRY-RUN] Would check for OpenClaw CLI"
+    return 0
+  fi
+
   if command -v openclaw &>/dev/null; then
     local ver
     ver=$(openclaw --version 2>/dev/null || echo "unknown")
@@ -394,6 +866,9 @@ step_clone_or_pull() {
         log_info "Stashing local changes (--force-stash)..."
         git -C "$LUCY_DIR" stash push -m "lucy-agent pre-install stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         did_stash=true
+      elif $DRY_RUN; then
+        log_info "[DRY-RUN] Would prompt to stash or skip local changes in $LUCY_DIR"
+        skip_pull=true
       elif $FORCE; then
         if ! git_stash_and_pull "$LUCY_DIR" "install"; then
           skip_pull=true
@@ -491,7 +966,7 @@ step_seed_workspace() {
 
   for file in "$ws_src"/*.md; do
     [ -f "$file" ] || continue
-    local filename
+    local filename source_file temp_source dest repo_sum existing_sum
     filename="$(basename "$file")"
 
     if is_excluded "$filename"; then
@@ -499,25 +974,37 @@ step_seed_workspace() {
       continue
     fi
 
-    local dest="${WORKSPACE_DIR}/${filename}"
-    local repo_sum; repo_sum=$(sha256_check "$file")
-    local existing_sum; existing_sum=$(sha256_check "$dest")
+    source_file="$file"
+    temp_source=""
+    if [ "$filename" = "AGENTS.md" ]; then
+      temp_source=$(mktemp)
+      cp "$file" "$temp_source"
+      apply_sdd_table_to_agents_file "$temp_source" || true
+      source_file="$temp_source"
+      log_info "AGENTS.md: prepared SDD model table ($(count_customized_phases) customized phases)"
+    fi
+
+    dest="${WORKSPACE_DIR}/${filename}"
+    repo_sum=$(sha256_check "$source_file")
+    existing_sum=$(sha256_check "$dest")
 
     if [ -z "$existing_sum" ]; then
       if ! $DRY_RUN; then
-        cp "$file" "$dest"
+        cp "$source_file" "$dest"
       fi
       log_ok "Created $filename"
     elif [ "$existing_sum" != "$repo_sum" ]; then
-      if $FORCE; then
+      if $DRY_RUN; then
+        log_info "[DRY-RUN] Would resolve conflict for $filename"
+      elif $FORCE; then
         if ! $DRY_RUN; then
-          cp "$file" "$dest"
+          cp "$source_file" "$dest"
         fi
         log_ok "Forced overwrite: $filename"
       else
         if prompt_conflict "overwrite/skip/abort" "$dest"; then
           if ! $DRY_RUN; then
-            cp "$file" "$dest"
+            cp "$source_file" "$dest"
           fi
           log_ok "Overwrote: $filename"
         else
@@ -527,16 +1014,20 @@ step_seed_workspace() {
     else
       log_info "Unchanged: $filename (matches repo)"
     fi
+
+    if [ -n "$temp_source" ]; then
+      rm -f "$temp_source"
+    fi
   done
 
-  # Seed sdd/ orchestrator files
   if [ -d "${ws_src}/sdd" ]; then
     while IFS= read -r -d '' sdd_file; do
       local sdd_rel="${sdd_file#$ws_src/}"
       local sdd_dest="${WORKSPACE_DIR}/${sdd_rel}"
-      local sdd_dest_dir; sdd_dest_dir="$(dirname "$sdd_dest")"
-      local repo_sum; repo_sum=$(sha256_check "$sdd_file")
-      local existing_sum; existing_sum=$(sha256_check "$sdd_dest")
+      local sdd_dest_dir repo_sum existing_sum
+      sdd_dest_dir="$(dirname "$sdd_dest")"
+      repo_sum=$(sha256_check "$sdd_file")
+      existing_sum=$(sha256_check "$sdd_dest")
 
       mkdir -p "$sdd_dest_dir"
 
@@ -546,7 +1037,9 @@ step_seed_workspace() {
         fi
         log_ok "Created $sdd_rel"
       elif [ "$existing_sum" != "$repo_sum" ]; then
-        if $FORCE; then
+        if $DRY_RUN; then
+          log_info "[DRY-RUN] Would resolve conflict for $sdd_rel"
+        elif $FORCE; then
           if ! $DRY_RUN; then
             cp "$sdd_file" "$sdd_dest"
           fi
@@ -597,7 +1090,9 @@ step_install_bundled_skills() {
       local existing_sum; existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
       local repo_sum; repo_sum=$(sha256_check "$skill_file")
       if [ "$existing_sum" != "$repo_sum" ]; then
-        if $FORCE; then
+        if $DRY_RUN; then
+          log_info "[DRY-RUN] Would resolve conflict for skill/$skill_name"
+        elif $FORCE; then
           if ! $DRY_RUN; then
             rm -rf "$dest" && cp -r "$skill_dir" "$dest"
           fi
@@ -740,20 +1235,55 @@ main() {
   echo ""
 
   parse_flags "$@"
+  compute_tui_mode
+  set_component_defaults
 
-  # Interactive prompt if no mode flags were passed and stdin is a terminal
-  if ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && [ -z "$SPECIFIC_TAG" ] && $INTERACTIVE_PROMPT; then
-    prompt_install_mode
-  elif ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && [ -z "$SPECIFIC_TAG" ] && ! $INTERACTIVE_PROMPT; then
-    CLONE_MODE=false
-    LUCY_BRANCH="main"
-    log_info "Mode: Generic templates (non-interactive, use --clone for Lucy's config)"
-  elif [ -n "$SPECIFIC_TAG" ]; then
-    log_info "Mode: Specific tag ($SPECIFIC_TAG)"
-  elif $CLONE_MODE; then
-    log_info "Mode: Clone Lucy's config"
+  if $TUI_MODE; then
+    tui_welcome
+    tui_sdd_phase_config
+
+    if ! $NON_INTERACTIVE_FLAGS && [ -z "$SPECIFIC_TAG" ]; then
+      tui_install_mode
+    elif [ -n "$SPECIFIC_TAG" ]; then
+      log_info "Mode: Specific tag ($SPECIFIC_TAG)"
+    elif $CLONE_MODE; then
+      log_info "Mode: Clone Lucy's config"
+    else
+      log_info "Mode: Generic templates"
+    fi
+
+    tui_component_checklist
+    if ! tui_install_confirm; then
+      exit 0
+    fi
   else
-    log_info "Mode: Generic templates"
+    tui_load_sdd_defaults
+    log_sdd_configuration
+
+    if $ACCEPT_DEFAULTS; then
+      if [ -n "$SPECIFIC_TAG" ]; then
+        log_info "Mode: Specific tag ($SPECIFIC_TAG)"
+      elif $CLONE_MODE; then
+        log_info "Mode: Clone Lucy's config"
+      else
+        CLONE_MODE=false
+        LUCY_BRANCH="main"
+        log_info "Mode: Generic templates (--accept-defaults)"
+      fi
+      log_info "Components: engram=$([ "$SKIP_ENGRAM" = false ] && echo yes || echo no), clawhub=$([ "$SKIP_CLAWHUB" = false ] && echo yes || echo no), workspace=$([ "$SKIP_WORKSPACE" = false ] && echo yes || echo no), force=$([ "$FORCE" = true ] && echo yes || echo no)"
+    elif ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && [ -z "$SPECIFIC_TAG" ] && $INTERACTIVE_PROMPT; then
+      prompt_install_mode
+    elif ! $NON_INTERACTIVE_FLAGS && ! $CLONE_MODE && [ -z "$SPECIFIC_TAG" ] && ! $INTERACTIVE_PROMPT; then
+      CLONE_MODE=false
+      LUCY_BRANCH="main"
+      log_info "Mode: Generic templates (non-interactive, use --clone for Lucy's config)"
+    elif [ -n "$SPECIFIC_TAG" ]; then
+      log_info "Mode: Specific tag ($SPECIFIC_TAG)"
+    elif $CLONE_MODE; then
+      log_info "Mode: Clone Lucy's config"
+    else
+      log_info "Mode: Generic templates"
+    fi
   fi
 
   step_detect_openclaw
