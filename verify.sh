@@ -108,6 +108,8 @@ echo "Config checks:"
 check "agent-fragment.json5 exists" "[ -f '$LUCY_DIR/config/agent-fragment.json5' ]" "config-fragment"
 check "agent-fragment has agents block" "grep -q 'agents:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-agents"
 check "agent-fragment has defaults block" "grep -q 'defaults:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-defaults"
+check "agent-fragment removes stale minimax references" "! grep -qi 'minimax' '$LUCY_DIR/config/agent-fragment.json5'" "config-no-minimax"
+check "agent-fragment sets thinkingDefault to high" "grep -q 'thinkingDefault: \"high\"' '$LUCY_DIR/config/agent-fragment.json5'" "config-thinking-high"
 check "agent-fragment has Engram MCP block" "grep -q 'engram:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-engram-mcp"
 echo ""
 
@@ -166,7 +168,7 @@ if command -v openclaw &>/dev/null; then
       skill=$(echo "$skill" | xargs)
       [[ -z "$skill" ]] && continue
       check "ClawHub skill '$skill' listed" "openclaw skills list 2>/dev/null | grep -q '$skill'" "clawhub-$skill"
-    done < "$LUCY_DIR/clawhub-skills.txt"
+    done <"$LUCY_DIR/clawhub-skills.txt"
   fi
 else
   echo -e "  ${YELLOW}!${NC} OpenClaw CLI not available — skipping ClawHub check"

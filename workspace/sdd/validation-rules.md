@@ -25,6 +25,19 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 
 ## Por Fase
 
+### Explore
+
+**Archivo esperado:** `sdd/{project}/{feature}/explore.md`
+
+**Secciones requeridas:**
+- [ ] `## Codebase Overview` — debe contener descripción de la arquitectura
+- [ ] `## Patterns Found` — debe contener al menos 1 patrón
+- [ ] `## Dependencies & Risks` — debe contener al menos 1 ítem
+- [ ] `## Recommendations` — debe contener al menos 1 recomendación accionable
+
+**Validación extra:**
+- Cada patrón en Patterns Found debe tener un nombre y una ubicación fuente (archivo:línea)
+
 ### Spec
 
 **Archivo esperado:** `sdd/{project}/{feature}/spec.md`
@@ -33,7 +46,7 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 - [ ] `## Context` — no vacío, contener al menos Problem + Business value
 - [ ] `## Requirements` — con subtablas Functional y/o Non-Functional (al menos 1 requirement)
 - [ ] `## User Scenarios` — al menos 1 escenario con Given/When/Then
-- [ ] `## Acceptance Criteria` — al menos 1 criterio con formato `aceptar tanto `[ ] AC1:` como `- [ ] **AC1:**``
+- [ ] `## Acceptance Criteria` — al menos 1 criterio con formato checklist (aceptar tanto `[ ] AC1:` como `- [ ] **AC1:**`)
 - [ ] `## Out of Scope` (opcional pero recomendado)
 
 **Validación extra:**
@@ -47,13 +60,16 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 **Secciones requeridas:**
 - [ ] `## Architecture Decisions` — tabla con al menos 1 decisión
 - [ ] `## Data Model` — descripción de entidades/schemas
-- [ ] `## API Design` — endpoints o interfaces
+- [ ] `## API Design` — endpoints o interfaces _(opcional)_ — no causa fail si ausente
 - [ ] `## Security` — auth, data handling, input validation
 - [ ] `## Error Handling` — failure modes + recovery
 - [ ] `## Observability` — logging, metrics
+- [ ] `## Decisiones aprobadas por Camilo` _(opcional)_ — no causa fail si ausente
+- [ ] `## Migration Plan` _(opcional)_ — no causa fail si ausente
 
 **Validación extra:**
 - Cada Architecture Decision debe tener: Decision, Choice, Rationale, Alternative Rejected
+- Si `## Decisiones aprobadas por Camilo` está presente, validar que tenga al menos 1 fila de datos
 
 ### Tasks
 
@@ -76,6 +92,8 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 - [ ] `## Files Modified` — tabla con File, Action, Description
 - [ ] `## What Was Implemented` — resumen no trivial
 - [ ] `## Tests` — tabla con test file, type, coverage
+- [ ] `## Notes` _(opcional)_ — no causa fail si ausente
+- [ ] `## Verification Instructions` _(opcional)_ — no causa fail si ausente
 
 **Validación extra:**
 - Al menos 1 archivo modificado
@@ -93,6 +111,7 @@ Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguient
 - [ ] `## Security` — checklist
 - [ ] `## Integration` — checklist
 - [ ] `## Final Verdict` — ✅ o ❌ con rationale
+- [ ] `## Issues Found` _(opcional)_ — no causa fail si ausente
 
 **Validación extra:**
 - Cada checklist debe tener al menos 1 item con ✅ o ❌

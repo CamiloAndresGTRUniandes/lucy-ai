@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  shellcheck-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: "."
+          severity: warning
+
+  bash-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate bash syntax
+        run: |
+          bash -n install.sh
+          bash -n update.sh
+          bash -n verify.sh
+          bash -n uninstall.sh
+          bash -n scripts/common.sh
+
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shfmt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shfmt
+
+      - name: Check shell formatting
+        run: shfmt -d -i 2 -ci install.sh update.sh verify.sh uninstall.sh scripts/common.sh
+
+  verify-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create mock openclaw CLI
+        run: |
+          mkdir -p .ci/bin
+          cat > .ci/bin/openclaw <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "${1:-}" = "skills" ] && [ "${2:-}" = "list" ]; then
+            cat <<'SKILLS'
+          weather
+          browser-automation
+          acp-router
+          SKILLS
+            exit 0
+          fi
+          if [ "${1:-}" = "--version" ]; then
+            echo "openclaw mock 0.0.0"
+            exit 0
+          fi
+          exit 0
+          EOF
+          chmod +x .ci/bin/openclaw
+
+      - name: Run verify.sh
+        run: PATH="$GITHUB_WORKSPACE/.ci/bin:$PATH" bash verify.sh
+
+  test-install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Exercise installer entry points
+        run: |
+          bash install.sh --accept-defaults --dry-run --skip-engram
+          bash install.sh --version
+          bash install.sh --help
+          bash update.sh --version
