@@ -14,11 +14,11 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Log helpers
-log_info()  { echo -e "${BLUE}[INFO]${NC} $*"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}   $*"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_fail()  { echo -e "${RED}[FAIL]${NC} $*"; }
-log_step()  { echo -e "\n${GREEN}==>${NC} $*"; }
+log_info() { echo -e "${BLUE}[INFO]${NC} $*"; }
+log_ok() { echo -e "${GREEN}[OK]${NC}   $*"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
+log_fail() { echo -e "${RED}[FAIL]${NC} $*"; }
+log_step() { echo -e "\n${GREEN}==>${NC} $*"; }
 
 # SHA256 check — returns hash of file or empty if file doesn't exist
 sha256_check() {
@@ -41,10 +41,16 @@ prompt_conflict() {
   local answer
   read -r answer
   case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    a|A) log_fail "Installation aborted by user."; exit 1 ;;
-    *)   log_fail "Invalid choice '$answer'. Aborting."; exit 1 ;;
+    o | O) return 0 ;;
+    s | S) return 1 ;;
+    a | A)
+      log_fail "Installation aborted by user."
+      exit 1
+      ;;
+    *)
+      log_fail "Invalid choice '$answer'. Aborting."
+      exit 1
+      ;;
   esac
 }
 
@@ -59,9 +65,9 @@ prompt_skill_conflict() {
   local answer
   read -r answer
   case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    *)   return 1 ;;
+    o | O) return 0 ;;
+    s | S) return 1 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -76,9 +82,9 @@ prompt_workspace_conflict() {
   local answer
   read -r answer
   case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    *)   return 1 ;;
+    o | O) return 0 ;;
+    s | S) return 1 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -100,6 +106,7 @@ is_excluded() {
   local filename="$1"
   local EXCLUDE_FILES="openclaw.json .env credentials/ secrets/ auth-profiles.json *.pem *.key *.crt .DS_Store"
   for pattern in $EXCLUDE_FILES; do
+    # shellcheck disable=SC2254  # intentional glob patterns for file matching
     case "$filename" in
       $pattern) return 0 ;;
       *) ;;
@@ -113,15 +120,16 @@ is_excluded() {
 git_is_dirty() {
   if [ -d "$1/.git" ]; then
     if [ -n "$(git -C "$1" status --short 2>/dev/null)" ]; then
-      return 0  # dirty
+      return 0 # dirty
     fi
   fi
-  return 1  # clean
+  return 1 # clean
 }
 
 # Stash git changes if dirty, pop after
 # Usage: git_stash_pop /path/to/repo "description"
 # Sets STASHED_CHANGES=1 if stashed, 0 otherwise
+# shellcheck disable=SC2034  # STASHED_CHANGES used by update.sh which sources this file
 git_stash_and_pull() {
   local repo="$1"
   local desc="$2"
@@ -191,14 +199,15 @@ write_version_file() {
   local branch="$2"
   local tag="${3:-}"
   local version="$4"
-  local installed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  local installed_at
+  installed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   local tag_json
   if [ -n "$tag" ]; then
     tag_json="\"$tag\""
   else
     tag_json="null"
   fi
-  cat > "$version_file" <<EOF
+  cat >"$version_file" <<EOF
 {
   "branch": "$branch",
   "tag": $tag_json,

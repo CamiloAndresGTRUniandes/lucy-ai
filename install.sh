@@ -106,7 +106,7 @@ detect_platform() {
 
   # Validate OS
   case "$os" in
-    linux|darwin) ;;
+    linux | darwin) ;;
     *)
       log_warn "Unsupported OS: $os. Engram supports macOS (darwin) and Linux."
       return 1
@@ -115,8 +115,8 @@ detect_platform() {
 
   # Normalize architecture
   case "$arch" in
-    x86_64|amd64) arch="amd64" ;;
-    aarch64|arm64)  arch="arm64" ;;
+    x86_64 | amd64) arch="amd64" ;;
+    aarch64 | arm64) arch="arm64" ;;
     *)
       log_warn "Unsupported architecture: $arch. Engram supports amd64 and arm64."
       return 1
@@ -163,8 +163,18 @@ resolve_engram_version() {
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --clone) CLONE_MODE=true; LUCY_BRANCH="lucy-config"; NON_INTERACTIVE_FLAGS=true; shift ;;
-      --template) CLONE_MODE=false; LUCY_BRANCH="main"; NON_INTERACTIVE_FLAGS=true; shift ;;
+      --clone)
+        CLONE_MODE=true
+        LUCY_BRANCH="lucy-config"
+        NON_INTERACTIVE_FLAGS=true
+        shift
+        ;;
+      --template)
+        CLONE_MODE=false
+        LUCY_BRANCH="main"
+        NON_INTERACTIVE_FLAGS=true
+        shift
+        ;;
       --tag)
         if [[ -z "${2:-}" ]]; then
           log_fail "--tag requires a value (e.g. --tag v1.5.0)"
@@ -173,9 +183,18 @@ parse_flags() {
         SPECIFIC_TAG="$2"
         shift 2
         ;;
-      --skip-clawhub) SKIP_CLAWHUB=true; shift ;;
-      --skip-workspace) SKIP_WORKSPACE=true; shift ;;
-      --skip-engram) SKIP_ENGRAM=true; shift ;;
+      --skip-clawhub)
+        SKIP_CLAWHUB=true
+        shift
+        ;;
+      --skip-workspace)
+        SKIP_WORKSPACE=true
+        shift
+        ;;
+      --skip-engram)
+        SKIP_ENGRAM=true
+        shift
+        ;;
       --engram-tag)
         if [[ -z "${2:-}" ]]; then
           log_fail "--engram-tag requires a value (e.g. --engram-tag v1.15.4)"
@@ -184,17 +203,36 @@ parse_flags() {
         ENGRAM_TAG="$2"
         shift 2
         ;;
-      --force) FORCE=true; shift ;;
-      --force-stash) FORCE_STASH=true; FORCE=true; shift ;;
-      --dry-run) DRY_RUN=true; shift ;;
-      --no-tui) NO_TUI=true; shift ;;
-      --accept-defaults) ACCEPT_DEFAULTS=true; shift ;;
-      --quiet|-q) QUIET=true; shift ;;
+      --force)
+        FORCE=true
+        shift
+        ;;
+      --force-stash)
+        FORCE_STASH=true
+        FORCE=true
+        shift
+        ;;
+      --dry-run)
+        DRY_RUN=true
+        shift
+        ;;
+      --no-tui)
+        NO_TUI=true
+        shift
+        ;;
+      --accept-defaults)
+        ACCEPT_DEFAULTS=true
+        shift
+        ;;
+      --quiet | -q)
+        QUIET=true
+        shift
+        ;;
       --version)
         show_version
         exit 0
         ;;
-      --help|-h)
+      --help | -h)
         show_help
         exit 0
         ;;
@@ -251,9 +289,9 @@ show_version() {
 
 phase_default_primary() {
   case "$1" in
-    Explore|Propose|Design) echo "deepseek/deepseek-v4-pro" ;;
+    Explore | Propose | Design) echo "deepseek/deepseek-v4-pro" ;;
     Spec) echo "github-copilot/gpt-5.4" ;;
-    Tasks|Archive) echo "deepseek/deepseek-v4-flash" ;;
+    Tasks | Archive) echo "deepseek/deepseek-v4-flash" ;;
     Apply) echo "openai-codex/gpt-5.4" ;;
     Verify) echo "openai-codex/gpt-5.3-codex" ;;
     *) echo "deepseek/deepseek-v4-pro" ;;
@@ -262,9 +300,9 @@ phase_default_primary() {
 
 phase_default_fallback() {
   case "$1" in
-    Explore|Propose|Design) echo "openai-codex/gpt-5.4" ;;
-    Spec|Verify) echo "deepseek/deepseek-v4-flash" ;;
-    Tasks|Archive) echo "github-copilot/gpt-5.4" ;;
+    Explore | Propose | Design) echo "openai-codex/gpt-5.4" ;;
+    Spec | Verify) echo "deepseek/deepseek-v4-flash" ;;
+    Tasks | Archive) echo "github-copilot/gpt-5.4" ;;
     Apply) echo "deepseek/deepseek-v4-pro" ;;
     *) echo "openai-codex/gpt-5.4" ;;
   esac
@@ -410,6 +448,7 @@ EOF
   done
 
   printf '| — | Lucy Orchestrator | `deepseek/deepseek-v4-pro` | — | `high` |\n'
+  printf '| — | Conversación casual | `deepseek/deepseek-v4-flash` | — | `high` |\n'
 }
 
 apply_sdd_table_to_agents_file() {
@@ -432,7 +471,7 @@ apply_sdd_table_to_agents_file() {
 
   table_file=$(mktemp)
   output_file=$(mktemp)
-  tui_generate_sdd_table > "$table_file"
+  tui_generate_sdd_table >"$table_file"
 
   sed -e "/<!-- SDD_TABLE_START -->/,/<!-- SDD_TABLE_END -->/{
     /<!-- SDD_TABLE_START -->/{
@@ -441,7 +480,7 @@ apply_sdd_table_to_agents_file() {
     }
     /<!-- SDD_TABLE_END -->/p
     d
-  }" "$agents_file" > "$output_file"
+  }" "$agents_file" >"$output_file"
 
   mv "$output_file" "$agents_file"
   rm -f "$table_file"
@@ -464,12 +503,12 @@ tui_phase_picker() {
 
   if ! choice=$(dialog --stdout \
     --backtitle "lucy-agent v${CURRENT_VERSION}" \
-    --title "SDD Phase ${phase_index "$phase"}: $phase" \
+    --title "SDD Phase $(phase_index "$phase"): $phase" \
     --default-item default \
     --menu "Choose how to configure $phase." 14 78 3 \
-      default "Use Camilo's suggested defaults" \
-      customize "Pick provider, model, and thinking" \
-      skip "Leave manual placeholders in AGENTS.md"); then
+    default "Use Camilo's suggested defaults" \
+    customize "Pick provider, model, and thinking" \
+    skip "Leave manual placeholders in AGENTS.md"); then
     log_info "Installer cancelled during SDD phase configuration"
     exit 0
   fi
@@ -494,9 +533,9 @@ tui_phase_picker() {
     --backtitle "lucy-agent v${CURRENT_VERSION}" \
     --title "Provider — $phase" \
     --radiolist "Select the primary provider for $phase." 14 78 3 \
-      deepseek "DeepSeek" "$([ "$default_provider" = "deepseek" ] && echo on || echo off)" \
-      openai-codex "OpenAI Codex" "$([ "$default_provider" = "openai-codex" ] && echo on || echo off)" \
-      github-copilot "GitHub Copilot" "$([ "$default_provider" = "github-copilot" ] && echo on || echo off)"); then
+    deepseek "DeepSeek" "$([ "$default_provider" = "deepseek" ] && echo on || echo off)" \
+    openai-codex "OpenAI Codex" "$([ "$default_provider" = "openai-codex" ] && echo on || echo off)" \
+    github-copilot "GitHub Copilot" "$([ "$default_provider" = "github-copilot" ] && echo on || echo off)"); then
     log_info "Installer cancelled during provider selection"
     exit 0
   fi
@@ -509,8 +548,8 @@ tui_phase_picker() {
         --title "Model — $phase" \
         --default-item "$default_choice" \
         --menu "Choose the DeepSeek model for $phase." 14 78 2 \
-          pro "deepseek/deepseek-v4-pro" \
-          flash "deepseek/deepseek-v4-flash"); then
+        pro "deepseek/deepseek-v4-pro" \
+        flash "deepseek/deepseek-v4-flash"); then
         log_info "Installer cancelled during model selection"
         exit 0
       fi
@@ -527,8 +566,8 @@ tui_phase_picker() {
         --title "Model — $phase" \
         --default-item "$default_choice" \
         --menu "Choose the OpenAI Codex model for $phase." 14 78 2 \
-          codex54 "openai-codex/gpt-5.4" \
-          codex53 "openai-codex/gpt-5.3-codex"); then
+        codex54 "openai-codex/gpt-5.4" \
+        codex53 "openai-codex/gpt-5.3-codex"); then
         log_info "Installer cancelled during model selection"
         exit 0
       fi
@@ -548,10 +587,10 @@ tui_phase_picker() {
     --title "Thinking — $phase" \
     --default-item high \
     --menu "Choose the thinking level for $phase." 15 78 4 \
-      high "High (recommended)" \
-      medium "Medium" \
-      low "Low" \
-      off "Off"); then
+    high "High (recommended)" \
+    medium "Medium" \
+    low "Low" \
+    off "Off"); then
     log_info "Installer cancelled during thinking selection"
     exit 0
   fi
@@ -608,9 +647,9 @@ tui_install_mode() {
     --title "Install mode" \
     --default-item clone \
     --menu "Choose how lucy-agent should be installed." 15 84 3 \
-      clone "Lucy's config (lucy-config branch)" \
-      template "Generic templates" \
-      tag "Specific release tag"); then
+    clone "Lucy's config (lucy-config branch)" \
+    template "Generic templates" \
+    tag "Specific release tag"); then
     log_info "Installer cancelled during install mode selection"
     exit 0
   fi
@@ -654,10 +693,10 @@ tui_component_checklist() {
     --backtitle "lucy-agent v${CURRENT_VERSION}" \
     --title "Optional components" \
     --checklist "Toggle optional install components." 16 88 4 \
-      engram "Install Engram memory system" "$([ "${COMPONENTS[engram]}" = true ] && echo on || echo off)" \
-      clawhub "Sync ClawHub skills" "$([ "${COMPONENTS[clawhub]}" = true ] && echo on || echo off)" \
-      workspace "Seed workspace files" "$([ "${COMPONENTS[workspace]}" = true ] && echo on || echo off)" \
-      force "Force overwrite conflicts" "$([ "${COMPONENTS[force]}" = true ] && echo on || echo off)"); then
+    engram "Install Engram memory system" "$([ "${COMPONENTS[engram]}" = true ] && echo on || echo off)" \
+    clawhub "Sync ClawHub skills" "$([ "${COMPONENTS[clawhub]}" = true ] && echo on || echo off)" \
+    workspace "Seed workspace files" "$([ "${COMPONENTS[workspace]}" = true ] && echo on || echo off)" \
+    force "Force overwrite conflicts" "$([ "${COMPONENTS[force]}" = true ] && echo on || echo off)"); then
     log_info "Installer cancelled during component selection"
     exit 0
   fi
@@ -669,9 +708,9 @@ tui_component_checklist() {
 
   while IFS= read -r item; do
     case "$item" in
-      engram|clawhub|workspace|force) COMPONENTS["$item"]=true ;;
+      engram | clawhub | workspace | force) COMPONENTS["$item"]=true ;;
     esac
-  done <<< "$selection"
+  done <<<"$selection"
 
   sync_component_flags_from_state
 }
@@ -711,9 +750,20 @@ prompt_install_mode() {
   local answer
   answer=$(read_line "2")
   case "$answer" in
-    1|1*) CLONE_MODE=true; LUCY_BRANCH="lucy-config"; log_info "Mode: Clone Lucy's config" ;;
-    2|"") CLONE_MODE=false; LUCY_BRANCH="main";        log_info "Mode: Generic templates" ;;
-    *)    log_fail "Invalid choice. Aborting."; exit 1 ;;
+    1 | 1*)
+      CLONE_MODE=true
+      LUCY_BRANCH="lucy-config"
+      log_info "Mode: Clone Lucy's config"
+      ;;
+    2 | "")
+      CLONE_MODE=false
+      LUCY_BRANCH="main"
+      log_info "Mode: Generic templates"
+      ;;
+    *)
+      log_fail "Invalid choice. Aborting."
+      exit 1
+      ;;
   esac
 }
 
@@ -796,7 +846,7 @@ step_install_engram() {
   log_info "Engram: downloading v${version} (${platform})..."
   local tmpdir
   tmpdir=$(mktemp -d)
-  trap "rm -rf '$tmpdir'" EXIT
+  trap 'rm -rf "$tmpdir"' EXIT
 
   if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
     log_warn "Engram download failed for v${version}/${platform}"
@@ -888,8 +938,14 @@ step_clone_or_pull() {
             git -C "$LUCY_DIR" stash push -m "lucy-agent pre-install stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             did_stash=true
             ;;
-          2) log_info "Skipping pull..."; skip_pull=true ;;
-          *) log_fail "Installation aborted."; exit 1 ;;
+          2)
+            log_info "Skipping pull..."
+            skip_pull=true
+            ;;
+          *)
+            log_fail "Installation aborted."
+            exit 1
+            ;;
         esac
       fi
     fi
@@ -921,7 +977,7 @@ step_clone_or_pull() {
     if ! $DRY_RUN; then
       mkdir -p "$(dirname "$LUCY_DIR")"
       git clone --branch "${LUCY_BRANCH#tags/}" --tags --progress \
-        "$LUCY_REPO" "$LUCY_DIR" 2>&1 | \
+        "$LUCY_REPO" "$LUCY_DIR" 2>&1 |
         while IFS= read -r line; do
           log_info "$line"
         done
@@ -1087,8 +1143,10 @@ step_install_bundled_skills() {
     fi
 
     if [ -d "$dest" ]; then
-      local existing_sum; existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
-      local repo_sum; repo_sum=$(sha256_check "$skill_file")
+      local existing_sum
+      existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
+      local repo_sum
+      repo_sum=$(sha256_check "$skill_file")
       if [ "$existing_sum" != "$repo_sum" ]; then
         if $DRY_RUN; then
           log_info "[DRY-RUN] Would resolve conflict for skill/$skill_name"
@@ -1153,7 +1211,7 @@ step_install_clawhub_skills() {
       fi
     fi
     installed=$((installed + 1))
-  done < "$clawhub_file"
+  done <"$clawhub_file"
 
   log_ok "ClawHub skills processed: $installed ok, $failed skipped/failed"
 }

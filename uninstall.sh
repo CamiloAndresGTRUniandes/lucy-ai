@@ -57,12 +57,27 @@ log_step() {
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --force)           FORCE=true; shift ;;
-      --keep-skills)      KEEP_SKILLS=true; shift ;;
-      --keep-workspace)   KEEP_WORKSPACE=true; shift ;;
-      --dry-run)          DRY_RUN=true; shift ;;
-      --quiet|-q)         QUIET=true; shift ;;
-      --help|-h)
+      --force)
+        FORCE=true
+        shift
+        ;;
+      --keep-skills)
+        KEEP_SKILLS=true
+        shift
+        ;;
+      --keep-workspace)
+        KEEP_WORKSPACE=true
+        shift
+        ;;
+      --dry-run)
+        DRY_RUN=true
+        shift
+        ;;
+      --quiet | -q)
+        QUIET=true
+        shift
+        ;;
+      --help | -h)
         echo "Usage: uninstall.sh [flags]"
         echo "Flags:"
         echo "  --force            Do not prompt for confirmation"

@@ -62,7 +62,7 @@ detect_platform() {
   arch=$(uname -m)
 
   case "$os" in
-    linux|darwin) ;;
+    linux | darwin) ;;
     *)
       log_warn "Unsupported OS: $os. Engram supports macOS (darwin) and Linux."
       return 1
@@ -70,8 +70,8 @@ detect_platform() {
   esac
 
   case "$arch" in
-    x86_64|amd64) arch="amd64" ;;
-    aarch64|arm64)  arch="arm64" ;;
+    x86_64 | amd64) arch="amd64" ;;
+    aarch64 | arm64) arch="arm64" ;;
     *)
       log_warn "Unsupported architecture: $arch. Engram supports amd64 and arm64."
       return 1
@@ -116,9 +116,9 @@ prompt_skill_conflict() {
   local answer
   read -r answer
   case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    *)   return 1 ;;
+    o | O) return 0 ;;
+    s | S) return 1 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -133,9 +133,9 @@ prompt_workspace_conflict() {
   local answer
   read -r answer
   case "$answer" in
-    o|O) return 0 ;;
-    s|S) return 1 ;;
-    *)   return 1 ;;
+    o | O) return 0 ;;
+    s | S) return 1 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -150,19 +150,38 @@ parse_flags() {
           log_fail "--tag requires a value (e.g. --tag v1.0.0)"
           exit 1
         fi
-        TAG="$2"; shift 2 ;;
+        TAG="$2"
+        shift 2
+        ;;
       --force)
-        FORCE=true; shift ;;
+        FORCE=true
+        shift
+        ;;
       --force-stash)
-        FORCE_STASH=true; FORCE=true; shift ;;
+        FORCE_STASH=true
+        FORCE=true
+        shift
+        ;;
       --dry-run)
-        DRY_RUN=true; shift ;;
-      --quiet|-q)
-        QUIET=true; shift ;;
-      --skip-engram-update) SKIP_ENGRAM_UPDATE=true; shift ;;
-      --update-engram)      UPDATE_ENGRAM=true; shift ;;
+        DRY_RUN=true
+        shift
+        ;;
+      --quiet | -q)
+        QUIET=true
+        shift
+        ;;
+      --skip-engram-update)
+        SKIP_ENGRAM_UPDATE=true
+        shift
+        ;;
+      --update-engram)
+        UPDATE_ENGRAM=true
+        shift
+        ;;
       --version)
-        show_version; exit 0 ;;
+        show_version
+        exit 0
+        ;;
       *)
         log_fail "Unknown flag: $1"
         echo "Usage: update.sh [--tag <version>] [--force] [--dry-run] [--skip-engram-update] [--update-engram] [--version]"
@@ -191,7 +210,7 @@ show_version() {
   fi
   echo ""
   echo "Remote tags:"
-  git ls-remote --tags "https://github.com/camiloandresgtruniandes/lucy-agent" 2>/dev/null | \
+  git ls-remote --tags "https://github.com/camiloandresgtruniandes/lucy-agent" 2>/dev/null |
     awk -F/ '{print $3}' | grep -v '\\^{}$' | sort -V | tail -5 | xargs -I{} echo "  {}" || echo "  (could not fetch)"
 }
 
@@ -281,7 +300,7 @@ step_check_engram_update() {
 
   local tmpdir
   tmpdir=$(mktemp -d)
-  trap "rm -rf '$tmpdir'" EXIT
+  trap 'rm -rf "$tmpdir"' EXIT
 
   log_info "Engram: downloading v${latest} (${platform})..."
   if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
@@ -384,8 +403,14 @@ step_git_update() {
           git -C "$LUCY_DIR" stash push -m "lucy-agent pre-update stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           did_stash=true
           ;;
-        2) log_info "Skipping pull..."; skip_pull=true ;;
-        *) log_fail "Update aborted."; exit 1 ;;
+        2)
+          log_info "Skipping pull..."
+          skip_pull=true
+          ;;
+        *)
+          log_fail "Update aborted."
+          exit 1
+          ;;
       esac
     fi
   fi
@@ -461,8 +486,10 @@ step_sync_bundled_skills() {
       log_ok "New skill installed: $skill_name"
       installed=$((installed + 1))
     else
-      local existing_sum; existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
-      local repo_sum; repo_sum=$(sha256_check "$skill_file")
+      local existing_sum
+      existing_sum=$(sha256_check "${dest}/SKILL.md" 2>/dev/null || echo "")
+      local repo_sum
+      repo_sum=$(sha256_check "$skill_file")
 
       if [ "$existing_sum" != "$repo_sum" ]; then
         if $FORCE; then
@@ -528,8 +555,10 @@ step_sync_workspace() {
     local filename
     filename="$(basename "$file")"
     local dest="${WORKSPACE_DIR}/${filename}"
-    local repo_sum; repo_sum=$(sha256_check "$file")
-    local existing_sum; existing_sum=$(sha256_check "$dest")
+    local repo_sum
+    repo_sum=$(sha256_check "$file")
+    local existing_sum
+    existing_sum=$(sha256_check "$dest")
 
     if [ -z "$existing_sum" ]; then
       if ! $DRY_RUN; then
@@ -568,9 +597,12 @@ step_sync_workspace() {
     while IFS= read -r -d '' sdd_file; do
       local sdd_rel="${sdd_file#$ws_src/}"
       local sdd_dest="${WORKSPACE_DIR}/${sdd_rel}"
-      local sdd_dest_dir; sdd_dest_dir="$(dirname "$sdd_dest")"
-      local repo_sum; repo_sum=$(sha256_check "$sdd_file")
-      local existing_sum; existing_sum=$(sha256_check "$sdd_dest")
+      local sdd_dest_dir
+      sdd_dest_dir="$(dirname "$sdd_dest")"
+      local repo_sum
+      repo_sum=$(sha256_check "$sdd_file")
+      local existing_sum
+      existing_sum=$(sha256_check "$sdd_dest")
 
       mkdir -p "$sdd_dest_dir"
 
