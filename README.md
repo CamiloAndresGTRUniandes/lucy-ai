@@ -19,11 +19,24 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/SDD-Agent-0D1117?style=for-the-badge&logoColor=%2300C853" alt="SDD Agent">
+  <img src="https://img.shields.io/badge/Version-1.5.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.5.0">
+  <img src="https://img.shields.io/github/stars/CamiloAndresGTRUniandes/lucy-ai?style=for-the-badge&logo=github&color=0D1117" alt="GitHub stars">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
-  <img src="https://img.shields.io/badge/Version-1.5.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.5.0">
 </p>
+
+---
+
+## ⚡ What's New in v1.5.0
+
+- 🎮 **Interactive TUI wizard** — `dialog`-based menus for install mode, component selection, and SDD phase model configuration
+- ⚙️ **SDD Phase Configurator** — choose provider, model, and effort level for each of the 8 SDD phases (DeepSeek, OpenAI Codex, GitHub Copilot)
+- 🔧 **GitHub Actions CI** — 5 independent validation jobs on every push and PR (shellcheck, bash syntax, shfmt format, verify checks, installer smoke test)
+- 🏃 **Automation flags** — `--accept-defaults` for zero-interaction CI installs, `--no-tui` to force text mode
+- 🔄 **Config sync** — multi-provider model strategy from live workspace (bye bye stale minimax references)
+- 🐛 **Quality** — shellcheck clean (0 warnings), shfmt pass, verify.sh extended with model config checks
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ---
 
@@ -40,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.5.0
 ```
 
-> 💡 **New here?** Run without flags for an interactive setup guide.
+> 💡 **New in v1.5.0!** Run without flags for an **interactive TUI wizard** — configure SDD phase models, pick install mode, and review everything before installing.
 
 ---
 
@@ -51,10 +64,20 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | 🧠 **Personality** | SOUL.md, IDENTITY.md, AGENTS.md — your agent's character, values, and operating rules |
 | 🛠️ **Skills** | SDD workflow + Orchestrator, PR review, Clean Architecture, TypeScript, Tailwind, C#/.NET |
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
-| ⚙️ **Config** | Agent defaults, model config, thinking level — all ready to include |
-| ✅ **Verify** | Post-install checks so you know everything is wired up
-| 🧹 **Uninstall** | Clean removal when you want to start fresh
+| ⚙️ **Config** | Agent defaults, multi-provider model config, thinking level — all ready to include |
+| ✅ **Verify** | Post-install checks (48/48) so you know everything is wired up |
+| 🧹 **Uninstall** | Clean removal when you want to start fresh |
 | 🪶 **Engram** | Technical decision memory (FTS5, conflict detection, session tracking) |
+
+### 🆕 v1.5.0 Highlights
+
+| Feature | What it does |
+|---------|-------------|
+| 🎮 **Interactive TUI** | Dialog-based wizard for install mode, component selection, and **per-SDD-phase model configuration** |
+| ⚙️ **SDD Phase Config** | Customize provider, model, and effort for each of the 8 SDD phases during installation |
+| 🔧 **GitHub CI** | 5-job pipeline validates every PR — shellcheck, bash syntax, shfmt format, verify checks, installer smoke test |
+| 🤖 **Multi-Provider** | Choose from DeepSeek, OpenAI Codex, and GitHub Copilot |
+| 🏃 **Automation Ready** | `--accept-defaults` for CI/scripting, `--no-tui` to force text mode |
 
 ## Install modes
 
@@ -62,8 +85,9 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 |------|---------|----------|
 | **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
 | **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
+| **TUI Wizard** | `curl ... | bash` | 🆕 Guided setup with dialog menus (SDD phases, components, confirm) |
+| **Automation** | `curl ... | bash -s -- --clone --accept-defaults` | 🆕 CI/CD pipelines — no prompts needed |
 | **Specific version** | `curl ... | bash -s -- --tag v1.5.0` | Pin to a known release |
-| **Interactive** | `curl ... | bash` | Guided setup with friendly prompts |
 
 ## Post-install
 
@@ -131,7 +155,9 @@ cd ~/.openclaw/lucy-agent
 # Install flags
 install.sh --clone             # Clone Lucy's exact config
 install.sh --template          # Use generic templates
-install.sh --tag <version>     # Install specific release (e.g. v1.0.0)
+install.sh --tag <version>     # Install specific release (e.g. v1.5.0)
+install.sh --no-tui            # 🆕 Force text prompts (skip TUI wizard)
+install.sh --accept-defaults   # 🆕 Accept all defaults (CI-friendly)
 install.sh --skip-engram       # Skip Engram memory system
 install.sh --engram-tag <ver>  # Pin Engram version (default: latest)
 install.sh --skip-clawhub      # Skip ClawHub skills
@@ -173,6 +199,10 @@ lucy-agent/
 │   └── common.sh              ← Shared helpers (sourced by all scripts)
 ├── SKILL.md                    ← Meta-skill documentation
 ├── CHANGELOG.md                ← Version history
+├── SPEC.md                     ← Current release spec
+├── .github/                    ← CI workflows
+│   └── workflows/
+│       └── ci.yml              ← 5-job validation pipeline
 ├── clawhub-skills.txt         ← Auto-install list
 ├── skills/                     ← Bundled skills
 │   ├── sdd/
