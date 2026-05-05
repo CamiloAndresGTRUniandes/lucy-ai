@@ -5,6 +5,47 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-05-05
+
+### Added
+
+- **7 new technical skills** — 1,598 lines of previously invisible skill content now discoverable:
+  - `dotnet10-csharp14` — .NET 10 + C# 14 best practices (field keyword, params Span)
+  - `zenticalab-security` — OWASP Top 10 2025 security guidance (748 lines)
+  - `zenticalab-pr-review` — PR review checklist for .NET + Angular
+  - `angular-core` — Standalone components, signals, inject, zoneless
+  - `angular-architecture` — Scope Rule, project structure, naming
+  - `angular-forms` — Signal Forms + Reactive Forms
+  - `angular-performance` — NgOptimizedImage, @defer, SSR
+- **SDD Orchestrator docs** — `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`, 6 templates, validation rules
+- **Technical Skills to Load** — per-phase skill mapping ensures sub-agents load relevant skills
+
+### Fixed
+
+- YAML frontmatter added to `dotnet10-csharp14` and `zenticalab-security` (previously invisible)
+- Angular skills flattened from subdirectories to discoverable top-level paths
+- 8 Copilot review comments addressed (security, consistency, docs)
+
+## [1.5.0] - 2026-05-04
+
+### Added
+
+- **Installer TUI wizard** — dialog-based welcome, install mode, component checklist, and confirmation screens
+- **SDD phase configuration wizard** — 8-phase model/provider defaults with `--accept-defaults` and `--no-tui` support
+- **GitHub Actions CI pipeline** — shellcheck, bash syntax, shfmt, verify, and installer smoke tests on push/PR
+- **Model config verification** — verify.sh now checks thinking level, Engram MCP, and stale minimax removal
+
+### Changed
+
+- **Config sync sources** — repo workspace docs now mirror the live workspace canonical files
+- **Installer defaults** — v1.5.0 seeds the multi-provider SDD matrix used in the live workspace
+- **Workspace AGENTS.md seeding** — SDD model table is now generated at install time from selected defaults/customizations
+
+### Fixed
+
+- **SPEC.md staleness** — repo spec now documents the v1.5.0 feature set
+- **agent-fragment minimax reference** — default primary model now points to DeepSeek Flash with updated fallbacks
+
 ## [1.4.0] - 2026-05-03
 
 ### Added
