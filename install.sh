@@ -1300,6 +1300,9 @@ step_report() {
   echo -e "Verify:"
   echo -e "  cd ${LUCY_DIR} && ./verify.sh"
   echo ""
+  echo -e "${GREEN}Next step:${NC} restart OpenClaw to apply the new config"
+  echo -e "  ${BLUE}openclaw gateway restart${NC}"
+  echo ""
 }
 
 # ---------------------------------------------------------------------------
