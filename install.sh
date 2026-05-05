@@ -159,7 +159,7 @@ resolve_engram_version() {
     return 0
   fi
 
-  log_info "Engram: fetching latest release version..."
+  log_info "Engram: fetching latest release version..." >&2
   version=$(curl -fsSL \
     "https://api.github.com/repos/Gentleman-Programming/engram/releases/latest" \
     2>/dev/null | grep '"tag_name":' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
@@ -170,7 +170,7 @@ resolve_engram_version() {
   fi
 
   version="${version#v}"
-  log_info "Engram latest version: $version"
+  log_info "Engram latest version: $version" >&2
   echo "$version"
   return 0
 }
@@ -864,7 +864,8 @@ step_install_engram() {
   log_info "Engram: downloading v${version} (${platform})..."
   local tmpdir
   tmpdir=$(mktemp -d)
-  trap 'rm -rf "$tmpdir"' EXIT
+  # Use RETURN trap instead of EXIT to avoid leaking local variable to global scope
+  trap 'rm -rf "$tmpdir"' RETURN
 
   if ! curl -fsSL --progress-bar -o "$tmpdir/$asset" "$url"; then
     log_warn "Engram download failed for v${version}/${platform}"
