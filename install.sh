@@ -1305,6 +1305,11 @@ step_report() {
   echo -e "  ${BLUE}openclaw gateway restart${NC}"
   echo -e "  ${BLUE}/new${NC} (in any active session after restart)"
   echo ""
+  echo -e "${GREEN}After restart, verify Lucy is working:${NC}"
+  echo -e "  1. Ask: \"${BLUE}Who are you?${NC}\" → She should introduce herself as your AI colleague"
+  echo -e "  2. Say: \"${BLUE}My name is [your name]${NC}\" → She should greet you by name"
+  echo -e "  3. Ask: \"${BLUE}What do you know about SDD Orchestrator?${NC}\" → She should explain the 8-phase workflow"
+  echo ""
 }
 
 # ---------------------------------------------------------------------------
