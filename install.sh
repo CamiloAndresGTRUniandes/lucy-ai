@@ -977,7 +977,8 @@ step_clone_or_pull() {
           exit 1
         fi
       else
-        git pull origin "${LUCY_BRANCH#tags/}"
+        git fetch origin "${LUCY_BRANCH#tags/}"
+        git checkout -B "${LUCY_BRANCH#tags/}" "origin/${LUCY_BRANCH#tags/}"
       fi
     fi
 
