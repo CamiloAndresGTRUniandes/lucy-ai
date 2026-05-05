@@ -64,7 +64,7 @@ LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.6.1"
+CURRENT_VERSION="1.6.2"
 
 # Flags
 SKIP_CLAWHUB=false
