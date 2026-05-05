@@ -21,6 +21,8 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 }
 ```
 
+> ⚠️ **Note:** The `runTimeoutSeconds` value above is the base default. Per-phase timeouts in the table below override it: lightweight phases (Spec, Tasks) use 300s; complex phases (Explore, Design, Apply, Verify) use 600s. Always use the per-phase value when spawning sub-agents.
+
 ### ⚠️ Pre-spawn: Model Validation (OBLIGATORIO)
 
 **ANTES de cada spawn, Lucy DEBE:**
@@ -184,6 +186,7 @@ Esta tabla define solo delegación y contexto, no modelo.
    b. `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)` → decisiones previas
 1. Lee template `sdd/templates/design.md.in`
 2. Ensambla task string: inputs (spec.md), template, validation rules
+2a. Include Technical Skills to Load section from task-string-format.md
 
    ```markdown
    ## Architectural Context (from Engram)
@@ -242,6 +245,7 @@ Esta tabla define solo delegación y contexto, no modelo.
    b. `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)`
 1. Lee template `sdd/templates/apply.md.in`
 2. Ensambla task string: inputs (spec.md, design.md, tasks.md), template, validation, skills
+2a. Include Technical Skills to Load section from task-string-format.md
 
    ```markdown
    ## Architectural Constraints (from Engram)
@@ -273,6 +277,7 @@ Esta tabla define solo delegación y contexto, no modelo.
 **Lucy hace:**
 1. Lee template `sdd/templates/verify.md.in`
 2. Ensambla task string: inputs (spec.md, design.md, apply output), template, validation
+2a. Include Technical Skills to Load section from task-string-format.md
 3. Spawnea sub-agente:
    ```
    model: según tabla en AGENTS.md § SDD Model Configuration
@@ -358,6 +363,17 @@ Verify → Lucy crea PR → Camilo review
 8. Pregunta: "¿Archivamos y pasamos al próximo feature?"
 
 ---
+
+## Skill Loading by Phase
+
+| Phase | Skills |
+|-------|--------|
+| Explore | `sdd` |
+| Spec | — (no technical skills needed) |
+| Design | `csharp-dotnet`, `dotnet10-csharp14` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
+| Tasks | — (no technical skills needed) |
+| Apply | `csharp-dotnet`, `dotnet10-csharp14`, `zenticalab-security` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
+| Verify | `zenticalab-security`, `zenticalab-pr-review` |
 
 ## Manejo de Errores
 

@@ -55,6 +55,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - **Conflict detection** — `mem_save` automatically surfaces contradictions with prior decisions
 - **Session tracking** — each SDD phase tracked as an Engram session (`mem_session_start/end/summary`)
 - **Topic keys** — evolving decisions update in-place (`revision_count++`) instead of duplicating
+- **Stable topic keys** — use `engram__mem_suggest_topic_key` to generate stable keys for evolving topics; architecture decisions use `topic_key="architecture/<slug>"`
 - **Progressive disclosure** — search → timeline → get_observation (token-efficient)
 - See `skills/sdd/SKILL.md` § Engram Memory Protocol for full usage guide
 
@@ -241,26 +242,50 @@ Our development methodology is **Spec-Driven Development (SDD)**. See `skills/sd
 
 **Scope:** SDD se aplica a TODO cambio que involucre codigo. No hay excepciones.
 
-### SDD Model Configuration (OBLIGATORIO)
+## SDD Model Configuration (OBLIGATORIO)
 
-Cada fase del SDD tiene un modelo y thinking fijos. Lucy cambia automáticamente
-al entrar a cada fase. **NO NEGOCIABLE** — no requiere solicitud de Camilo.
+Cada fase del SDD tiene un modelo primario y un fallback fijos. Lucy cambia automáticamente al entrar a cada fase. **NO NEGOCIABLE** — no requiere solicitud de Camilo.
 
-| # | Fase | Modelo | Thinking |
-|---|------|--------|----------|
-| 1 | Explore | `deepseek/deepseek-v4-pro` | `high` |
-| 2 | Propose | `deepseek/deepseek-v4-pro` | `high` |
-| 3 | Spec | `deepseek/deepseek-v4-flash` | `high` |
-| 4 | Design | `deepseek/deepseek-v4-pro` | `high` |
-| 5 | Tasks | `deepseek/deepseek-v4-flash` | `high` |
-| 6 | Apply | `deepseek/deepseek-v4-pro` | `high` |
-| 7 | Verify | `deepseek/deepseek-v4-flash` | `high` |
-| 8 | Archive | `deepseek/deepseek-v4-flash` | `high` |
-| — | Conversación casual | `deepseek/deepseek-v4-flash` | `high` |
+<!-- SDD_TABLE_START -->
+| # | Fase | Modelo Primario | Fallback | Thinking |
+|---|------|-----------------|----------|----------|
+| 1 | Explore | `deepseek/deepseek-v4-pro` | `openai-codex/gpt-5.4` | `high` |
+| 2 | Propose | `deepseek/deepseek-v4-pro` | `openai-codex/gpt-5.4` | `high` |
+| 3 | Spec | `github-copilot/gpt-5.4` | `deepseek/deepseek-v4-flash` | `high` |
+| 4 | Design | `deepseek/deepseek-v4-pro` | `openai-codex/gpt-5.4` | `high` |
+| 5 | Tasks | `deepseek/deepseek-v4-flash` | `github-copilot/gpt-5.4` | `high` |
+| 6 | Apply | `openai-codex/gpt-5.4` | `deepseek/deepseek-v4-pro` | `high` |
+| 7 | Verify | `openai-codex/gpt-5.3-codex` | `deepseek/deepseek-v4-flash` | `high` |
+| 8 | Archive | `deepseek/deepseek-v4-flash` | `github-copilot/gpt-5.4` | `high` |
+| — | Lucy Orchestrator | `deepseek/deepseek-v4-pro` | — | `high` |
+| — | Conversación casual | `deepseek/deepseek-v4-flash` | — | `high` |
+<!-- SDD_TABLE_END -->
 
-**Escalación:** Si durante una fase con Flash se requiere razonamiento
-profundo no previsto, Lucy debe pedir permiso explícito a Camilo antes de
-subir a Pro.
+**Escalación:** Si durante una fase con Flash se requiere razonamiento profundo no previsto, Lucy debe pedir permiso explícito a Camilo antes de subir a Pro.
+
+### Provider Configuration
+
+Los siguientes providers están configurados para el SDD:
+
+| Provider | Auth | Modelos en uso | Costo |
+|----------|------|---------------|-------|
+| `deepseek` | API key (`DEEPSEEK_API_KEY`) | `deepseek-v4-pro`, `deepseek-v4-flash` | Pay-per-token |
+| `openai-codex` | OAuth (ChatGPT Plus) | `gpt-5.4`, `gpt-5.3-codex` | $0 (incluido en suscripción) |
+| `github-copilot` | Device-flow OAuth (Copilot Pro) | `gpt-5.4` | $0 (incluido en suscripción) |
+
+**Modelos explícitamente excluidos:**
+- ❌ `minimax/*` — DeepSeek Flash es más barato y tiene 5x más contexto
+- ❌ `github-copilot/claude-opus-*` — 7.5-15x créditos Copilot, no viable
+- ❌ `openai-codex/gpt-5.5` — GPT-5.4 es suficiente para las fases asignadas
+
+**⚠️ DeepSeek V4 Pro 75% discount expires 2026-05-31.**
+Post-discount pricing: $1.74/M input, $3.48/M output (4x current).
+Post-May 31 migration plan: mover Explore y Design a `openai-codex/gpt-5.4`.
+
+**Fallback Strategy:**
+Si el modelo primario no está disponible (OAuth expirado, rate-limit, provider down),
+el sistema automáticamente usa el fallback indicado en la tabla.
+Todos los fallbacks convergen en DeepSeek (API key = siempre disponible).
 
 ### SDD Orchestrator (OBLIGATORIO)
 
@@ -280,34 +305,30 @@ por Lucy directo o por un sub-agente delegado.
 - Apply → `context: isolated`
 
 **Fases directas (Lucy):**
-- Propose (Pro) — no se delega
+- Propose — no se delega
 - PR Review + Address Changes — Lucy maneja el feedback directo
-- Archive (Flash) — solo cuando PR está mergeado o Camilo decide cerrar
+- Archive — solo cuando PR está mergeado o Camilo decide cerrar
 
-**Engram Memory Protocol para sub-agentes (OBLIGATORIO):**
+**Engram Memory Protocol (OBLIGATORIO):**
 
-TODOS los sub-agentes DEBEN usar Engram en el siguiente orden estricto:
-
-1. **Al iniciar:** `engram__mem_context` — carga automática de resúmenes de sesiones anteriores
-2. **Al iniciar (si aplica):** `engram__mem_search("<keywords>", type="architecture")` — decisiones relevantes
-3. **Durante el trabajo:** `engram__mem_save` para cada decisión/descubrimiento significativo
-4. **Al terminar:** `engram__mem_session_summary(content="Goal/Discoveries/Accomplished/Files")`
+El siguiente flujo muestra el orden lógico de operaciones Engram por fase SDD. Las operaciones de LOAD (lectura) las ejecuta el sub-agente al iniciar su trabajo. Las operaciones de START (sesión), WORK (guardado) y END (cierre) las ejecuta Lucy después de la aprobación de Camilo.
 
 ```
 Fase Design:
-  START → engram__mem_session_start("SDD-{feature}-Design")
-  LOAD  → engram__mem_context + engram__mem_search(type="architecture")
-  WORK  → [design work]
-  SAVE  → engram__mem_save(type="architecture", topic_key="...") para CADA decisión
-  END   → engram__mem_session_end + engram__mem_session_summary
+  LOAD  → engram__mem_context + engram__mem_search(...)           ← SUB-AGENTE
+  START → engram__mem_session_start("SDD-{feature}-Design")      ← LUCY (post-aprobación)
+  WORK  → engram__mem_save(...) para decisiones de arquitectura   ← LUCY (post-aprobación)
+  END   → engram__mem_session_end + engram__mem_session_summary   ← LUCY (post-aprobación)
 
 Fase Apply:
-  START → engram__mem_session_start("SDD-{feature}-Apply")
-  LOAD  → engram__mem_context (auto-carga resumen de Design)
+  LOAD  → engram__mem_context + engram__mem_search(...)                  ← SUB-AGENTE
+  START → engram__mem_session_start("SDD-{feature}-Apply")              ← LUCY (post-aprobación)
   WORK  → [implementación]
-  SAVE  → engram__mem_save(type="pattern") para patrones, type="discovery" para hallazgos
-  END   → engram__mem_session_end + engram__mem_session_summary
+  SAVE  → engram__mem_save(type="pattern|discovery", ...)                ← LUCY (post-aprobación)
+  END   → engram__mem_session_end + engram__mem_session_summary           ← LUCY (post-aprobación)
 ```
+
+> ⚠️ El sub-agente NO ejecuta mem_save, mem_session_start, mem_session_end, ni mem_session_summary. Estas operaciones son responsabilidad exclusiva de Lucy después de que Camilo aprueba el output de la fase.
 
 **Formato de contenido (mandatorio para todo `mem_save`):**
 ```
@@ -317,10 +338,10 @@ Fase Apply:
 **Learned**: [gotchas, edge cases — omitir si no hay]
 ```
 
-**Conflict detection:** Si `mem_save` retorna `judgment_required: true`:
-- Sub-agente DEBE reportar los `candidates[]` en su output
-- Lucy evalúa y consulta a Camilo si aplica (ver Conflict resolution rules)
+**Conflict detection:** Si Lucy ejecuta `mem_save` y retorna `judgment_required: true`:
+- Lucy evalúa los `candidates[]` y consulta a Camilo si aplica (ver Conflict resolution rules)
 - Lucy ejecuta `engram__mem_judge` para resolver
+- (Esto ocurre post-aprobación de Camilo, no durante la ejecución del sub-agente)
 
 **Reglas inquebrantables:**
 - Sub-agentes **nunca** hacen git commits — solo Lucy tras revisión con Camilo
@@ -329,7 +350,7 @@ Fase Apply:
 - Artefactos en `sdd/{project}/{feature}/` con templates estandarizados
 - Validación estricta de outputs: fail si falta sección requerida
 - **Archive es condicional al merge de PR** — no archivar hasta que PR esté mergeado o Camilo decida cerrar
-- **Sub-agentes DEBEN usar Engram** — el output debe incluir los observation IDs generados
+- **Lucy actualiza state.json** con los observation IDs después de guardar en Engram post-aprobación
 
 ## Git Branching Policy (OBLIGATORIO)
 
