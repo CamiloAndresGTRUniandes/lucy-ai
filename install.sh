@@ -857,7 +857,7 @@ step_install_engram() {
   mkdir -p "${HOME}/.local/bin"
 
   # ---- Construct download URL ----
-  local asset="engram_v${version}_${platform}.tar.gz"
+  local asset="engram_${version}_${platform}.tar.gz"
   local url="https://github.com/Gentleman-Programming/engram/releases/download/v${version}/${asset}"
 
   # ---- Download ----
