@@ -45,6 +45,7 @@ if [[ -z "${BASH_SOURCE[0]:-}" ]]; then
   exec bash "$TMP_DIR/install.sh" "$@"
 fi
 
+
 # Load shared helpers
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/common.sh
