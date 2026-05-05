@@ -5,6 +5,16 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2026-05-05
+
+### Added
+
+- **Post-install suggestions** — installer now suggests `openclaw gateway restart` and `/new` (for active sessions) after successful installation.
+
+### Fixed
+
+- **Pipe stdin** — interactive prompts now work in `curl | bash` mode by redirecting stdin to `/dev/tty`. Fixes "Invalid choice ''. Aborting." when user can't type responses.
+
 ## [1.6.2] - 2026-05-05
 
 ### Fixed
