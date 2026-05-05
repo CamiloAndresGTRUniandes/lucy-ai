@@ -21,6 +21,8 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 }
 ```
 
+> ⚠️ **Note:** The `runTimeoutSeconds` value above is the base default. Per-phase timeouts in the table below override it: lightweight phases (Spec, Tasks) use 300s; complex phases (Explore, Design, Apply, Verify) use 600s. Always use the per-phase value when spawning sub-agents.
+
 ### ⚠️ Pre-spawn: Model Validation (OBLIGATORIO)
 
 **ANTES de cada spawn, Lucy DEBE:**

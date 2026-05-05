@@ -8,7 +8,7 @@ metadata:
   version: "1.0"
 ---
 
-## Template File (REQUIRED - NO INLINED HTML)
+## Template File (REQUIRED for production code)
 
 **NEVER inline the template in the TypeScript class.** Always use a separate `.html` file.
 
@@ -38,6 +38,8 @@ export class UserComponent {}
 ```
 
 **This is non-negotiable.** Template logic belongs in its own file, not mixed with the component class.
+
+> **Scope:** This rule applies to production application code. Inline templates in documentation snippets and skill example code are acceptable for brevity and readability.
 
 ---
 
@@ -77,27 +79,28 @@ effect(() => localStorage.setItem('count', this.count().toString()));
 
 ---
 
-## NO Lifecycle Hooks (REQUIRED)
+## Prefer Signals Over Reactive Lifecycle Hooks
 
-Signals replace lifecycle hooks. Do NOT use `ngOnInit`, `ngOnChanges`, `ngOnDestroy`.
+Use signals, `effect()`, and `computed()` for reactive component logic. `ngOnInit()` remains valid for imperative initialization, and `ngOnDestroy()` remains valid for cleanup. Avoid `ngAfterViewInit()` and `ngOnChanges()` when signals can express the same behavior more clearly.
 
 ```typescript
-// ❌ NEVER: Lifecycle hooks
+// ✅ Valid: imperative initialization
 ngOnInit() {
-  this.loadUser();
+  this.loadInitialUser();
 }
 
+// ❌ Avoid when a signal effect can express the same reactive behavior
 ngOnChanges(changes: SimpleChanges) {
   if (changes['userId']) {
-    this.loadUser();
+    this.loadUser(changes['userId'].currentValue);
   }
 }
 
-// ✅ ALWAYS: Signals + effect
+// ✅ Preferred: Signals + effect for reactive updates
 readonly userId = input.required<string>();
 readonly user = signal<User | null>(null);
 
-private userEffect = effect(() => {
+private readonly userEffect = effect(() => {
   // Runs automatically when userId() changes
   this.loadUser(this.userId());
 });
@@ -110,10 +113,11 @@ readonly displayName = computed(() => this.user()?.name ?? 'Guest');
 
 | Need | Use |
 |------|-----|
+| Imperative initialization | `ngOnInit()` |
 | React to input changes | `effect()` watching the input signal |
 | Derived/computed state | `computed()` |
 | Side effects (API calls, localStorage) | `effect()` |
-| Cleanup on destroy | `DestroyRef` + `inject()` |
+| Cleanup on destroy | `ngOnDestroy()` or `DestroyRef` + `inject()` |
 
 ```typescript
 // Cleanup example

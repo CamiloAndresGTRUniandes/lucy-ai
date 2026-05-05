@@ -346,6 +346,11 @@ var safeSchema = TenantSqlBuilder.ValidateSchema(context.TenantSchema);
 <div>{{ userInput }}</div>
 
 <!-- Si innerHTML es necesario (contenido de editor tipo rich text): -->
+```
+
+> ⚠️ **WARNING:** `bypassSecurityTrustHtml` disables ALL Angular sanitization. This reintroduces XSS risk if the HTML comes from user input. Use ONLY with fully trusted, server-curated content. Never pass user-provided strings through this method.
+
+```typescript
 import { DomSanitizer } from '@angular/platform-browser';
 
 constructor(private sanitizer: DomSanitizer) {}
@@ -504,9 +509,17 @@ public async Task<IActionResult> DeleteUser(Guid userId) { ... }
 ```typescript
 // ❌ — vulnerable a XSS steal
 localStorage.setItem('accessToken', token);
+```
 
-// ✅ — httpOnly cookie (el backend configura esto)
-document.cookie = `accessToken=${token}; HttpOnly; Secure; SameSite=Strict`;
+HttpOnly cookies MUST be set by the backend via `Set-Cookie` response header, not from JavaScript.
+
+```http
+Set-Cookie: accessToken=...; HttpOnly; Secure; SameSite=Strict
+```
+
+```typescript
+// ✅ JavaScript can only set non-HttpOnly cookies when absolutely necessary
+document.cookie = 'accessToken=...; Secure; SameSite=Strict'; // HttpOnly is set by the backend, not here
 ```
 
 **Si se usa storage (para ZENTICALAB multi-tenant con JWT):**

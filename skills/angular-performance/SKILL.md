@@ -16,6 +16,7 @@ import { NgOptimizedImage } from '@angular/common';
 @Component({
   imports: [NgOptimizedImage],
   template: `
+    <!-- inline for docs brevity; use templateUrl in production -->
     <!-- LCP image: add priority -->
     <img ngSrc="hero.jpg" width="800" height="400" priority>
     

@@ -26,6 +26,7 @@ import { form, FormField, required, email } from '@angular/forms/signals';
 @Component({
   imports: [FormField],
   template: `
+    <!-- inline for docs brevity; use templateUrl in production -->
     <form>
       <input [formField]="emailField" type="email" />
       <input [formField]="passwordField" type="password" />
@@ -66,6 +67,7 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 @Component({
   imports: [ReactiveFormsModule],
   template: `
+    <!-- inline for docs brevity; use templateUrl in production -->
     <form [formGroup]="form" (ngSubmit)="submit()">
       <input formControlName="email" type="email" />
       <input formControlName="password" type="password" />

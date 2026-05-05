@@ -90,7 +90,7 @@ No `.component`, `.service`, `.model` suffixes. The folder tells you what it is.
 - `protected` for template-only members
 - `readonly` for inputs, outputs, queries
 - Name handlers for action (`saveUser`) not event (`handleClick`)
-- Keep lifecycle hooks simple - delegate to well-named methods
+- Prefer signal effects for reactivity; use `ngOnInit` only for imperative initialization and `ngOnDestroy` for cleanup. See angular-core lifecycle guidance.
 - One concept per file
 
 ```typescript
