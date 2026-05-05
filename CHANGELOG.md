@@ -5,6 +5,14 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-05-05
+
+### Fixed
+
+- **Piped execution (curl|bash)** — install.sh now detects piped invocation and downloads itself + common.sh to a temp directory before re-executing. Fixes `BASH_SOURCE[0]: unbound variable` in Docker containers.
+- **Non-repo execution** — running `bash /tmp/install.sh --clone` now works by downloading common.sh from the repo if missing from the script's directory.
+- **Repo URL fix** — all GitHub URLs changed from `lucy-agent` (404) to `lucy-ai` (correct repo name).
+
 ## [1.6.0] - 2026-05-05
 
 ### Added
