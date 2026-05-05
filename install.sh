@@ -4,16 +4,16 @@
 # =============================================================================
 # Usage:
 #   # Interactive (asks you to choose config):
-#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash
 #
 #   # Clone mode (installs Lucy's exact config):
-#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --clone
+#   curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --clone
 #
 #   # Template mode (generic templates):
-#   curl -fsSL https://raw.githubusercontent.com/camiloAndresGTRUniandes/lucy-agent/main/install.sh | bash -s -- --template
+#   curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --template
 #
 #   # Install specific version:
-#   curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-agent/main/install.sh | bash -s -- --tag v1.0.0
+#   curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.0.0
 #
 # Flags:
 #   --clone          Clone Lucy's exact config (from lucy-config branch)
@@ -35,12 +35,22 @@
 
 set -euo pipefail
 
+# Detect piped execution (curl|bash) — fetch files to temp dir and re-execute
+if [[ -z "${BASH_SOURCE[0]:-}" ]]; then
+  TMP_DIR="$(mktemp -d)"
+  trap 'rm -rf "$TMP_DIR"' EXIT
+  curl -fsSL "https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh" -o "$TMP_DIR/install.sh"
+  mkdir -p "$TMP_DIR/scripts"
+  curl -fsSL "https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/scripts/common.sh" -o "$TMP_DIR/scripts/common.sh"
+  exec bash "$TMP_DIR/install.sh" "$@"
+fi
+
 # Load shared helpers
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/common.sh
 source "${SCRIPT_DIR}/scripts/common.sh"
 
-LUCY_REPO="https://github.com/camiloandresgtruniandes/lucy-agent"
+LUCY_REPO="https://github.com/CamiloAndresGTRUniandes/lucy-ai"
 LUCY_BRANCH="main"
 LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
