@@ -27,20 +27,26 @@
 
 ---
 
-## ⚡ What's New in v1.5.0
+## ⚡ What's New in v1.6
 
-- 🎮 **Interactive TUI wizard** — `dialog`-based menus for install mode, component selection, and SDD phase model configuration
-- ⚙️ **SDD Phase Configurator** — choose provider, model, and effort level for each of the 8 SDD phases (DeepSeek, OpenAI Codex, GitHub Copilot)
-- 🔧 **GitHub Actions CI** — 5 independent validation jobs on every push and PR (shellcheck, bash syntax, shfmt format, verify checks, installer smoke test)
-- 🏃 **Automation flags** — `--accept-defaults` for zero-interaction CI installs, `--no-tui` to force text mode
-- 🔄 **Config sync** — multi-provider model strategy from live workspace (bye bye stale minimax references)
-- 🐛 **Quality** — shellcheck clean (0 warnings), shfmt pass, verify.sh extended with model config checks
+- 🛠️ **13 technical skills** — .NET 10/C# 14, Angular 21 (core, architecture, forms, performance), OWASP Security, PR review, and more
+- 📋 **SDD Orchestrator docs** — task-string templates, phase-by-phase flow, skill auto-loading
+- 🐳 **Docker support** — `curl | bash` works anywhere, including containers
+- 🎮 **Interactive TUI wizard** — configure SDD phase models during installation
+- 🔧 **GitHub Actions CI** — 5-job pipeline validates every PR
+- 🧪 **Smoke tests** — 60/60 verify.sh checks passed
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ---
 
 ## ⚡ Install in 30 seconds
+
+### Pre-installation
+
+- **OpenClaw** must be installed and the gateway running
+- Have your **API keys** ready (at minimum `DEEPSEEK_API_KEY`)
+- Choose your install mode: `--clone` for Lucy's exact setup, or no flag for a fresh template
 
 ```bash
 # Clone Lucy's exact setup (recommended)
@@ -50,10 +56,10 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
 
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.5.0
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.6.3
 ```
 
-> 💡 **New in v1.5.0!** Run without flags for an **interactive TUI wizard** — configure SDD phase models, pick install mode, and review everything before installing.
+> 💡 Run without flags for an interactive TUI wizard to configure SDD phase models.
 
 ---
 
@@ -65,19 +71,9 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | 🛠️ **Skills** | SDD Orchestrator, .NET 10/C# 14, Angular 21, TypeScript, Tailwind, OWASP Security, PR review |
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
 | ⚙️ **Config** | Agent defaults, multi-provider model config, thinking level — all ready to include |
-| ✅ **Verify** | Post-install checks (48/48) so you know everything is wired up |
+| ✅ **Verify** | Post-install checks (60/60) so you know everything is wired up |
 | 🧹 **Uninstall** | Clean removal when you want to start fresh |
 | 🪶 **Engram** | Technical decision memory (FTS5, conflict detection, session tracking) |
-
-### 🆕 v1.5.0 Highlights
-
-| Feature | What it does |
-|---------|-------------|
-| 🎮 **Interactive TUI** | Dialog-based wizard for install mode, component selection, and **per-SDD-phase model configuration** |
-| ⚙️ **SDD Phase Config** | Customize provider, model, and effort for each of the 8 SDD phases during installation |
-| 🔧 **GitHub CI** | 5-job pipeline validates every PR — shellcheck, bash syntax, shfmt format, verify checks, installer smoke test |
-| 🤖 **Multi-Provider** | Choose from DeepSeek, OpenAI Codex, and GitHub Copilot |
-| 🏃 **Automation Ready** | `--accept-defaults` for CI/scripting, `--no-tui` to force text mode |
 
 ## Install modes
 
@@ -85,9 +81,9 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 |------|---------|----------|
 | **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
 | **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
-| **TUI Wizard** | `curl ... | bash` | 🆕 Guided setup with dialog menus (SDD phases, components, confirm) |
-| **Automation** | `curl ... | bash -s -- --clone --accept-defaults` | 🆕 CI/CD pipelines — no prompts needed |
-| **Specific version** | `curl ... | bash -s -- --tag v1.5.0` | Pin to a known release |
+| **TUI Wizard** | `curl ... | bash` | Guided setup with dialog menus (SDD phases, components, confirm) |
+| **Automation** | `curl ... | bash -s -- --clone --accept-defaults` | CI/CD pipelines — no prompts needed |
+| **Specific version** | `curl ... | bash -s -- --tag v1.6.3` | Pin to a known release |
 
 ## Post-install
 
@@ -97,9 +93,14 @@ echo '{ $include: "./lucy-agent/config/agent-fragment.json5" }' >> ~/.openclaw/o
 
 # 2. Add your channel tokens to openclaw.json (Telegram, WhatsApp, etc.)
 
-# 3. Restart
+# 3. Restart the gateway to apply the new config
 openclaw gateway restart
+
+# 4. If you have active sessions, refresh them
+#    Type /new in any open chat to load the updated skills and config
 ```
+
+> 💡 After restart, run `./verify.sh` inside `~/.openclaw/lucy-agent/` to confirm everything is wired up.
 
 ## Skills included
 
@@ -132,7 +133,7 @@ cd ~/.openclaw/lucy-agent
 ./update.sh
 
 # Pin to a specific version
-./update.sh --tag v1.5.0
+./update.sh --tag v1.6.3
 
 # Show version info
 ./update.sh --version
@@ -161,9 +162,9 @@ cd ~/.openclaw/lucy-agent
 # Install flags
 install.sh --clone             # Clone Lucy's exact config
 install.sh --template          # Use generic templates
-install.sh --tag <version>     # Install specific release (e.g. v1.5.0)
-install.sh --no-tui            # 🆕 Force text prompts (skip TUI wizard)
-install.sh --accept-defaults   # 🆕 Accept all defaults (CI-friendly)
+install.sh --tag <version>     # Install specific release (e.g. v1.6.3)
+install.sh --no-tui            # Force text prompts (skip TUI wizard)
+install.sh --accept-defaults   # Accept all defaults (CI-friendly)
 install.sh --skip-engram       # Skip Engram memory system
 install.sh --engram-tag <ver>  # Pin Engram version (default: latest)
 install.sh --skip-clawhub      # Skip ClawHub skills
