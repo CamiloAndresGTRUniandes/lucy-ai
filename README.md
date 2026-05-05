@@ -42,6 +42,12 @@ See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ## ⚡ Install in 30 seconds
 
+### Pre-installation
+
+- **OpenClaw** must be installed and the gateway running
+- Have your **API keys** ready (at minimum `DEEPSEEK_API_KEY`)
+- Choose your install mode: `--clone` for Lucy's exact setup, or no flag for a fresh template
+
 ```bash
 # Clone Lucy's exact setup (recommended)
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --clone
@@ -97,9 +103,14 @@ echo '{ $include: "./lucy-agent/config/agent-fragment.json5" }' >> ~/.openclaw/o
 
 # 2. Add your channel tokens to openclaw.json (Telegram, WhatsApp, etc.)
 
-# 3. Restart
+# 3. Restart the gateway to apply the new config
 openclaw gateway restart
+
+# 4. If you have active sessions, refresh them
+#    Type /new in any open chat to load the updated skills and config
 ```
+
+> 💡 After restart, run `./verify.sh` inside `~/.openclaw/lucy-agent/` to confirm everything is wired up.
 
 ## Skills included
 
