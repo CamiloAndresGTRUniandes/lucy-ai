@@ -85,7 +85,7 @@ for doc in orchestrator-flow.md task-string-format.md validation-rules.md; do
   check "workspace/sdd/$doc exists" "[ -f '$LUCY_DIR/workspace/sdd/$doc' ]" "sdd-$doc"
 done
 
-for tmpl in spec.md.in design.md.in tasks.md.in apply.md.in verify.md.in state.json.in; do
+for tmpl in explore.md.in spec.md.in design.md.in tasks.md.in apply.md.in verify.md.in state.json.in; do
   check "workspace/sdd/templates/$tmpl exists" "[ -f '$LUCY_DIR/workspace/sdd/templates/$tmpl' ]" "sdd-tmpl-$tmpl"
 done
 
@@ -96,7 +96,7 @@ echo ""
 # Check 3: Bundled skills
 # ---------------------------------------------------------------------------
 echo "Bundled skill checks:"
-for skill in sdd github-pr pr-review csharp-dotnet tailwind-4 typescript skill-creator; do
+for skill in sdd github-pr zenticalab-pr-review csharp-dotnet dotnet10-csharp14 tailwind-4 typescript angular-core angular-architecture angular-forms angular-performance zenticalab-security skill-creator; do
   check "skill/$skill exists" "[ -f '$SKILLS_DIR/$skill/SKILL.md' ]" "skill-$skill"
 done
 echo ""
@@ -119,7 +119,14 @@ echo ""
 echo "Engram checks:"
 
 ENGRAM_BIN="${HOME}/.local/bin/engram"
-ENGRAM_DATA_DIR="${HOME}/.local/share/engram"
+# Engram data dir — check multiple possible locations
+ENGRAM_DATA_DIR=""
+for candidate in "${HOME}/.engram" "${HOME}/.local/share/engram"; do
+  if [ -f "$candidate/engram.db" ]; then
+    ENGRAM_DATA_DIR="$candidate"
+    break
+  fi
+done
 
 if [ ! -f "$ENGRAM_BIN" ]; then
   echo -e "  ${YELLOW}!${NC} Engram binary not found — skipping Engram checks"
