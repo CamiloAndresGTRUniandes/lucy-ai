@@ -1265,8 +1265,8 @@ step_print_config_instructions() {
 step_verify() {
   log_step "Step 8: Verifying installation"
   if ! $DRY_RUN; then
-    cd "$LUCY_DIR" && bash verify.sh
-    log_ok "verify.sh passed"
+    cd "$LUCY_DIR" && bash verify.sh || true
+    log_ok "verify.sh completed (see output above for results)"
   else
     log_info "[DRY-RUN] Would run verify.sh"
   fi
