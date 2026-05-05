@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.5.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.5.0">
+  <img src="https://img.shields.io/badge/Version-1.6.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.6.0">
   <img src="https://img.shields.io/github/stars/CamiloAndresGTRUniandes/lucy-ai?style=for-the-badge&logo=github&color=0D1117" alt="GitHub stars">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | Component | What's included |
 |-----------|----------------|
 | 🧠 **Personality** | SOUL.md, IDENTITY.md, AGENTS.md — your agent's character, values, and operating rules |
-| 🛠️ **Skills** | SDD workflow + Orchestrator, PR review, Clean Architecture, TypeScript, Tailwind, C#/.NET |
+| 🛠️ **Skills** | SDD Orchestrator, .NET 10/C# 14, Angular 21, TypeScript, Tailwind, OWASP Security, PR review |
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
 | ⚙️ **Config** | Agent defaults, multi-provider model config, thinking level — all ready to include |
 | ✅ **Verify** | Post-install checks (48/48) so you know everything is wired up |
@@ -105,12 +105,18 @@ openclaw gateway restart
 
 | Skill | Purpose |
 |-------|---------|
-| `sdd` | Spec-Driven Development + SDD Orchestrator — sub-agent delegation, phase templates, validation |
-| `github-pr` | High-quality PRs with conventional commits |
-| `pr-review` | Generic PR review for any codebase |
-| `csharp-dotnet` | Clean Architecture patterns for .NET/C# |
-| `tailwind-4` | Tailwind CSS 4 patterns and best practices |
+| `sdd` | SDD Orchestrator — sub-agent delegation, phase templates, validation, skill auto-loading |
+| `csharp-dotnet` | Clean Architecture, SOLID, DRY for .NET/C# |
+| `dotnet10-csharp14` | .NET 10 + C# 14 best practices (field keyword, params Span, etc.) |
 | `typescript` | TypeScript strict mode patterns |
+| `tailwind-4` | Tailwind CSS 4 patterns and best practices |
+| `angular-core` | Angular 21 standalone components, signals, inject, zoneless |
+| `angular-architecture` | Angular 21 Scope Rule, project structure, naming |
+| `angular-forms` | Angular 21 Signal Forms + Reactive Forms |
+| `angular-performance` | Angular 21 NgOptimizedImage, @defer, SSR |
+| `zenticalab-security` | OWASP Top 10 2025 security guidance |
+| `zenticalab-pr-review` | PR review checklist for .NET + Angular projects |
+| `github-pr` | High-quality PRs with conventional commits |
 | `skill-creator` | Build new skills for your agent |
 
 ### ClawHub (auto-installed)
@@ -204,10 +210,16 @@ lucy-agent/
 │   └── workflows/
 │       └── ci.yml              ← 5-job validation pipeline
 ├── clawhub-skills.txt         ← Auto-install list
-├── skills/                     ← Bundled skills
+├── skills/                     ← Bundled skills (13 total)
 │   ├── sdd/
-│   ├── github-pr/
-│   ├── pr-review/
+│   ├── csharp-dotnet/
+│   ├── dotnet10-csharp14/
+│   ├── angular-core/
+│   ├── angular-architecture/
+│   ├── angular-forms/
+│   ├── angular-performance/
+│   ├── zenticalab-security/
+│   ├── zenticalab-pr-review/
 │   └── ...
 ├── workspace/                  ← Seed files
 │   ├── sdd/                      ← SDD Orchestrator (docs + templates)
