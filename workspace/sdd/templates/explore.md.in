@@ -1,0 +1,23 @@
+# Explore: {feature}
+
+## Status: Draft
+
+## Codebase Overview
+
+- **Stack & Architecture:** Describe el stack tecnológico y la arquitectura general del área relevante.
+- **Key files:** Archivos y directorios relevantes para el feature.
+- **Entry points:** Puntos de entrada principales del flujo afectado.
+
+## Patterns Found
+
+- **Pattern 1:** Nombre del patrón — Ubicación en código (archivo:línea).
+- **Pattern 2:** Nombre del patrón — Ubicación en código (archivo:línea).
+
+## Dependencies & Risks
+
+- **Dependency 1:** Descripción de dependencia externa/interna y cómo afecta el feature.
+- **Risk 1:** Riesgo identificado con nivel (alto/medio/bajo) y mitigación propuesta.
+
+## Recommendations
+
+- **Recommendation 1:** Acción recomendada con rationale claro.

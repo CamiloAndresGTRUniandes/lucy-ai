@@ -1,0 +1,53 @@
+{
+  "project": "{project-name}",
+  "currentFeature": "{feature-slug}",
+  "status": "in_progress",
+  "currentPhase": "explore",
+  "currentModel": "{provider-model}",
+  "feedback": {
+    "pending": null,
+    "resolvedAt": null
+  },
+  "retries": {
+    "phase": null,
+    "max": 3,
+    "count": 0,
+    "lastError": null
+  },
+  "fallbacks": {
+    "triggered": [],
+    "lastEvent": null
+  },
+  "pr": {
+    "url": null,
+    "branch": null,
+    "status": "not_created",
+    "reviewComments": [],
+    "resolvedComments": []
+  },
+  "archiveDecision": null,
+  "history": [],
+  "startedAt": "{ISO8601}",
+  "updatedAt": "{ISO8601}",
+  "engram": {
+    "preflight": {
+      "ranAt": null,
+      "project": null,
+      "contextFound": false,
+      "sessionCount": 0,
+      "decisionCount": 0,
+      "observationIds": []
+    },
+    "observations": {
+      "explore": [],
+      "propose": [],
+      "spec": [],
+      "design": [],
+      "tasks": [],
+      "apply": [],
+      "verify": [],
+      "archive": []
+    },
+    "cycleSessionId": null
+  }
+}
