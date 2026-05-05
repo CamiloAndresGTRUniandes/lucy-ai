@@ -42,7 +42,7 @@ if [[ -z "${BASH_SOURCE[0]:-}" ]]; then
   curl -fsSL "https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh" -o "$TMP_DIR/install.sh"
   mkdir -p "$TMP_DIR/scripts"
   curl -fsSL "https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/scripts/common.sh" -o "$TMP_DIR/scripts/common.sh"
-  exec bash "$TMP_DIR/install.sh" "$@" < /dev/tty
+  exec bash "$TMP_DIR/install.sh" "$@" </dev/tty
 fi
 
 # Resolve SCRIPT_DIR and source helpers — works from repo, /tmp, or anywhere
@@ -64,7 +64,7 @@ LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.6.2"
+CURRENT_VERSION="1.6.3"
 
 # Flags
 SKIP_CLAWHUB=false
@@ -1299,6 +1299,10 @@ step_report() {
   echo ""
   echo -e "Verify:"
   echo -e "  cd ${LUCY_DIR} && ./verify.sh"
+  echo ""
+  echo -e "${GREEN}Next step:${NC} restart OpenClaw to apply the new config"
+  echo -e "  ${BLUE}openclaw gateway restart${NC}"
+  echo -e "  ${BLUE}/new${NC} (in any active session after restart)"
   echo ""
 }
 
