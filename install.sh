@@ -1302,6 +1302,7 @@ step_report() {
   echo ""
   echo -e "${GREEN}Next step:${NC} restart OpenClaw to apply the new config"
   echo -e "  ${BLUE}openclaw gateway restart${NC}"
+  echo -e "  ${BLUE}/new${NC} (in any active session after restart)"
   echo ""
 }
 
