@@ -1,0 +1,52 @@
+# Spec: {feature}
+
+## Status: Draft
+
+## Context
+- **Problem:** Describe el problema de negocio o técnico que resuelve este feature.
+- **Business value:** ¿Por qué vale la pena? ¿Qué ganamos al implementarlo?
+- **Constraints:** Restricciones técnicas, de tiempo, o de equipo.
+- **Assumptions:** Suposiciones que damos por ciertas.
+
+## Requirements
+
+### Functional
+
+| ID | Category | Requirement |
+|----|----------|-------------|
+| F1 | | |
+| F2 | | |
+| F3 | | |
+
+### Non-Functional
+
+| ID | Category | Requirement |
+|----|----------|-------------|
+| NF1 | Performance | |
+| NF2 | Security | |
+| NF3 | Observability | |
+
+## User Scenarios
+
+### Scenario 1: {title}
+
+**Given** {context}
+**When** {action}
+**Then** {expected outcome}
+
+### Scenario 2: {title}
+
+**Given** {context}
+**When** {action}
+**Then** {expected outcome}
+
+## Out of Scope
+
+- ❌
+- ❌
+
+## Acceptance Criteria
+
+- [ ] **AC1:**
+- [ ] **AC2:**
+- [ ] **AC3:**
