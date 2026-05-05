@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.6.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.6.0">
+  <img src="https://img.shields.io/badge/Version-1.6.2-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.6.2">
   <img src="https://img.shields.io/github/stars/CamiloAndresGTRUniandes/lucy-ai?style=for-the-badge&logo=github&color=0D1117" alt="GitHub stars">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">

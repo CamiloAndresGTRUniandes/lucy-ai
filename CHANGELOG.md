@@ -5,6 +5,13 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2026-05-05
+
+### Fixed
+
+- **Engram download URL corruption** — `log_info` output in `resolve_engram_version()` was captured by command substitution, corrupting the version string and producing malformed download URLs. Fixed by redirecting `log_info` to stderr.
+- **tmpdir trap variable scope** — `trap ... EXIT` in `step_install_engram()` referenced a `local` variable that went out of scope, causing `tmpdir: unbound variable` on script abort. Fixed by using `trap ... RETURN`.
+
 ## [1.6.1] - 2026-05-05
 
 ### Fixed
