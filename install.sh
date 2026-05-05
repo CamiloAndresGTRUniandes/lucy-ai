@@ -42,7 +42,7 @@ if [[ -z "${BASH_SOURCE[0]:-}" ]]; then
   curl -fsSL "https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh" -o "$TMP_DIR/install.sh"
   mkdir -p "$TMP_DIR/scripts"
   curl -fsSL "https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/scripts/common.sh" -o "$TMP_DIR/scripts/common.sh"
-  exec bash "$TMP_DIR/install.sh" "$@"
+  exec bash "$TMP_DIR/install.sh" "$@" < /dev/tty
 fi
 
 # Resolve SCRIPT_DIR and source helpers — works from repo, /tmp, or anywhere
