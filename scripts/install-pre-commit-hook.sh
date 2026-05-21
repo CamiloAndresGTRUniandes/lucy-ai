@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC2034
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -103,7 +103,6 @@ main() {
   local HOOKS_DIR
   HOOKS_DIR="$(git rev-parse --git-dir)/hooks"
   local HOOK_PATH="${HOOKS_DIR}/pre-commit"
-  local HOOK_NAME="pre-commit"
 
   # Ensure hooks directory exists
   if [ ! -d "$HOOKS_DIR" ]; then

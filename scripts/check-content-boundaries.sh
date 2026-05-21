@@ -113,6 +113,13 @@ ALLOWED_PLACEHOLDERS=(
   "{project_root}/docs/STANDARDS.md"
 )
 
+# Skill names that contain project names — these are legitimate bundled skill identifiers,
+# not project standards being smuggled into locked files
+ALLOWED_SKILL_NAMES=(
+  "zenticalab-security"
+  "zenticalab-pr-review"
+)
+
 # ---------------------------------------------------------------------------
 # Validation functions
 # ---------------------------------------------------------------------------
@@ -145,6 +152,17 @@ scan_project_names() {
 
     for name in "${PROJECT_NAMES[@]}"; do
       if [[ "${line,,}" == *"${name,,}"* ]]; then
+        # Skip if the match is part of an allowed skill name (e.g., zenticalab-security)
+        local is_skill_name=false
+        for skill in "${ALLOWED_SKILL_NAMES[@]}"; do
+          if [[ "${line,,}" == *"${skill,,}"* ]]; then
+            is_skill_name=true
+            break
+          fi
+        done
+        if $is_skill_name; then
+          continue
+        fi
         print_violation "$file" "$line_num" "project name \"$name\""
         VIOLATIONS=$((VIOLATIONS + 1))
       fi
