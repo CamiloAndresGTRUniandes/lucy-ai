@@ -29,8 +29,9 @@
 
 ## ⚡ What's New in v1.7
 
+- 🏗️ **Harness Engineering** — Full 7-layer agent infrastructure: models, memory, tools, orchestration, observability, knowledge, and goal definition
 - 🌍 **Agnostic configuration** — AGENTS.md and TOOLS.md are now project-agnostic templates with content boundary enforcement
-- 🤖 **Fixed SDD agent profiles** — 9 profiles in `config/agent-fragment.json5` (replaces TUI model customization)
+- 🤖 **Fixed SDD agent profiles** — 9 profiles in `config/agent-fragment.json5`, auto-injected into `openclaw.json`
 - 🛡️ **Content boundary enforcement** — pre-commit hook blocks project-specific content in locked files
 - 📋 **Project standards template** — `sdd/templates/standards.md.in` for consistent project setup
 - 🧠 **MEMORY.md template** — sanitized long-term memory template with privacy guidance
@@ -129,6 +130,24 @@ The hook prevents accidental commits that would leak project-specific content in
 | 🧹 **Uninstall** | Clean removal when you want to start fresh |
 | 🪶 **Engram** | Technical decision memory (FTS5, conflict detection, session tracking) |
 
+## 🏗️ Harness Engineering — The Infrastructure Behind Your Agent
+
+**Harness Engineering** is the discipline of building the scaffolding around an LLM to turn it into a reliable, production-grade agent. Research shows the harness design impacts agent performance more than the underlying model itself.
+
+lucy-ai implements all 7 layers of the agent harness:
+
+| Layer | What it does | lucy-ai delivers |
+|-------|-------------|-------------------|
+| 🧠 **Model & Runtime** | LLM selection, execution environment | 9 fixed SDD agent profiles via `config/agent-fragment.json5`, auto-injected into `openclaw.json` |
+| 💾 **Memory** | Short-term and long-term context | MEMORY.md (personal) + Engram (technical, FTS5) + `memory/*.md` (daily logs) |
+| 🔧 **Tooling** | APIs, code execution, external systems | 18 bundled skills (SDD, .NET, Angular, Security, GitHub, Weather, Browser) |
+| 🎯 **Orchestration** | Multi-step workflows, delegation | SDD Orchestrator: 8-phase workflow with sub-agent delegation, task contracts, and validation |
+| 👁️ **Observability** | Monitoring, evaluation, audit | `verify.sh` (118+ checks), content boundary enforcement, CI pipeline (5 jobs) |
+| 📚 **Knowledge** | Grounding in trusted data | Engram decision memory with conflict detection, FTS5 search, session tracking |
+| 🎭 **Goal Definition** | Agent purpose, values, constraints | SOUL.md (persona), IDENTITY.md (role), AGENTS.md (non-negotiable rules and boundaries) |
+
+> 💡 Read more: [Harness Engineering: The Infrastructure Layer That Makes AI Agents Actually Work](https://medium.com/@visrow/harness-engineering-the-infrastructure-layer-that-makes-ai-agents-actually-work-598a279c1c5f)
+
 ## Install modes
 
 | Mode | Command | Best for |
@@ -143,21 +162,19 @@ The hook prevents accidental commits that would leak project-specific content in
 ## Post-install
 
 ```bash
-# 1. Link the config fragment (adds 9 SDD agent profiles + Engram MCP)
-echo '{ $include: "./lucy-agent/config/agent-fragment.json5" }' >> ~/.openclaw/openclaw.json
+# 1. Add your channel tokens to openclaw.json (Telegram, WhatsApp, etc.)
+#    The config fragment is auto-injected during install — no manual step needed.
 
-# 2. Add your channel tokens to openclaw.json (Telegram, WhatsApp, etc.)
-
-# 3. Restart the gateway to load the new agent profiles
+# 2. Restart the gateway to load the new agent profiles
 openclaw gateway restart
 
-# 4. If you have active sessions, refresh them
+# 3. If you have active sessions, refresh them
 #    Type /new in any open chat to load the updated skills and config
 ```
 
-> 💡 The `$include` directive tells OpenClaw to merge `config/agent-fragment.json5` into your runtime config. This fragment defines 9 fixed SDD agent profiles (`sdd-design`, `sdd-apply`, etc.), bootstrap limits, skills allowlist, and the Engram MCP server. You can edit the fragment to customize models for your subscriptions.
+> 💡 During installation, `install.sh` automatically links `config/agent-fragment.json5` into your `openclaw.json` via `$include` — no manual step required. The fragment defines 9 fixed SDD agent profiles (`sdd-design`, `sdd-apply`, etc.), bootstrap limits, skills allowlist, and the Engram MCP server. You can edit the fragment to customize models for your subscriptions.
 >
-> After restart, run `./verify.sh` inside `~/.openclaw/lucy-agent/` to confirm everything is wired up.
+> After restart, run `./verify.sh` inside `~/.openclaw/lucy-agent/` to confirm everything is wired up (118+ checks).
 
 ## Skills included
 
