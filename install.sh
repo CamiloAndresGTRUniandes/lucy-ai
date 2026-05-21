@@ -1033,12 +1033,13 @@ step_include_config_fragment() {
     if $DRY_RUN; then
       log_info "[DRY-RUN] Would create ${openclaw_json} with config fragment include"
     else
-      echo "{ $include_directive }" > "$openclaw_json"
+      echo "{ $include_directive }" >"$openclaw_json"
       log_ok "Created openclaw.json with config fragment"
     fi
   else
     # Backup and inject the include directive
-    local backup="${openclaw_json}.backup.$(date +%s)"
+    local backup
+    backup="${openclaw_json}.backup.$(date +%s)"
     if $DRY_RUN; then
       log_info "[DRY-RUN] Would backup openclaw.json and inject config fragment include"
     else
@@ -1048,7 +1049,7 @@ step_include_config_fragment() {
       # Insert the include directive after the first opening brace (JSON5 property)
       # sed finds first '{' on any line and inserts the directive after it
       local tmp="${openclaw_json}.tmp"
-      sed "0,/{/s/{/{\n  ${include_directive},/" "$openclaw_json" > "$tmp" && mv "$tmp" "$openclaw_json"
+      sed "0,/{/s/{/{\n  ${include_directive},/" "$openclaw_json" >"$tmp" && mv "$tmp" "$openclaw_json"
       log_ok "Config fragment linked in openclaw.json"
     fi
   fi
