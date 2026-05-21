@@ -1,0 +1,112 @@
+# {project_name} — Project Standards
+
+> {project_description}
+>
+> **Language**: {code_language}
+> **Repo**: {repo_url}
+
+---
+
+## Project Identity
+
+- **Type**: {project_type}
+- **Branches**: `main`, `develop`
+- **Repo**: `{repo_owner}/{repo_name}`
+- **GitHub user**: `{github_user}` | **Reviewer**: `{reviewer}`
+
+---
+
+## Architecture Principles
+
+### Stack
+
+- **Backend**: {backend_stack_description}
+- **Frontend**: {frontend_stack_description}
+- **Database**: {database_description}
+- **Infrastructure**: {infra_description}
+
+### Design Principles
+
+- {principle_1}
+- {principle_2}
+- {principle_3}
+
+### Layer Structure
+
+```
+{layer_diagram}
+```
+
+{architecture_description}
+
+---
+
+## File Structure
+
+```
+{project_name}/
+├── {directory_1}/
+│   ├── {subdirectory_1}/
+│   └── ...
+├── {directory_2}/
+└── ...
+```
+
+---
+
+## Commit Convention
+
+Format: `{commit_format}`
+
+Types:
+- `feat`: new feature
+- `fix`: bug fix
+- `refactor`: internal improvement (no behavior change)
+- `docs`: documentation only
+- `test`: test-only changes
+- `chore`: maintenance, tooling, CI
+
+Examples:
+```
+{commit_example_1}
+{commit_example_2}
+```
+
+---
+
+## Git Workflow
+
+### Protected branches — NO EXCEPTIONS
+
+- `main` — release branch, **never push directly**
+- `develop` — integration branch, **never push directly**
+
+### Flow
+
+1. All work on **feature branches** (`feat/{description}`)
+2. Never push/merge directly to `main` or `develop`
+3. Open PR → assign `{reviewer}` as reviewer
+4. PR requires approved review before merge
+
+### Release Process
+
+1. Feature branch → PR → merge to `develop`
+2. Release branch from `develop` → PR → merge to `main`
+3. Tag release with version: `git tag vX.Y.Z`
+
+---
+
+## Environment & Secrets
+
+- **Never commit**: API keys, tokens, OAuth credentials, passwords
+- **Local dev**: `.env` file (git-ignored)
+- **Production**: {secret_storage_description}
+- **Placeholder format**: `{placeholder_format}` (resolved at runtime)
+
+---
+
+## Workspace Context
+
+- **Project root**: `/workspace/repos/{repo_name}/`
+- **SDD cycle outputs**: `sdd/{repo_name}/{feature}/`
+- **Engram project**: `{engram_project_name}`

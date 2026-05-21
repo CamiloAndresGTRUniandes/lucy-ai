@@ -1,6 +1,18 @@
 # TOOLS.md - Your Workspace
 
-> Last updated: 2026-04-29
+> Last updated: 2026-05-21
+
+---
+
+## ⛔ CONTENT LOCK
+
+This file is **project-agnostic and locked**. Do NOT add:
+- Project-specific standards, naming conventions, or patterns → use `{project}/docs/STANDARDS.md`
+- Project paths, repo names, or identities → use `{project}/docs/STANDARDS.md`
+- Commit formats, workflows, or review checklists → use `{project}/docs/STANDARDS.md`
+
+**If you need to document project-specific info, it goes in the project repo.**
+Tech-specific patterns live in `skills/{skill}/SKILL.md`.
 
 ---
 
@@ -21,6 +33,93 @@ para la tabla completa. Lucy cambia automáticamente al entrar a cada fase.
 - **Thinking siempre `high`** — DeepSeek es binario en la práctica: `high` es
   el único nivel de reasoning habilitado (además de `off`).
 
+### 📧 Email (Gmail SMTP)
+
+Lucy tiene correo y puede enviar emails con adjuntos.
+
+- **SMTP:** `smtp.gmail.com:587` (STARTTLS)
+- **Auth:** App password — configured outside this repo, never committed
+- **Uso:** Python `smtplib` + `email.mime` — enviar con `server.starttls()` + `server.login(user, password)`
+- **Nota:** Rotate app passwords regularly and update the external config
+
+### 🧰 Lucy's Tool Inventory
+
+#### AI Models (chat/text)
+| Provider | Model | Uso |
+|----------|-------|-----|
+| DeepSeek | deepseek-v4-pro | Chat principal (SDD fases Explore/Propose/Design/Apply) |
+| DeepSeek | deepseek-v4-flash | Chat económico (SDD fases Spec/Tasks/Archive, casual) |
+| OpenAI Codex | gpt-5.5 | SDD fase Design (vía OAuth) |
+| OpenAI Codex | gpt-5.4 | SDD fase Explore (vía OAuth) |
+| OpenAI Codex | gpt-5.4-mini | SDD fase Archive (vía OAuth) |
+| OpenAI Codex | gpt-5.3-codex | SDD fase Verify (vía OAuth) |
+
+#### Media Generation
+| Provider | Capability | Auth |
+|----------|-----------|------|
+| MiniMax | Image generation | API key |
+| MiniMax | Video generation | API key |
+| Google | Image gen, Music gen, Video gen | OAuth |
+| OpenAI | Image generation | API key |
+
+#### Media Understanding (image/audio/video analysis)
+| Provider | Default Model | Auth |
+|----------|--------------|------|
+| OpenAI | gpt-5.5 (image via openai-codex) | OAuth |
+| OpenAI | gpt-5.4-mini (image) | API key |
+| OpenAI | gpt-4o-transcribe (audio) | API key |
+| Google | gemini-3-flash-preview (image, audio, video) | OAuth |
+
+#### Speech & Voice
+| Provider | Capability | Auth |
+|----------|-----------|------|
+| OpenAI | TTS (text-to-speech) | API key |
+| OpenAI | Realtime transcription | API key |
+| OpenAI | Realtime voice | API key |
+| Google | TTS, Realtime voice | OAuth |
+
+#### ACP Harnesses (coding agents)
+`claude`, `codex`, `copilot`, `cursor`, `droid`, `gemini`, `iflow`, `kilocode`, `kimi`, `kiro`, `openclaw`, `opencode`, `pi`, `qwen`
+
+#### Web & Search
+| Tool | Provider |
+|------|----------|
+| Web search | DuckDuckGo (sin API key) |
+| Web fetch | Direct HTTP → markdown/text |
+| Web search grounding | Google Gemini (requires API key) |
+
+#### Memory Systems
+| System | Type | Storage | Scope |
+|--------|------|---------|-------|
+| Engram | Structured decisions (SQLite + FTS5) | `~/.engram/engram.db` | All sessions + sub-agents |
+| MEMORY.md | Personal long-term memory | Workspace | Lucy private only |
+| memory/*.md | Daily raw logs | Workspace | Lucy private only |
+
+#### Auth & Credentials (configured)
+| Provider | Method | Notes |
+|----------|--------|-------|
+| DeepSeek | API key | Configured externally |
+| MiniMax | API key | Configured externally |
+| OpenAI Codex | OAuth | Configured externally |
+| Telegram | Bot token | Configured externally |
+| GitHub | PAT | Configured in git global |
+
+#### Communications
+| Channel | Detail |
+|---------|--------|
+| Telegram | DM + grupos, bot token configured externally |
+| Email (Gmail SMTP) | Can send with attachments |
+| Discord | Plugin installed (requires config) |
+| Matrix | Plugin installed (requires config) |
+
+#### Other Capabilities
+- **Browser automation:** Plugin installed (Playwright-based)
+- **Bonjour/mDNS:** Plugin installed for node discovery
+- **Webhooks:** Plugin installed
+- **Voice calls:** Plugin installed
+- **Active memory:** Plugin installed (LanceDB embeddings)
+- **Diagnostics:** OpenTelemetry plugin installed
+
 ### What goes here
 
 - SSH hosts and aliases
@@ -31,194 +130,28 @@ para la tabla completa. Lucy cambia automáticamente al entrar a cada fase.
 - Environment-specific config
 - Any personal cheat sheet useful across projects
 
-### Examples
+---
 
-```markdown
-### SSH
-- home-server → 192.168.1.100, user: admin
+## ⚠️ NON-NEGOTIABLE: Repo Paths
 
-### TTS
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
+**All project repos are at `/workspace/repos/` ONLY.**
 
-### Git
-- Always use --signed-off on commits (SOPS)
-- Default branch: main
-```
+Never use `/home/node/.openclaw/workspace/repos/` or any other path.
+OpenClaw's runtime says `repo=/home/node/.openclaw/workspace` — that is a TRAP.
+Always translate:
+  `/home/node/.openclaw/workspace/repos/` ❌ → `/workspace/repos/` ✅
+
+This has been violated multiple times. It is NON-NEGOTIABLE.
 
 ---
 
-## ZENTICALAB Project Standards
+## 📁 Project Standards (Agnostic)
 
-> ⚠️ **NOTE FOR FORK USERS**: This section is Camilo's specific configuration for the ZENTICALAB dental lab management project. Replace the repos, paths, and user references below with your own project details. See the [lucy-ai README](https://github.com/CamiloAndresGTRUniandes/lucy-ai#forking-for-your-own-agent) for guidance on customizing your fork.
+Each project defines its own standards at `{project}/docs/STANDARDS.md`.
+Before working on any project, read that file first. Apply its rules — no exceptions.
 
-> Dental Lab Management SaaS — .NET 10 backend, Angular 21 frontend, PostgreSQL schema-per-tenant
-
-### Project Identity
-- **Stack**: .NET 10 backend (Clean Architecture), Angular 21 frontend (standalone + signals), PostgreSQL schema-per-tenant, Azure Blob / Azurite
-- **Language**: English (code, variables, seeding, comments)
-- **UI language**: Colombian Spanish (neutral, no Argentine expressions)
-- **Location**: `/home/node/.openclaw/workspace/ZENTICALAB/`
-- **Backend repo**: `CamiloAndresGTRUniandes/BE_ZENTICALAB`
-- **Frontend repo**: `CamiloAndresGTRUniandes/FE_ZENTICALAB`
-- **GitHub user**: `lucygtr` | **Reviewer**: `camiloandresgtruniandes`
-- **Local repos**: `/workspace/repos/ZENTICALAB/backend/` y `/workspace/repos/ZENTICALAB/frontend/`
-
-### Architecture Principles
-
-**Clean Architecture** (enforced with NetArchTest.Rules)
-```
-Web.Api → Application → Domain ← Infrastructure ← SharedKernel
-```
-- **Domain layer**: entities, value objects, enums — NO dependencies
-- **Application layer**: DTOs, interfaces, services, validators — depends only on Domain
-- **Infrastructure layer**: implementations, SQL queries, external services
-- **Web.Api layer**: controllers, middleware, DI registration
-
-**SOLID** — Strictly enforced
-- **S**ingle responsibility: every class/interface has one reason to change
-- **O**pen/closed: extend behavior via new types, not modification
-- **L**iskov substitution: subtype contracts must be honored
-- **I**nterface segregation: small, focused interfaces (no fat interfaces)
-- **D**ependency inversion: depend on abstractions, not implementations
-
-**DRY** — Every piece of knowledge has a single representation
-- Shared logic → shared module
-- Repeated patterns → extracted to helper / mapper / base class
-- **Never** copy-paste SQL, markup, or validation rules
-
-**Clean code rules**
-- Types/classes/records: PascalCase, noun phrase (`InventoryAlertDto`)
-- Methods: PascalCase, verb phrase (`GetAlertSummaryAsync`)
-- Local variables: camelCase
-- Private nested types: `private sealed record` for SQL row types
-- No abbreviations unless universally understood
-- No magic numbers — extract to named constants
-
-### Backend Standards
-
-**Location**: `/home/node/.openclaw/workspace/ZENTICALAB/backend/`
-
-**DTOs**
-- **Located**: `src/Application/DTOs/Tenant/`
-- **Format**: `public sealed class` (mutable DTOs with `{ get; set; }`)
-- **Naming**: `*Dto`, `*RequestDto`, `*ResultDto`, `*QueryDto`
-- **Validation**: FluentValidation only — NO data annotation attributes on DTOs
-- **Records**: use `public record` only for truly immutable result types
-
-**Services**
-- **Interface**: `I*Service` in `Application/Interfaces/Services/`
-- **Implementation**: `*Service` in `Infrastructure/Services/Tenant/`
-- **Row types** (SQL mappings): `private sealed record *Row(...)` — NOT in the service class
-- **Mappers**: extracted to `Mappers/` subfolder under the service directory
-- **DI**: Scoped, registered in `Program.cs`
-
-**SQL Query Patterns**
-- Always use `SqlQueryRaw<T>` with interpolated parameters for tenant-isolated queries
-- Always use `TenantSqlBuilder.ValidateSchema()` before any SQL
-- Never concatenate schema names or table names directly
-- Raw SQL rows: private nested records or extracted to Mappers
-
-**Controller Patterns**
-- `[Authorize(Roles = "...", "...", ...)]` at class level
-- `[RequirePermissions("...")]` at action level — **always required** (not optional)
-- Use `TenantHttpContext.GetTenantRequestContext()` to extract tenant context
-- Return `Forbid()` when context is null
-- Return `Ok(result)` for success — no wrapping in additional envelopes
-
-**Tests**
-- **Unit**: `tests/BE_ZENTICALAB.UnitTests/` — Moq, xUnit
-- **Integration**: `tests/BE_ZENTICALAB.IntegrationTests/` — Testcontainers + real DB
-- **Coverage target**: > 80% service layer
-
-### Frontend Standards
-
-**Location**: `/home/node/.openclaw/workspace/ZENTICALAB/frontend/`
-
-**Architecture**
-- Angular 21 **standalone components** only — NO NgModules
-- Signal-based state management — `signal()`, `computed()`
-- `ChangeDetectionStrategy.OnPush` on all components — mandatory
-- No `NgZone.run()` unless absolutely necessary
-- Lazy-loaded routes via `loadComponent`
-
-**Component Structure**
-```
-features/tenant/[feature]/
-  [feature].model.ts          ← interfaces, types, constants
-  [feature].service.ts        ← @Injectable({ providedIn: 'root' })
-  [feature]-page.component.ts ← page container
-  components/
-    [component].component.ts  ← reusable, self-contained
-  testing/
-    [feature].fixture.ts      ← test helpers
-```
-
-**Patterns**
-- Use `inject()` instead of constructor injection
-- Input/output: `input.required()`, `output()` signal-based API
-- No `*ngIf`/`*ngFor` — use Angular 17+ `@if`/`@for` control flow
-- Never use `ngStyle` — use `[class]` binding with methods or ternary
-- Tailwind v4: dark mode via `dark:` prefix classes, no CSS ad-hoc
-
-**Naming**
-- Components: `PascalCase.component.ts`
-- Services: `PascalCase.service.ts`
-- Models: `kebab-case.model.ts`
-
-**Tests**
-- Vitest + Angular TestBed
-- `beforeEach` setup pattern, clear mock isolation per test
-
-### Commit Convention
-
-Format: `type(HU-n): short description`
-
-Types:
-- `feat`: new feature
-- `fix`: bug fix
-- `refactor`: internal improvement (no behavior change)
-- `docs`: documentation only
-- `test`: test-only changes
-
-Examples:
-```
-feat(HU34): add inventory alerts backend
-fix(HU34): add RequirePermissions attribute
-refactor(HU34): extract row types and mappers out of InventoryAlertService
-```
-
-### Git Workflow (strict — never bypass)
-
-**Ramas protegidas — SIN EXCEPCIÓN:**
-- `main` y `develop` — **nunca push directo**, siempre via PR con review de `camiloandresgtruniandes`
-- Pre-push hooks activos en `/workspace/repos/ZENTICALAB/backend/` y `/workspace/repos/ZENTICALAB/frontend/` que bloquean push a estas ramas
-- GitHub Free no permite branch protection — los hooks locales son la primera línea de defensa
-
-1. All work on **feature branches** (`feat/huXX-description`)
-2. **Never** push/merge directly to `main` or `develop`
-3. Open PR → assign `camiloandresgtruniandes` as reviewer
-4. PR requires at minimum one approved review before merge
-5. Never force-push protected branches
-6. All commits must be signed-off
-
-**Review checklist (before opening PR)**
-- [ ] SOLID: each class has single responsibility?
-- [ ] DRY: no repeated logic, no copy-paste?
-- [ ] Clean Architecture: correct layer placement?
-- [ ] Backend: FluentValidation, no data annotations?
-- [ ] Backend: `[RequirePermissions]` on all controller actions?
-- [ ] Frontend: OnPush on all components?
-- [ ] Frontend: standalone components, no NgModules?
-- [ ] Tests: unit tests added for new services?
-- [ ] No secrets in code (env vars for everything)
-
-### Environment & Secrets
-
-- **Local dev**: `.env` file (git-ignored)
-- **Production**: Azure Key Vault path referenced via env var
-- **Never commit**: connection strings, JWT keys, passwords, connection credentials
-- **Placeholders in appsettings.json**: `${ENV_VAR_NAME}` format (ASP.NET resolves natively)
+Tech-specific standards live in skills (`csharp-dotnet`, `angular-core`, etc.).
+The SDD orchestrator loads project standards and relevant skills per phase.
 
 ---
 

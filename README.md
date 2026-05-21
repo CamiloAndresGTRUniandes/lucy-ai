@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.6.3-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.6.3">
+  <img src="https://img.shields.io/badge/Version-1.7.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.7.0">
   <img src="https://img.shields.io/github/stars/CamiloAndresGTRUniandes/lucy-ai?style=for-the-badge&logo=github&color=0D1117" alt="GitHub stars">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
@@ -27,14 +27,14 @@
 
 ---
 
-## ⚡ What's New in v1.6
+## ⚡ What's New in v1.7
 
-- 🛠️ **13 technical skills** — .NET 10/C# 14, Angular 21 (core, architecture, forms, performance), OWASP Security, PR review, and more
-- 📋 **SDD Orchestrator docs** — task-string templates, phase-by-phase flow, skill auto-loading
-- 🐳 **Docker support** — `curl | bash` works anywhere, including containers
-- 🎮 **Interactive TUI wizard** — configure SDD phase models during installation
-- 🔧 **GitHub Actions CI** — 5-job pipeline validates every PR
-- 🧪 **Smoke tests** — 60/60 verify.sh checks passed
+- 🌍 **Agnostic configuration** — AGENTS.md and TOOLS.md are now project-agnostic templates with content boundary enforcement
+- 🤖 **Fixed SDD agent profiles** — 9 profiles in `config/agent-fragment.json5` (replaces TUI model customization)
+- 🛡️ **Content boundary enforcement** — pre-commit hook blocks project-specific content in locked files
+- 📋 **Project standards template** — `sdd/templates/standards.md.in` for consistent project setup
+- 🧠 **MEMORY.md template** — sanitized long-term memory template with privacy guidance
+- 🔧 **Contributor setup** — `install.sh --contributor` installs the pre-commit hook
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
@@ -56,22 +56,76 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
 
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.6.3
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.7.0
 ```
 
-> 💡 Run without flags for an interactive TUI wizard to configure SDD phase models.
+> 💡 Run without flags for an interactive TUI wizard to choose components and install mode.
 
 ---
+
+## 🌍 Agnostic Configuration
+
+Lucy's workspace templates (`AGENTS.md`, `TOOLS.md`, `MEMORY.md`) are **project-agnostic** — they contain only Lucy's operating rules and cross-project tool inventory. No project-specific standards, architecture patterns, or naming conventions.
+
+**Why this matters:**
+- **Fork-friendly** — your fork starts with clean, universal templates (no Camilo/ZENTICALAB rules)
+- **No drift** — the same templates work for any project, any stack
+- **Separation of concerns** — project standards live in each repo's `docs/STANDARDS.md`, not in Lucy's global workspace
+- **Skills handle tech** — language-specific patterns belong in bundled skills (e.g., `csharp-dotnet`, `angular-core`)
+
+## ⚙️ Why Config Lives in openclaw.json
+
+SDD agent profiles are defined in `config/agent-fragment.json5` and loaded into `openclaw.json` via `$include`:
+
+```json
+{ "$include": "./lucy-agent/config/agent-fragment.json5" }
+```
+
+This fragment contains:
+- **`agents.defaults`** — primary model, thinking level, bootstrap limits, skills allowlist, timeout
+- **`agents.list[]`** — 9 fixed SDD profiles (`sdd-explore`, `sdd-design`, `sdd-apply`, etc.) with per-phase models and timeouts
+- **`mcp.servers.engram`** — Engram technical memory integration
+
+The agent profiles are **runtime config**, not generated prose in AGENTS.md. When Lucy spawns sub-agents, she uses `agentId` (e.g. `sdd-design`) — the model, thinking, and timeout are resolved automatically from the profile.
+
+## 🛡️ Content Boundary Enforcement
+
+Two files are **locked** and must remain project-agnostic:
+- `workspace/AGENTS.md` — Lucy's operating rules
+- `workspace/TOOLS.md` — tool inventory and cross-project notes
+
+**What the pre-commit hook does:**
+- Scans staged changes to locked files for project-specific content
+- Blocks commits that introduce project names (ZENTICALAB, excel-pipeline, etc.), project-standard headings, or hardcoded project paths
+- Accepts generic placeholders (`{project}`, `{repo}`, `/workspace/repos/{project}`)
+
+This ensures that templates stay clean across all installations and forks.
+
+## 👷 Contributor Setup
+
+If you plan to contribute changes to lucy-ai:
+
+```bash
+# Install with the pre-commit hook
+./install.sh --contributor
+
+# Or install the hook manually after cloning
+./scripts/install-pre-commit-hook.sh
+```
+
+The hook prevents accidental commits that would leak project-specific content into locked template files.
 
 ## What you get
 
 | Component | What's included |
 |-----------|----------------|
 | 🧠 **Personality** | SOUL.md, IDENTITY.md, AGENTS.md — your agent's character, values, and operating rules |
+| 📝 **Memory** | MEMORY.md — sanitized long-term memory template with privacy guidance |
 | 🛠️ **Skills** | SDD Orchestrator, .NET 10/C# 14, Angular 21, TypeScript, Tailwind, OWASP Security, PR review |
 | 🌤️ **Superpowers** | Weather, browser automation, coding agent routing |
-| ⚙️ **Config** | Agent defaults, multi-provider model config, thinking level — all ready to include |
-| ✅ **Verify** | Post-install checks (60/60) so you know everything is wired up |
+| ⚙️ **Config** | 9 fixed SDD agent profiles, multi-provider model config, thinking level — all ready to include |
+| 🛡️ **Enforcement** | Pre-commit hook blocks project-specific content in locked template files |
+| ✅ **Verify** | Post-install checks so you know everything is wired up |
 | 🧹 **Uninstall** | Clean removal when you want to start fresh |
 | 🪶 **Engram** | Technical decision memory (FTS5, conflict detection, session tracking) |
 
@@ -80,27 +134,30 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 | Mode | Command | Best for |
 |------|---------|----------|
 | **Clone** | `curl ... | bash -s -- --clone` | Get Lucy's exact setup — skip the config |
-| **Template** | `curl ... | bash -s -- --template` | Fresh start with placeholders |
-| **TUI Wizard** | `curl ... | bash` | Guided setup with dialog menus (SDD phases, components, confirm) |
+| **Template** | `curl ... | bash -s -- --template` | Fresh start with generic placeholders |
+| **TUI Wizard** | `curl ... | bash` | Guided setup with dialog menus (install mode, components, confirm) |
+| **Contributor** | `curl ... | bash -s -- --contributor` | Like template + installs pre-commit hook for repo contributions |
 | **Automation** | `curl ... | bash -s -- --clone --accept-defaults` | CI/CD pipelines — no prompts needed |
-| **Specific version** | `curl ... | bash -s -- --tag v1.6.3` | Pin to a known release |
+| **Specific version** | `curl ... | bash -s -- --tag v1.7.0` | Pin to a known release |
 
 ## Post-install
 
 ```bash
-# 1. Link the config fragment
+# 1. Link the config fragment (adds 9 SDD agent profiles + Engram MCP)
 echo '{ $include: "./lucy-agent/config/agent-fragment.json5" }' >> ~/.openclaw/openclaw.json
 
 # 2. Add your channel tokens to openclaw.json (Telegram, WhatsApp, etc.)
 
-# 3. Restart the gateway to apply the new config
+# 3. Restart the gateway to load the new agent profiles
 openclaw gateway restart
 
 # 4. If you have active sessions, refresh them
 #    Type /new in any open chat to load the updated skills and config
 ```
 
-> 💡 After restart, run `./verify.sh` inside `~/.openclaw/lucy-agent/` to confirm everything is wired up.
+> 💡 The `$include` directive tells OpenClaw to merge `config/agent-fragment.json5` into your runtime config. This fragment defines 9 fixed SDD agent profiles (`sdd-design`, `sdd-apply`, etc.), bootstrap limits, skills allowlist, and the Engram MCP server. You can edit the fragment to customize models for your subscriptions.
+>
+> After restart, run `./verify.sh` inside `~/.openclaw/lucy-agent/` to confirm everything is wired up.
 
 ## Skills included
 
@@ -133,7 +190,7 @@ cd ~/.openclaw/lucy-agent
 ./update.sh
 
 # Pin to a specific version
-./update.sh --tag v1.6.3
+./update.sh --tag v1.7.0
 
 # Show version info
 ./update.sh --version
@@ -162,7 +219,8 @@ cd ~/.openclaw/lucy-agent
 # Install flags
 install.sh --clone             # Clone Lucy's exact config
 install.sh --template          # Use generic templates
-install.sh --tag <version>     # Install specific release (e.g. v1.6.3)
+install.sh --tag <version>     # Install specific release (e.g. v1.7.0)
+install.sh --contributor       # Install with pre-commit hook for contributors
 install.sh --no-tui            # Force text prompts (skip TUI wizard)
 install.sh --accept-defaults   # Accept all defaults (CI-friendly)
 install.sh --skip-engram       # Skip Engram memory system
@@ -203,7 +261,9 @@ lucy-agent/
 ├── verify.sh                   ← Post-install verification
 ├── uninstall.sh               ← Clean removal
 ├── scripts/
-│   └── common.sh              ← Shared helpers (sourced by all scripts)
+│   ├── common.sh              ← Shared helpers (sourced by all scripts)
+│   ├── check-content-boundaries.sh  ← Locked-file content validator
+│   └── install-pre-commit-hook.sh   ← Pre-commit hook installer
 ├── SKILL.md                    ← Meta-skill documentation
 ├── CHANGELOG.md                ← Version history
 ├── SPEC.md                     ← Current release spec
@@ -224,10 +284,13 @@ lucy-agent/
 │   └── ...
 ├── workspace/                  ← Seed files
 │   ├── sdd/                      ← SDD Orchestrator (docs + templates)
-│   ├── SOUL.md
-│   ├── IDENTITY.md
-│   ├── AGENTS.md
-│   └── ...
+│   ├── SOUL.md                   ← Persona template
+│   ├── IDENTITY.md               ← Identity template
+│   ├── AGENTS.md                 ← Operating rules (agnostic, locked)
+│   ├── TOOLS.md                  ← Tool inventory (agnostic, locked)
+│   ├── MEMORY.md                 ← Long-term memory template (sanitized)
+│   ├── USER.md                   ← User profile template
+│   └── HEARTBEAT.md              ← Heartbeat template
 └── config/
     └── agent-fragment.json5   ← $include for openclaw.json
 ```
@@ -245,8 +308,10 @@ lucy-agent is fork-friendly. To create your own agent:
 1. Fork this repo
 2. Edit `workspace/SOUL.md` and `workspace/IDENTITY.md` for your persona
 3. Adjust `workspace/USER.md` with your preferences
-4. Update `config/agent-fragment.json5` for your skills and model
-5. Run your fork's install script
+4. Update `config/agent-fragment.json5` for your model subscriptions and preferred skills
+5. **Project standards go in your project repo** — create `docs/STANDARDS.md` in each project (use `sdd/templates/standards.md.in` as a starting point)
+6. If contributing template changes back, install the pre-commit hook: `./scripts/install-pre-commit-hook.sh`
+7. Run your fork's install script
 
 ### Keeping your fork updated
 
@@ -262,9 +327,6 @@ git fetch upstream
 # Merge upstream changes into your main
 git checkout main
 git merge upstream/main
-
-# Or update a specific install
-git checkout upstream/lucy-config   # Get Lucy's latest config
 ```
 
 ## Contributing

@@ -13,8 +13,12 @@ Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesit
 ```
 ## SDD Phase: {phase}
 
-### Model: {model}
-### Thinking: high
+### Agent Profile
+- agentId: sdd-{phase}
+- Resolved model: {primary_model} (fallback: {fallback_model})
+- Thinking: {thinking}
+- Timeout: {timeoutSeconds}s
+
 ### Context: {context}
 
 ### Project
@@ -37,7 +41,7 @@ Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesit
 | Verify | `zenticalab-security`, `zenticalab-pr-review` |
 
 ### Pre-loaded Engram Context (si aplica)
-{bloque de contexto ensamblado desde Engram en Step 0 del orchestrator-flow.md}
+{bloque de contexto ensamblado desde Step 0 del orchestrator-flow.md}
 {incluye: sesiones recientes, decisiones de arquitectura, patrones}
 {si es primer ciclo: instrucción de Context Collector}
 
@@ -82,17 +86,20 @@ Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesit
 ```
 ## SDD Phase: spec
 
-### Model: deepseek/deepseek-v4-flash
-### Thinking: high
+### Agent Profile
+- agentId: sdd-spec
+- Resolved model: deepseek/deepseek-v4-flash (fallback: openai-codex/gpt-5.4)
+- Thinking: high
+- Timeout: 900s
+
 ### Context: isolated
 
 ### Project
-- Name: zenticalab
-- Feature: inventory-alerts-v2
+- Name: {project}
+- Feature: {feature}
 
 ### Standards
-- C# .NET: Clean Architecture, SOLID, DRY
-- FluentValidation for DTOs
+- Project standards from {project_root}/docs/STANDARDS.md
 
 ### Read these inputs:
 - Proposal discussion (above in this message)
@@ -121,16 +128,16 @@ sdd/zenticalab/inventory-alerts-v2/spec.md
 
 ## Variables por Fase
 
-| Fase | Model | Context | Template | Input | Engram Context Injection | Skills |
-|------|-------|---------|----------|-------|--------------------------|--------|
-| Explore | Según AGENTS.md | isolated | explore.md.in | Pre-loaded Engram Context Block | `## Pre-loaded Engram Context` | `sdd` |
-| Spec | Según AGENTS.md | isolated | spec.md.in | Propose discussion | `## Key Context from Prior Sessions` | — (no technical skills needed) |
-| Design | Según AGENTS.md | fork | design.md.in | spec.md | `## Architectural Context (from Engram)` | `csharp-dotnet`, `dotnet10-csharp14` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
-| Tasks | Según AGENTS.md | isolated | tasks.md.in | spec.md, design.md | — (no requiere) | — (no technical skills needed) |
-| Apply | Según AGENTS.md | isolated | apply.md.in | spec.md, design.md, tasks.md | `## Architectural Constraints (from Engram)` | `csharp-dotnet`, `dotnet10-csharp14`, `zenticalab-security` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
-| Verify | Según AGENTS.md | isolated | verify.md.in | spec.md, design.md, tasks.md, apply output | — (no requiere) | `zenticalab-security`, `zenticalab-pr-review` |
+| Fase | agentId | Context | Template | Input | Engram Context Injection | Skills |
+|------|---------|---------|----------|-------|--------------------------|--------|
+| Explore | `sdd-explore` | isolated | explore.md.in | Pre-loaded Engram Context Block | `## Pre-loaded Engram Context` | `sdd` |
+| Spec | `sdd-spec` | isolated | spec.md.in | Propose discussion | `## Key Context from Prior Sessions` | — (no technical skills needed) |
+| Design | `sdd-design` | fork | design.md.in | spec.md | `## Architectural Context (from Engram)` | `csharp-dotnet`, `dotnet10-csharp14` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
+| Tasks | `sdd-tasks` | isolated | tasks.md.in | spec.md, design.md | — (no requiere) | — (no technical skills needed) |
+| Apply | `sdd-apply` | isolated | apply.md.in | spec.md, design.md, tasks.md | `## Architectural Constraints (from Engram)` | `csharp-dotnet`, `dotnet10-csharp14`, `zenticalab-security` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
+| Verify | `sdd-verify` | isolated | verify.md.in | spec.md, design.md, tasks.md, apply output | — (no requiere) | `zenticalab-security`, `zenticalab-pr-review` |
 
-**Nota:** La asignación exacta de modelo por fase se define exclusivamente en `AGENTS.md` § SDD Model Configuration. El modelo varía según proveedor primario y fallback. Ver `sdd/orchestrator-flow.md` para el flujo completo incluyendo Pre-flight (Step 0) y Memory Prep.
+**Nota:** La asignación exacta de modelo por fase se define exclusivamente en `config/agent-fragment.json5` → `agents.list[]`. Cada phase tiene un perfil con agentId fijo. Ver `sdd/orchestrator-flow.md` para el flujo completo incluyendo Agent Profile Validation y Project Standards Loading.
 
 ---
 

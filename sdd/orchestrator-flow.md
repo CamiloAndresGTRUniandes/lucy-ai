@@ -14,72 +14,85 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 {
   "task": "## SDD Phase: {phase}\n... (task string armado con task-string-format.md)",
   "label": "sdd-{project}-{phase}-{attempt}",
-  "model": "{según tabla SDD en AGENTS.md}",
-  "thinking": "high",
-  "context": "{isolated|fork}",
-  "runTimeoutSeconds": 300
+  "agentId": "sdd-{phase}",
+  "context": "{isolated|fork}"
 }
 ```
 
-> ⚠️ **Note:** The `runTimeoutSeconds` value above is the base default. Per-phase timeouts in the table below override it: lightweight phases (Spec, Tasks) use 300s; complex phases (Explore, Design, Apply, Verify) use 600s. Always use the per-phase value when spawning sub-agents.
+> ⚠️ **Note:** El `agentId` resuelve el modelo primario, fallback, thinking level y timeout automáticamente desde `config/agent-fragment.json5` → `agents.list[]`. NO pasar `model`, `thinking`, ni `runTimeoutSeconds` manualmente. El perfil lo tiene todo.
 
-### ⚠️ Pre-spawn: Model Validation (OBLIGATORIO)
+### ⚠️ Pre-spawn: Agent Profile Validation (OBLIGATORIO)
 
 **ANTES de cada spawn, Lucy DEBE:**
-1. Leer `AGENTS.md` § SDD Model Configuration y obtener el **modelo primario** de la fase (columna "Modelo Primario")
-2. Usar ESE modelo, NO el default de sesión (`session_status`)
-3. Si el primario falla (timeout/error), re-spawnear con el **fallback** indicado en la tabla
-4. Notificar a Camilo qué modelo se usó (primario o fallback)
+1. Verificar que el `agentId` existe en `agents.list[]` (ej. `sdd-design`, `sdd-apply`)
+2. Validar que la fase usa el `agentId` canónico (ver tabla de fases delegadas)
+3. Reportar a Camilo el perfil resuelto: modelo primario, proveedor, thinking
+4. Si el primario falla (timeout/error), re-spawnear — el fallback del perfil se aplica automáticamente
 
-**Regla inquebrantable:** El `session_status(model=...)` de la sesión solo define el modelo de **Lucy Orchestrator**. NO afecta los modelos de sub-agentes. Cada fase tiene su propio modelo primario y fallback definidos en la tabla. No shortcuts, no defaults.
+**Regla inquebrantable:** NO pasar `model` manualmente en el spawn. El `agentId` es la única fuente de verdad. El modelo lo resuelve OpenClaw desde `agents.list[]`.
 
 ### Notificación a Camilo (OBLIGATORIO)
 
 Cada vez que Lucy spawnea un sub-agente, DEBE informar a Camilo con:
 
 ```
-Fase: {phase} → {provider/model} (thinking: {mode})
+Fase: {phase} → agentId: {agentId}
+  Resolved: {provider/model} (thinking: {mode}, timeout: {N}s)
 ```
 
 Ejemplo:
 ```
-Fase: Explore → deepseek/deepseek-v4-pro (thinking: high)
-Fase: Apply → openai-codex/gpt-5.4 (thinking: high)
-Fase: Verify → openai-codex/gpt-5.3-codex (thinking: high)
+Fase: Design → agentId: sdd-design
+  Resolved: openai-codex/gpt-5.5 (thinking: high, timeout: 1200s)
+Fase: Apply → agentId: sdd-apply
+  Resolved: deepseek/deepseek-v4-pro (thinking: high, timeout: 1200s)
 ```
 
-Camilo necesita saber qué proveedor, modelo y thinking mode se usa en cada fase para:
+Camilo necesita saber qué agentId y perfil resuelto se usa en cada fase para:
 - Monitorear costos (DeepSeek pay-per-token vs suscripciones $0)
-- Verificar que la tabla de asignación se respeta
+- Verificar que los perfiles fijos de `agents.list[]` se respetan
 - Poder diagnosticar rápidamente si un provider falla
 
 ### Fases que delegar, fases que no
 
-**Fuente de verdad para modelos:** `AGENTS.md` → sección SDD Model Configuration.
-Esta tabla define solo delegación y contexto, no modelo.
+**Fuente de verdad para modelos:** `config/agent-fragment.json5` → `agents.list[]`.
+Esta tabla define solo delegación, contexto y agentId canónico.
 
-| Fase | Delegar? | Contexto |
-|------|----------|----------|
-| Explore | **Sí** | isolated |
-| Propose | **No, Lucy directo** | — |
-| Spec | **Sí** | isolated |
-| Design | **Sí** | **fork** |
-| Tasks | **Sí** | isolated |
-| Apply | **Sí** | isolated |
-| Verify | **Sí** | isolated |
-| PR Review | **No, Camilo human review** | — |
-| Address changes | **Lucy directo** | — |
-| Archive | **No, Lucy directo** | — |
+| Fase | Delegar? | Contexto | agentId |
+|------|----------|----------|---------|
+| Explore | **Sí** | isolated | `sdd-explore` |
+| Propose | **No, Lucy directo** | — | `sdd-propose` |
+| Spec | **Sí** | isolated | `sdd-spec` |
+| Design | **Sí** | **fork** | `sdd-design` |
+| Tasks | **Sí** | isolated | `sdd-tasks` |
+| Apply | **Sí** | isolated | `sdd-apply` |
+| Verify | **Sí** | isolated | `sdd-verify` |
+| PR Review | **No, Camilo human review** | — | — |
+| Address changes | **Lucy directo** | — | — |
+| Archive | **No, Lucy directo** | — | `sdd-archive` |
 
 ---
 
 ## Step-by-Step por Fase
 
-### 0. Pre-flight: Engram Context Assembly
+### 0. Pre-flight: Project Standards Loading + Engram Context Assembly
 
 **Trigger:** Camilo inicia un ciclo SDD ("SDD para X", "explora Y", "implementa Z").
 
 **Lucy ejecuta (en orden):**
+
+**A. Project Standards Loading (OBLIGATORIO):**
+1. Resolver `project_root` = `/workspace/repos/{project}/`
+2. Leer `{project_root}/docs/STANDARDS.md`
+3. Si NO existe:
+   - Si es un proyecto nuevo → preguntar a Camilo si quiere crear standards primero (usar `sdd/templates/standards.md.in`)
+   - Si es proyecto existente → abortar fase y pedir a Camilo que cree `docs/STANDARDS.md`
+4. Extraer resumen: arquitectura, convenciones de commit, estándares de código, workflow de git
+5. Inyectar resumen en el task string bajo `### Standards`
+
+**Excepción:** Si el feature actual es explícitamente crear `docs/STANDARDS.md` o `sdd/templates/standards.md.in` para un proyecto nuevo, el task puede proceder con un template bootstrap.
+
+**B. Engram Context Assembly:**
 1. `engram__mem_current_project()` → detecta proyecto activo
 2. `engram__mem_context(scope="project")` → carga sesiones recientes del proyecto
 3. `engram__mem_search("<project>", type="architecture|decision|pattern", limit=10)` → decisiones de arquitectura del proyecto
@@ -93,10 +106,12 @@ Esta tabla define solo delegación y contexto, no modelo.
    - `state.engram.preflight.decisionCount = total encontradas`
    - `state.engram.cycleSessionId = "SDD-{feature}-{timestamp}"`
 
-**Error handling:** Si Engram no disponible (tool error):
-- Log warning en state.json: `"engram.preflight.error": "engram_unavailable"`
-- Continuar en modo degradado: Explore arranca sin contexto inyectado
-- Notificar a Camilo: "⚠️ Engram no disponible. Continuamos sin contexto previo."
+**Error handling:**
+- Si `docs/STANDARDS.md` no existe → abortar fase, pedir a Camilo crear standards (o confirmar excepción)
+- Si Engram no disponible (tool error):
+  - Log warning en state.json: `"engram.preflight.error": "engram_unavailable"`
+  - Continuar en modo degradado: Explore arranca sin contexto inyectado
+  - Notificar a Camilo: "⚠️ Engram no disponible. Continuamos sin contexto previo."
 
 ### 1. Explore (delegado)
 
@@ -116,7 +131,7 @@ Esta tabla define solo delegación y contexto, no modelo.
    > ⚠️ No se encontró contexto previo en Engram. DEBES recoger stack, patrones, estructura del proyecto y guardarlos con `engram__mem_save(type="discovery"|"pattern")`
 4. Spawnea sub-agente:
    ```
-   model: según tabla en AGENTS.md § SDD Model Configuration
+   agentId: sdd-explore
    context: isolated
    label: sdd-{project}-explore-1
    ```
@@ -162,7 +177,7 @@ Esta tabla define solo delegación y contexto, no modelo.
    ```
 3. Spawnea sub-agente:
    ```
-   model: según tabla en AGENTS.md § SDD Model Configuration
+   agentId: sdd-spec
    context: isolated
    label: sdd-{project}-spec-1
    ```
@@ -194,7 +209,7 @@ Esta tabla define solo delegación y contexto, no modelo.
    ```
 3. Spawnea sub-agente:
    ```
-   model: según tabla en AGENTS.md § SDD Model Configuration
+   agentId: sdd-design
    context: fork   ← HEREDA el transcript para tener contexto de fases previas
    label: sdd-{project}-design-1
    ```
@@ -221,7 +236,7 @@ Esta tabla define solo delegación y contexto, no modelo.
 2. Ensambla task string: inputs (spec.md, design.md), template, validation
 3. Spawnea sub-agente:
    ```
-   model: según tabla en AGENTS.md § SDD Model Configuration
+   agentId: sdd-tasks
    context: isolated
    label: sdd-{project}-tasks-1
    ```
@@ -253,7 +268,7 @@ Esta tabla define solo delegación y contexto, no modelo.
    ```
 3. Spawnea sub-agente:
    ```
-   model: según tabla en AGENTS.md § SDD Model Configuration
+   agentId: sdd-apply
    context: isolated
    label: sdd-{project}-apply-1
    ```
@@ -280,7 +295,7 @@ Esta tabla define solo delegación y contexto, no modelo.
 2a. Include Technical Skills to Load section from task-string-format.md
 3. Spawnea sub-agente:
    ```
-   model: según tabla en AGENTS.md § SDD Model Configuration
+   agentId: sdd-verify
    context: isolated
    label: sdd-{project}-verify-1
    ```
@@ -377,26 +392,28 @@ Verify → Lucy crea PR → Camilo review
 
 ## Manejo de Errores
 
-### Timeout personalizado por fase
+### Timeout por fase (definido en agent profile)
 
-| Fase | Timeout | Rationale |
-|------|---------|-----------|
-| Explore | **600s** | Pro, lectura de codebases grandes, isolated context |
-| Spec | 300s | Flash, task estructurada, <5k tokens output |
-| Design | **600s** | Pro, fork, requiere leer todo el transcript previo |
-| Tasks | 300s | Flash, template estructurado |
-| Apply | **600s** | Pro, múltiples archivos, puede incluir tests |
-| Verify | 600s | Flash pero requiere leer múltiples inputs |
+| Fase | agentId | Timeout | Rationale |
+|------|---------|---------|-----------|
+| Explore | `sdd-explore` | **1200s** | Pro, lectura de codebases grandes, isolated context |
+| Spec | `sdd-spec` | 900s | Flash, task estructurada, <5k tokens output |
+| Design | `sdd-design` | **1200s** | Pro, fork, requiere leer todo el transcript previo |
+| Tasks | `sdd-tasks` | 900s | Flash, template estructurado |
+| Apply | `sdd-apply` | **1200s** | Pro, múltiples archivos, puede incluir tests |
+| Verify | `sdd-verify` | 1200s | Codex, requiere leer múltiples inputs |
+
+> Los timeouts se definen en `config/agent-fragment.json5` → `agents.list[].timeoutSeconds`. No se pasan manualmente en el spawn.
 
 ---
 
-### Timeout (>5 min sin completar)
+### Timeout (excede el timeout del perfil)
 
 ```python
-if elapsed > 300:
+if elapsed > agent_profile.timeoutSeconds:
     retry.count += 1
     if retry.count <= 3:
-        spawn()  # mismo label + 1 en attempt, mismo task string exacto
+        spawn()  # mismo agentId, label + 1 en attempt, mismo task string exacto
     else:
         escalar_a_camilo("Fase X falló tras 3 intentos. Último error: {error}")
 ```
@@ -425,6 +442,26 @@ if camilo_no_responde:  # no hay mensaje en ~10 min
     # Lucy espera. Cuando Camilo vuelve a hablar, retoma desde donde quedó.
 ```
 
+### Missing Agent Profile
+
+```python
+if agentId not in agents.list[].id:
+    abort_spawn()
+    notify_camilo(f"Agent profile '{agentId}' not found in config/agent-fragment.json5")
+    suggest_fix("Add the missing profile to agents.list[] in config/agent-fragment.json5")
+```
+
+### Missing Project Standards
+
+```python
+if not exists(f"{project_root}/docs/STANDARDS.md"):
+    abort_phase()
+    ask_camilo("docs/STANDARDS.md not found for {project}.")
+    offer_options:
+      1. "Crear standards usando sdd/templates/standards.md.in como base"
+      2. "Si es un feature de bootstrap (creando standards), proceder con excepción"
+```
+
 ---
 
 ## Multi-Proyecto
@@ -440,6 +477,11 @@ Cada proyecto tiene su propio `sdd/{project}/state.json`. Lucy mantiene la pista
 
 ## Check-list de Inicio (para Lucy, cada nuevo ciclo)
 
+- [ ] **Pre-flight: Project Standards Loading**
+  - [ ] Resolver `project_root`
+  - [ ] Leer `{project_root}/docs/STANDARDS.md`
+  - [ ] Si falta → abortar o confirmar excepción (bootstrap)
+  - [ ] Inyectar standards en task string
 - [ ] **Pre-flight Engram Context Assembly**
   - [ ] `engram__mem_current_project()` → detectar proyecto
   - [ ] `engram__mem_context(scope="project")` → sesiones recientes
@@ -457,6 +499,7 @@ Cada proyecto tiene su propio `sdd/{project}/state.json`. Lucy mantiene la pista
 ### Pre-flight Validation
 
 Lucy verifica:
+- [ ] Project standards cargados y no vacíos
 - [ ] `state.engram.preflight.ranAt` no es `null`
 - [ ] `state.engram.preflight.project` coincide con el proyecto activo
 - [ ] Si `contextFound=true` → `Pre-loaded Engram Context Block` tiene al menos 1 observación
