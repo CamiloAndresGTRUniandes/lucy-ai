@@ -6,7 +6,7 @@
 #   # Interactive (asks you to choose config):
 #   curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash
 #
-#   # Clone mode (installs Lucy's exact config from clone branch):
+#   # Clone mode (project-agnostic since v1.7.0, uses main branch):
 #   curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --clone
 #
 #   # Template mode (generic templates):
@@ -331,7 +331,7 @@ parse_flags() {
 show_help() {
   echo "Usage: install.sh [flags]"
   echo "Flags:"
-  echo "  --clone             Clone Lucy's exact config (uses main branch, alias for --template since v1.7.0)"
+  echo "  --clone             Project-agnostic templates (uses main branch since v1.7.0)"
   echo "  --template          Use generic templates (default)"
   echo "  --tag <version>     Install a specific release (e.g. v1.7.0)"
   echo "  --contributor       Install pre-commit hook for content boundary enforcement"
@@ -424,7 +424,7 @@ tui_install_mode() {
     --title "Install mode" \
     --default-item clone \
     --menu "Choose how lucy-agent should be installed." 15 84 3 \
-    clone "Lucy's config (clone branch)" \
+    clone "Lucy's config (project-agnostic)" \
     template "Generic templates" \
     tag "Specific release tag"); then
     log_info "Installer cancelled during install mode selection"
@@ -500,7 +500,7 @@ tui_install_confirm() {
   if [ -n "$SPECIFIC_TAG" ]; then
     mode_label="Specific tag ($SPECIFIC_TAG)"
   elif $CLONE_MODE; then
-    mode_label="Lucy's config (clone mode)"
+    mode_label="Lucy's config (project-agnostic)"
   else
     mode_label="Generic templates"
   fi
@@ -520,7 +520,7 @@ prompt_install_mode() {
   echo ""
   echo "  [1] Clone Lucy's config — Full replica (recommended)"
   echo "      SOUL.md, IDENTITY.md, AGENTS.md, TOOLS.md, MEMORY.md, USER.md, HEARTBEAT.md"
-  echo "      Uses the 'clone' branch (project-agnostic templates since v1.7.0)"
+  echo "      Uses the 'main' branch (project-agnostic templates since v1.7.0)"
   echo ""
   echo "  [2] Use templates — Start with generic files"
   echo "      USER.md will have placeholders for you to fill in"
@@ -899,7 +899,9 @@ step_seed_workspace() {
         bash "$LUCY_DIR/scripts/install-pre-commit-hook.sh"
         log_ok "Pre-commit hook installed for content boundary enforcement"
       else
-        log_warn "scripts/install-pre-commit-hook.sh not found, skipping hook install"
+        log_error "scripts/install-pre-commit-hook.sh not found — contributor mode requires the hook installer"
+        log_error "This is a bug in the release. Please report it."
+        exit 1
       fi
     fi
   fi
@@ -1047,7 +1049,7 @@ step_verify() {
 step_report() {
   local mode_label="generic templates"
   if $CLONE_MODE; then
-    mode_label="Lucy's config (clone mode)"
+    mode_label="Lucy's config (project-agnostic)"
   elif [ -n "$SPECIFIC_TAG" ]; then
     mode_label="specific tag $SPECIFIC_TAG"
   fi

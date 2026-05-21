@@ -19,9 +19,9 @@
     "lastEvent": null
   },
   "pr": {
-    "url": null,
+    "url": "https://github.com/CamiloAndresGTRUniandes/lucy-ai/pull/41",
     "branch": "feat/release-configuracion-agnostica-enforcement",
-    "status": "not_created",
+    "status": "open",
     "reviewComments": [],
     "resolvedComments": []
   },
@@ -46,7 +46,7 @@
     { "phase": "verify", "status": "approved", "timestamp": "2026-05-21T15:10:00Z", "attempts": 2 }
   ],
   "startedAt": "2026-05-21T11:52:00Z",
-  "updatedAt": "2026-05-21T15:10:00Z",
+  "updatedAt": "2026-05-21T15:12:00Z",
   "engram": {
     "preflight": {
       "ranAt": "2026-05-21T11:52:00Z",

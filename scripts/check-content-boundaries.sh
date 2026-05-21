@@ -144,7 +144,7 @@ scan_project_names() {
     fi
 
     for name in "${PROJECT_NAMES[@]}"; do
-      if [[ "$line" == *"$name"* ]]; then
+      if [[ "${line,,}" == *"${name,,}"* ]]; then
         print_violation "$file" "$line_num" "project name \"$name\""
         VIOLATIONS=$((VIOLATIONS + 1))
       fi
@@ -164,7 +164,7 @@ scan_standards_headings() {
     # Only check lines that look like markdown headings
     if [[ "$line" =~ ^#{1,4}[[:space:]]+ ]]; then
       for heading in "${PROJECT_STANDARDS_HEADINGS[@]}"; do
-        if [[ "$line" == *"$heading"* ]]; then
+        if [[ "${line,,}" == *"${heading,,}"* ]]; then
           print_violation "$file" "$line_num" "project standards heading \"$heading\""
           VIOLATIONS=$((VIOLATIONS + 1))
         fi
@@ -187,7 +187,7 @@ scan_repo_references() {
     fi
 
     for pattern in "${KNOWN_REPO_PATTERNS[@]}"; do
-      if [[ "$line" == *"$pattern"* ]]; then
+      if [[ "${line,,}" == *"${pattern,,}"* ]]; then
         print_violation "$file" "$line_num" "repo reference \"$pattern\""
         VIOLATIONS=$((VIOLATIONS + 1))
       fi
@@ -209,7 +209,7 @@ scan_project_paths() {
     fi
 
     for path_pattern in "${KNOWN_PROJECT_PATHS[@]}"; do
-      if [[ "$line" == *"$path_pattern"* ]]; then
+      if [[ "${line,,}" == *"${path_pattern,,}"* ]]; then
         print_violation "$file" "$line_num" "project path \"$path_pattern\""
         VIOLATIONS=$((VIOLATIONS + 1))
       fi
@@ -220,7 +220,7 @@ scan_project_paths() {
 # Check that a protected file is not a symlink
 check_not_symlink() {
   local file="$1"
-  local full_path="${PWD}/${file}"
+  local full_path="$2"
 
   if [ -L "$full_path" ]; then
     print_violation "$file" "" "symlink (protected files must be regular files)"
@@ -290,7 +290,7 @@ check_worktree() {
       continue
     fi
 
-    check_not_symlink "$protected"
+    check_not_symlink "$protected" "$full_path"
 
     local content
     content=$(cat "$full_path" 2>/dev/null || echo "")
