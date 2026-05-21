@@ -1007,23 +1007,59 @@ step_install_clawhub_skills() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 7: Config fragment instructions
+# Step 7: Auto-include config fragment in openclaw.json
 # ---------------------------------------------------------------------------
-step_print_config_instructions() {
+step_include_config_fragment() {
   log_step "Step 7: Gateway config"
+
+  local openclaw_json="${HOME}/.openclaw/openclaw.json"
+  local include_line='{ $include: "./lucy-agent/config/agent-fragment.json5" }'
+  local include_key="lucy-agent/config/agent-fragment.json5"
+
+  # Check if the include is already present
+  if [ -f "$openclaw_json" ] && grep -qF "$include_key" "$openclaw_json" 2>/dev/null; then
+    log_ok "Config fragment already linked in openclaw.json"
+    echo ""
+    echo "  The agent-fragment.json5 is already referenced in your"
+    echo "  openclaw.json. No changes needed."
+    echo ""
+    echo "  Restart OpenClaw to apply: ${BLUE}openclaw gateway restart${NC}"
+    echo ""
+    return
+  fi
+
+  # Create openclaw.json if it doesn't exist
+  if [ ! -f "$openclaw_json" ]; then
+    if $DRY_RUN; then
+      log_info "[DRY-RUN] Would create ${openclaw_json} with config fragment include"
+    else
+      echo "$include_line" > "$openclaw_json"
+      log_ok "Created openclaw.json with config fragment"
+    fi
+  else
+    # Backup and inject the include directive
+    local backup="${openclaw_json}.backup.$(date +%s)"
+    if $DRY_RUN; then
+      log_info "[DRY-RUN] Would backup openclaw.json and inject config fragment include"
+    else
+      cp "$openclaw_json" "$backup"
+      log_info "Backed up existing openclaw.json to $(basename "$backup")"
+
+      # Prepend the include line after the opening brace
+      local tmp="${openclaw_json}.tmp"
+      awk -v include="$include_line" '
+        NR==1 { print; print "  " include ","; next }
+        { print }
+      ' "$openclaw_json" > "$tmp" && mv "$tmp" "$openclaw_json"
+      log_ok "Config fragment linked in openclaw.json"
+    fi
+  fi
+
   echo ""
-  echo -e "${BLUE}================================================================${NC}"
-  echo -e "${BLUE}Next step: Link lucy-agent config in your openclaw.json${NC}"
-  echo -e "${BLUE}================================================================${NC}"
+  echo "  The 9 SDD agent profiles, skills allowlist, and Engram memory"
+  echo "  are now configured via config/agent-fragment.json5."
   echo ""
-  echo "Add this to your ${HOME}/.openclaw/openclaw.json:"
-  echo ""
-  echo '  { $include: "./lucy-agent/config/agent-fragment.json5" }'
-  echo ""
-  echo "Or copy the contents of agent-fragment.json5 directly into"
-  echo "the agents.defaults section of your openclaw.json."
-  echo ""
-  echo "Then restart OpenClaw: openclaw gateway restart"
+  echo "  Restart OpenClaw to apply: ${BLUE}openclaw gateway restart${NC}"
   echo ""
   echo -e "${YELLOW}NOTE:${NC} You still need to configure your channel tokens,"
   echo "API keys, and secrets manually in openclaw.json."
@@ -1148,7 +1184,7 @@ main() {
   step_seed_workspace
   step_install_bundled_skills
   step_install_clawhub_skills
-  step_print_config_instructions
+  step_include_config_fragment
   step_verify
   step_report
 }

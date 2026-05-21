@@ -264,6 +264,9 @@ check "README no longer says TUI configures SDD models" "! grep -q 'configure SD
 check "README doesn't reference lucy-config branch" "! grep -q 'lucy-config' '$LUCY_DIR/README.md'" "readme-no-lucy-config"
 check "CHANGELOG has 1.7.0 entry" "grep -q '\\[1.7.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.7.0"
 check "install.sh version is 1.7.0" "grep -q 'CURRENT_VERSION=\"1.7.0\"' '$LUCY_DIR/install.sh'" "install-version-1.7.0"
+check "README mentions Harness Engineering" "grep -qi 'harness.engineering' '$LUCY_DIR/README.md'" "readme-harness-engineering"
+check "README has 7-layer harness table" "grep -q '7 layer' '$LUCY_DIR/README.md'" "readme-harness-layers"
+check "install.sh auto-injects config fragment" "grep -q 'agent-fragment.json5' '$LUCY_DIR/install.sh' && grep -q 'openclaw.json' '$LUCY_DIR/install.sh'" "install-auto-include"
 echo ""
 
 # ---------------------------------------------------------------------------
