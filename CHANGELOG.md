@@ -5,6 +5,34 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-05-21
+
+### Added
+
+- **Agnostic workspace templates** — AGENTS.md and TOOLS.md are now project-agnostic with content boundary enforcement. No project-specific standards, architecture patterns, or naming conventions leak into global templates.
+- **MEMORY.md template** — sanitized long-term memory template with privacy notice and empty sections (Identity, Stable Preferences, Key Decisions, Projects, Lessons Learned, Do Not Forget).
+- **Content boundary enforcement** — `scripts/check-content-boundaries.sh` (reusable validator with `--staged` and `--worktree` modes) and `scripts/install-pre-commit-hook.sh` (materializes `.git/hooks/pre-commit` wrapper). The pre-commit hook blocks commits that introduce project-specific content (ZENTICALAB, excel-pipeline, project paths, etc.) into locked files (`workspace/AGENTS.md`, `workspace/TOOLS.md`).
+- **9 fixed SDD agent profiles** — `config/agent-fragment.json5` now includes `agents.defaults` (primary model, thinking level, bootstrap limits, timeout, skills allowlist) and `agents.list[]` with profiles: `main`, `sdd-explore`, `sdd-propose`, `sdd-spec`, `sdd-design`, `sdd-tasks`, `sdd-apply`, `sdd-verify`, `sdd-archive`. Each profile carries its own model, fallbacks, thinking, and timeout.
+- **Project standards template** — `sdd/templates/standards.md.in` with placeholders for project identity, architecture, file structure, commit conventions, git workflow, and secrets management.
+- **Contributor workflow** — `install.sh --contributor` installs the pre-commit hook. `install.sh` preflight validation checks AGENTS/TOOLS/MEMORY templates before seeding.
+- **Expanded verify.sh** — new checks for agnostic content, all 9 agent profiles, bootstrap limits, Engram MCP args, content boundary violations, SDD docs sync, and README/version consistency.
+
+### Changed
+
+- **AGENTS.md rewritten** — NON-NEGOTIABLE RULES, Content Boundaries section (AGENTS.md + TOOLS.md locked), Phase Gate Protocol, agentId-based spawning (no sentinels `<!-- SDD_TABLE_* -->`). All spawn examples use `agentId` instead of manual `model`.
+- **TOOLS.md sanitized** — CONTENT LOCK section, no ZENTICALAB project standards block, no hardcoded project paths or identities. Email/auth section uses generic wording.
+- **install.sh v1.7.0** — sentinel rewriting removed (`tui_generate_sdd_table`, `apply_sdd_table_to_agents_file`), TUI simplified (no per-phase model picker), `--clone` uses `main` branch (deprecation notice), `--contributor` flag added, preflight template validation.
+- **SDD orchestrator docs** — `orchestrator-flow.md` uses `agentId` everywhere, added Project Standards Loading as mandatory pre-flight step, added missing agent profile and missing standards error handling. `task-string-format.md` replaces `### Model: {model}` with `### Agent Profile` section.
+- **README.md** — new sections: Agnostic Configuration, Why Config Lives in openclaw.json, Content Boundary Enforcement, Contributor Setup. Version badge updated to v1.7.0. TUI model customization claims removed. Repository structure updated with all new files.
+- **SDD docs synced** — `workspace/sdd/` now mirrors root `sdd/` for all shipped docs and templates (excluding active cycle artifacts).
+
+### Removed
+
+- **AGENTS.md SDD_TABLE sentinels** — installer no longer generates SDD model tables into AGENTS.md. Runtime config lives in `config/agent-fragment.json5`.
+- **TUI phase model customization** — per-phase model picker screens removed. Fixed profiles in config fragment are the single source of truth.
+- **ZENTICALAB-specific content** — all project-specific standards, paths, repo names, and identities removed from AGENTS.md and TOOLS.md templates.
+- **lucy-config branch references** — README and installer now use `clone` branch exclusively. `--clone` flag accepted for compatibility but uses `main` internally.
+
 ## [1.6.3] - 2026-05-05
 
 ### Added

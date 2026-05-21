@@ -14,7 +14,7 @@
 - **Schema:** Estructura de datos, relaciones, constraints.
 - **Migrations:** Cambios al schema existente (si aplica).
 
-## API Design
+## API Design _(opcional)_
 
 - **Endpoints:** Verbos, rutas, request/response contracts.
 - **Auth:** Mecanismo de autenticación y autorización.

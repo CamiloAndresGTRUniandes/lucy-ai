@@ -1,31 +1,126 @@
 {
   agents: {
     defaults: {
-      skills: [
-        "sdd",
-        "github-pr",
-        "pr-review",
-        "csharp-dotnet",
-        "tailwind-4",
-        "typescript",
-        "skill-creator"
-      ],
       model: {
-        primary: "deepseek/deepseek-v4-flash",
-        fallbacks: ["deepseek/deepseek-v4-pro", "github-copilot/gpt-5.4"]
+        primary: "deepseek/deepseek-v4-pro",
+        fallbacks: ["deepseek/deepseek-v4-flash"]
       },
       thinkingDefault: "high",
-      elevatedDefault: "on"
-    }
+      workspace: "~/.openclaw/workspace",
+      bootstrapMaxChars: 24000,
+      bootstrapTotalMaxChars: 80000,
+      timeoutSeconds: 600,
+      skills: [
+        "sdd",
+        "csharp-dotnet",
+        "dotnet10-csharp14",
+        "typescript",
+        "tailwind-4",
+        "angular-core",
+        "angular-architecture",
+        "angular-forms",
+        "angular-performance",
+        "zenticalab-security",
+        "zenticalab-pr-review",
+        "github-pr",
+        "github",
+        "gh-issues",
+        "browser-automation",
+        "weather",
+        "healthcheck",
+        "skill-creator"
+      ]
+    },
+    list: [
+      {
+        id: "main",
+        default: true,
+        model: {
+          primary: "deepseek/deepseek-v4-pro",
+          fallbacks: ["deepseek/deepseek-v4-flash"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 600
+      },
+      {
+        id: "sdd-explore",
+        model: {
+          primary: "openai-codex/gpt-5.4",
+          fallbacks: ["deepseek/deepseek-v4-pro"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 1200
+      },
+      {
+        id: "sdd-propose",
+        model: {
+          primary: "deepseek/deepseek-v4-pro",
+          fallbacks: ["openai-codex/gpt-5.4"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 900
+      },
+      {
+        id: "sdd-spec",
+        model: {
+          primary: "deepseek/deepseek-v4-flash",
+          fallbacks: ["openai-codex/gpt-5.4"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 900
+      },
+      {
+        id: "sdd-design",
+        model: {
+          primary: "openai-codex/gpt-5.5",
+          fallbacks: ["deepseek/deepseek-v4-pro"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 1200
+      },
+      {
+        id: "sdd-tasks",
+        model: {
+          primary: "deepseek/deepseek-v4-flash",
+          fallbacks: ["openai-codex/gpt-5.4"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 900
+      },
+      {
+        id: "sdd-apply",
+        model: {
+          primary: "deepseek/deepseek-v4-pro",
+          fallbacks: ["openai-codex/gpt-5.4"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 1200
+      },
+      {
+        id: "sdd-verify",
+        model: {
+          primary: "openai-codex/gpt-5.3-codex",
+          fallbacks: ["deepseek/deepseek-v4-flash"]
+        },
+        thinkingDefault: "high",
+        timeoutSeconds: 1200
+      },
+      {
+        id: "sdd-archive",
+        model: {
+          primary: "openai-codex/gpt-5.4-mini",
+          fallbacks: ["openai-codex/gpt-5.4"]
+        },
+        thinkingDefault: "low",
+        timeoutSeconds: 600
+      }
+    ]
   },
   mcp: {
     servers: {
       engram: {
         command: "~/.local/bin/engram",
-        args: [],
-        env: {
-          ENGRAM_HOME: "~/.local/share/engram"
-        }
+        args: ["mcp"]
       }
     }
   }

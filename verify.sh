@@ -69,9 +69,23 @@ echo ""
 # Check 2: Workspace seed files
 # ---------------------------------------------------------------------------
 echo "Workspace seed checks:"
-for file in SOUL.md IDENTITY.md AGENTS.md USER.md TOOLS.md HEARTBEAT.md; do
+for file in SOUL.md IDENTITY.md AGENTS.md USER.md TOOLS.md HEARTBEAT.md MEMORY.md; do
   check "workspace/$file exists" "[ -f '$LUCY_DIR/workspace/$file' ]" "workspace-$file"
 done
+echo ""
+
+# ---------------------------------------------------------------------------
+# Check 2.0: Workspace agnostic content checks (v1.7.0)
+# ---------------------------------------------------------------------------
+echo "Workspace agnostic content checks:"
+check "AGENTS.md has NON-NEGOTIABLE RULES" "grep -q 'NON-NEGOTIABLE' '$LUCY_DIR/workspace/AGENTS.md'" "agnostic-agents-nonnegotiable"
+check "AGENTS.md has Content Boundaries" "grep -q 'Content Boundaries' '$LUCY_DIR/workspace/AGENTS.md'" "agnostic-agents-boundaries"
+check "AGENTS.md has no SDD_TABLE sentinels" "! grep -q 'SDD_TABLE' '$LUCY_DIR/workspace/AGENTS.md'" "agnostic-agents-no-sentinels"
+check "AGENTS.md has agentId-based spawning" "grep -q 'agentId' '$LUCY_DIR/workspace/AGENTS.md'" "agnostic-agents-agentid"
+check "TOOLS.md has CONTENT LOCK" "grep -q 'CONTENT LOCK' '$LUCY_DIR/workspace/TOOLS.md'" "agnostic-tools-contentlock"
+check "TOOLS.md has no ZENTICALAB references" "! grep -qi 'ZENTICALAB' '$LUCY_DIR/workspace/TOOLS.md'" "agnostic-tools-no-zenticalab"
+check "TOOLS.md has no ZENTICALAB project block" "! grep -qi 'ZENTICALAB.*Project Standards\|ZENTICALAB.*Standards\|Backend Standards\|Frontend Standards\|SQL Query Patterns\|Controller Patterns' '$LUCY_DIR/workspace/TOOLS.md'" "agnostic-tools-no-project-standards"
+check "MEMORY.md has privacy notice" "grep -q 'PRIVATE FILE' '$LUCY_DIR/workspace/MEMORY.md'" "agnostic-memory-privacy"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -85,11 +99,30 @@ for doc in orchestrator-flow.md task-string-format.md validation-rules.md; do
   check "workspace/sdd/$doc exists" "[ -f '$LUCY_DIR/workspace/sdd/$doc' ]" "sdd-$doc"
 done
 
-for tmpl in explore.md.in spec.md.in design.md.in tasks.md.in apply.md.in verify.md.in state.json.in; do
+for tmpl in explore.md.in spec.md.in design.md.in tasks.md.in apply.md.in verify.md.in state.json.in standards.md.in; do
   check "workspace/sdd/templates/$tmpl exists" "[ -f '$LUCY_DIR/workspace/sdd/templates/$tmpl' ]" "sdd-tmpl-$tmpl"
 done
 
 check "AGENTS.md has SDD Orchestrator reference" "grep -q 'SDD Orchestrator' '$LUCY_DIR/workspace/AGENTS.md'" "sdd-agents-orchestrator"
+echo ""
+
+# ---------------------------------------------------------------------------
+# Check 2.2: SDD docs sync checks (v1.7.0)
+# ---------------------------------------------------------------------------
+echo "SDD docs sync checks:"
+check "sdd/templates/standards.md.in exists (root)" "[ -f '$LUCY_DIR/sdd/templates/standards.md.in' ]" "sdd-root-standards-tmpl"
+check "orchestrator-flow.md uses agentId" "grep -q 'agentId' '$LUCY_DIR/sdd/orchestrator-flow.md'" "sdd-root-agentid"
+check "orchestrator-flow.md has Project Standards Loading" "grep -q 'Project Standards Loading' '$LUCY_DIR/sdd/orchestrator-flow.md'" "sdd-root-standards-loading"
+check "task-string-format.md uses agentId" "grep -q 'agentId' '$LUCY_DIR/sdd/task-string-format.md'" "sdd-task-agentid"
+
+# Verify root and workspace SDD shipped files are identical
+for doc in orchestrator-flow.md task-string-format.md validation-rules.md; do
+  check "root/workspace sdd/$doc are in sync" "diff -q '$LUCY_DIR/sdd/$doc' '$LUCY_DIR/workspace/sdd/$doc' >/dev/null 2>&1" "sdd-sync-$doc"
+done
+
+for tmpl in explore.md.in spec.md.in design.md.in tasks.md.in apply.md.in verify.md.in state.json.in standards.md.in; do
+  check "root/workspace sdd/templates/$tmpl are in sync" "diff -q '$LUCY_DIR/sdd/templates/$tmpl' '$LUCY_DIR/workspace/sdd/templates/$tmpl' >/dev/null 2>&1" "sdd-sync-tmpl-$tmpl"
+done
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -102,15 +135,26 @@ done
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 4: Config fragment
+# Check 4: Config fragment (expanded in v1.7.0)
 # ---------------------------------------------------------------------------
 echo "Config checks:"
 check "agent-fragment.json5 exists" "[ -f '$LUCY_DIR/config/agent-fragment.json5' ]" "config-fragment"
 check "agent-fragment has agents block" "grep -q 'agents:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-agents"
 check "agent-fragment has defaults block" "grep -q 'defaults:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-defaults"
+check "agent-fragment has agents.list[]" "grep -q 'list:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-list"
+
+# Verify all 9 SDD agent profiles exist
+for profile in main sdd-explore sdd-propose sdd-spec sdd-design sdd-tasks sdd-apply sdd-verify sdd-archive; do
+  check "agent-fragment has '$profile' profile" "grep -q '\"$profile\"' '$LUCY_DIR/config/agent-fragment.json5'" "config-profile-$profile"
+done
+
+check "agent-fragment has bootstrapMaxChars" "grep -q 'bootstrapMaxChars' '$LUCY_DIR/config/agent-fragment.json5'" "config-bootstrap-max"
+check "agent-fragment has bootstrapTotalMaxChars" "grep -q 'bootstrapTotalMaxChars' '$LUCY_DIR/config/agent-fragment.json5'" "config-bootstrap-total"
+check "agent-fragment has timeoutSeconds" "grep -q 'timeoutSeconds' '$LUCY_DIR/config/agent-fragment.json5'" "config-timeout"
 check "agent-fragment removes stale minimax references" "! grep -qi 'minimax' '$LUCY_DIR/config/agent-fragment.json5'" "config-no-minimax"
 check "agent-fragment sets thinkingDefault to high" "grep -q 'thinkingDefault: \"high\"' '$LUCY_DIR/config/agent-fragment.json5'" "config-thinking-high"
 check "agent-fragment has Engram MCP block" "grep -q 'engram:' '$LUCY_DIR/config/agent-fragment.json5'" "config-has-engram-mcp"
+check "agent-fragment Engram has 'mcp' arg" "grep -q '\"mcp\"' '$LUCY_DIR/config/agent-fragment.json5'" "config-engram-mcp-arg"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -158,9 +202,34 @@ echo ""
 # Check 5: Scripts syntax validation
 # ---------------------------------------------------------------------------
 echo "Script syntax checks:"
-for script in install.sh update.sh uninstall.sh verify.sh scripts/common.sh; do
+for script in install.sh update.sh uninstall.sh verify.sh scripts/common.sh scripts/check-content-boundaries.sh scripts/install-pre-commit-hook.sh; do
   check "$script syntax valid" "bash -n '$LUCY_DIR/$script'" "syntax-$script"
 done
+echo ""
+
+# ---------------------------------------------------------------------------
+# Check 5.5: Content boundary hook scripts (v1.7.0)
+# ---------------------------------------------------------------------------
+echo "Content boundary hook checks:"
+check "check-content-boundaries.sh exists" "[ -f '$LUCY_DIR/scripts/check-content-boundaries.sh' ]" "hook-checker-exists"
+check "check-content-boundaries.sh is executable" "[ -x '$LUCY_DIR/scripts/check-content-boundaries.sh' ]" "hook-checker-exec"
+check "install-pre-commit-hook.sh exists" "[ -f '$LUCY_DIR/scripts/install-pre-commit-hook.sh' ]" "hook-installer-exists"
+check "install-pre-commit-hook.sh is executable" "[ -x '$LUCY_DIR/scripts/install-pre-commit-hook.sh' ]" "hook-installer-exec"
+
+# Run content boundary checks if in a git repo
+if [ -d "$LUCY_DIR/.git" ]; then
+  echo -e "  ${BLUE}→${NC} Running content boundary checks (--worktree)..."
+  if bash "$LUCY_DIR/scripts/check-content-boundaries.sh" --worktree 2>&1; then
+    echo -e "  ${GREEN}✓${NC} Content boundaries: all locked files are agnostic"
+    PASS=$((PASS + 1))
+  else
+    echo -e "  ${RED}✗${NC} Content boundaries: violations found in locked files"
+    FAIL=$((FAIL + 1))
+    FAILED_CHECKS+=("content-boundaries")
+  fi
+else
+  echo -e "  ${YELLOW}!${NC} Not in a git repo — skipping content boundary checks"
+fi
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -180,6 +249,21 @@ if command -v openclaw &>/dev/null; then
 else
   echo -e "  ${YELLOW}!${NC} OpenClaw CLI not available — skipping ClawHub check"
 fi
+echo ""
+
+# ---------------------------------------------------------------------------
+# Check 6.5: README and version consistency (v1.7.0)
+# ---------------------------------------------------------------------------
+echo "README / version checks:"
+check "README has version 1.7.0 badge" "grep -q '1.7.0' '$LUCY_DIR/README.md'" "readme-version-badge"
+check "README mentions agnostic configuration" "grep -qi 'agnostic.configuration\|agnostic.config' '$LUCY_DIR/README.md'" "readme-agnostic-config"
+check "README mentions content boundary enforcement" "grep -qi 'content.boundary' '$LUCY_DIR/README.md'" "readme-content-boundary"
+check "README mentions config fragment" "grep -q 'agent-fragment.json5\|openclaw.json' '$LUCY_DIR/README.md'" "readme-config-fragment"
+check "README mentions contributor setup" "grep -q 'contributor' '$LUCY_DIR/README.md'" "readme-contributor"
+check "README no longer says TUI configures SDD models" "! grep -q 'configure SDD phase models' '$LUCY_DIR/README.md'" "readme-no-tui-sdd-models"
+check "README doesn't reference lucy-config branch" "! grep -q 'lucy-config' '$LUCY_DIR/README.md'" "readme-no-lucy-config"
+check "CHANGELOG has 1.7.0 entry" "grep -q '\\[1.7.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.7.0"
+check "install.sh version is 1.7.0" "grep -q 'CURRENT_VERSION=\"1.7.0\"' '$LUCY_DIR/install.sh'" "install-version-1.7.0"
 echo ""
 
 # ---------------------------------------------------------------------------
