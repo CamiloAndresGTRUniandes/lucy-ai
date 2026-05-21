@@ -29,7 +29,7 @@
 
 ## ⚡ What's New in v1.7
 
-- 🏗️ **Harness Engineering** — Full 7-layer agent infrastructure: models, memory, tools, orchestration, observability, and goal definition
+- 🏗️ **Harness Engineering** — Full 7-layer agent infrastructure: models, memory, tools, orchestration, observability, knowledge, and goal definition
 - 🌍 **Agnostic configuration** — AGENTS.md and TOOLS.md are now project-agnostic templates with content boundary enforcement
 - 🤖 **Fixed SDD agent profiles** — 9 profiles in `config/agent-fragment.json5`, auto-injected into `openclaw.json`
 - 🛡️ **Content boundary enforcement** — pre-commit hook blocks project-specific content in locked files
@@ -142,7 +142,7 @@ lucy-ai implements all 7 layers of the agent harness:
 | 💾 **Memory** | Short-term and long-term context | MEMORY.md (personal) + Engram (technical, FTS5) + `memory/*.md` (daily logs) |
 | 🔧 **Tooling** | APIs, code execution, external systems | 18 bundled skills (SDD, .NET, Angular, Security, GitHub, Weather, Browser) |
 | 🎯 **Orchestration** | Multi-step workflows, delegation | SDD Orchestrator: 8-phase workflow with sub-agent delegation, task contracts, and validation |
-| 👁️ **Observability** | Monitoring, evaluation, audit | `verify.sh` (115+ checks), content boundary enforcement, CI pipeline (5 jobs) |
+| 👁️ **Observability** | Monitoring, evaluation, audit | `verify.sh` (118+ checks), content boundary enforcement, CI pipeline (5 jobs) |
 | 📚 **Knowledge** | Grounding in trusted data | Engram decision memory with conflict detection, FTS5 search, session tracking |
 | 🎭 **Goal Definition** | Agent purpose, values, constraints | SOUL.md (persona), IDENTITY.md (role), AGENTS.md (non-negotiable rules and boundaries) |
 

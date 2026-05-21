@@ -1013,7 +1013,7 @@ step_include_config_fragment() {
   log_step "Step 7: Gateway config"
 
   local openclaw_json="${HOME}/.openclaw/openclaw.json"
-  local include_line='{ $include: "./lucy-agent/config/agent-fragment.json5" }'
+  local include_directive='$include: "./lucy-agent/config/agent-fragment.json5"'
   local include_key="lucy-agent/config/agent-fragment.json5"
 
   # Check if the include is already present
@@ -1033,7 +1033,7 @@ step_include_config_fragment() {
     if $DRY_RUN; then
       log_info "[DRY-RUN] Would create ${openclaw_json} with config fragment include"
     else
-      echo "$include_line" > "$openclaw_json"
+      echo "{ $include_directive }" > "$openclaw_json"
       log_ok "Created openclaw.json with config fragment"
     fi
   else
@@ -1045,12 +1045,10 @@ step_include_config_fragment() {
       cp "$openclaw_json" "$backup"
       log_info "Backed up existing openclaw.json to $(basename "$backup")"
 
-      # Prepend the include line after the opening brace
+      # Insert the include directive after the first opening brace (JSON5 property)
+      # sed finds first '{' on any line and inserts the directive after it
       local tmp="${openclaw_json}.tmp"
-      awk -v include="$include_line" '
-        NR==1 { print; print "  " include ","; next }
-        { print }
-      ' "$openclaw_json" > "$tmp" && mv "$tmp" "$openclaw_json"
+      sed "0,/{/s/{/{\n  ${include_directive},/" "$openclaw_json" > "$tmp" && mv "$tmp" "$openclaw_json"
       log_ok "Config fragment linked in openclaw.json"
     fi
   fi
