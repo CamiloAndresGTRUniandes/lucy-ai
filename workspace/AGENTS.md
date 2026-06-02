@@ -181,7 +181,7 @@ Each phase has FIXED primary and fallback models. Lucy switches automatically on
 
 **Excluded:** ❌ `minimax/*` — DeepSeek Flash is cheaper and has 5x more context.
 
-**⚠️ DeepSeek V4 Pro 75% discount expires 2026-05-31.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
+**⚠️ DeepSeek V4 Pro 75% discount expired 2026-05-31.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
 
 **Fallback:** If primary unavailable → automatically uses fallback. Most converge on DeepSeek (API key = always available).
 

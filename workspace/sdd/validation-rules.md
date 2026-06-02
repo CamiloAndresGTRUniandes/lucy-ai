@@ -1,147 +1,147 @@
 # SDD Orchestrator — Validation Rules
 
-## Propósito
+## Purpose
 
-Lucy valida el output de cada sub-agente delegado ANTES de avanzar a la siguiente fase.
-**Validación estricta:** si una sección requerida falta o está vacía, se considera fail → retry.
+Lucy validates the output of each delegated sub-agent BEFORE advancing to the next phase.
+**Strict validation:** if a required section is missing or empty, it is considered fail → retry.
 
 ---
 
-## Algoritmo General
+## General Algorithm
 
 ```
-1. ¿El archivo de output existe?
+1. Does the output file exist?
    → No → FAIL (retry)
-2. Parsear secciones markdown (## SectionName)
-3. ¿Todas las secciones requeridas están presentes?
-   → No → FAIL (retry), reportar secciones faltantes
-4. ¿Cada sección tiene contenido > 10 caracteres de texto?
-   → No → FAIL (retry), reportar secciones vacías
-5. Validaciones específicas de la fase (ver tabla por fase)
+2. Parse markdown sections (## SectionName)
+3. Are all required sections present?
+   → No → FAIL (retry), report missing sections
+4. Does each section have >10 characters of text content?
+   → No → FAIL (retry), report empty sections
+5. Phase-specific validations (see per-phase table)
 6. → PASS
 ```
 
 ---
 
-## Por Fase
+## Per Phase
 
 ### Explore
 
-**Archivo esperado:** `sdd/{project}/{feature}/explore.md`
+**Expected file:** `sdd/{project}/{feature}/explore.md`
 
-**Secciones requeridas:**
-- [ ] `## Codebase Overview` — debe contener descripción de la arquitectura
-- [ ] `## Patterns Found` — debe contener al menos 1 patrón
-- [ ] `## Dependencies & Risks` — debe contener al menos 1 ítem
-- [ ] `## Recommendations` — debe contener al menos 1 recomendación accionable
+**Required sections:**
+- [ ] `## Codebase Overview` — must contain an architecture description
+- [ ] `## Patterns Found` — must contain at least 1 pattern
+- [ ] `## Dependencies & Risks` — must contain at least 1 item
+- [ ] `## Recommendations` — must contain at least 1 actionable recommendation
 
-**Validación extra:**
-- Cada patrón en Patterns Found debe tener un nombre y una ubicación fuente (archivo:línea)
+**Extra validation:**
+- Each pattern in Patterns Found must have a name and source location (file:line)
 
 ### Spec
 
-**Archivo esperado:** `sdd/{project}/{feature}/spec.md`
+**Expected file:** `sdd/{project}/{feature}/spec.md`
 
-**Secciones requeridas:**
-- [ ] `## Context` — no vacío, contener al menos Problem + Business value
-- [ ] `## Requirements` — con subtablas Functional y/o Non-Functional (al menos 1 requirement)
-- [ ] `## User Scenarios` — al menos 1 escenario con Given/When/Then
-- [ ] `## Acceptance Criteria` — al menos 1 criterio con formato checklist (aceptar tanto `[ ] AC1:` como `- [ ] **AC1:**`)
-- [ ] `## Out of Scope` (opcional pero recomendado)
+**Required sections:**
+- [ ] `## Context` — not empty, must contain at least Problem + Business value
+- [ ] `## Requirements` — with Functional and/or Non-Functional subtables (at least 1 requirement)
+- [ ] `## User Scenarios` — at least 1 scenario with Given/When/Then
+- [ ] `## Acceptance Criteria` — at least 1 criterion in checklist format (accept both `[ ] AC1:` and `- [ ] **AC1:**`)
+- [ ] `## Out of Scope` (optional but recommended)
 
-**Validación extra:**
-- Las tablas Requirements deben tener al menos 1 fila de datos
-- Cada Acceptance Criterion debe ser una proposición verificable (no ambigua)
+**Extra validation:**
+- Requirements tables must have at least 1 data row
+- Each Acceptance Criterion must be a verifiable proposition (not ambiguous)
 
 ### Design
 
-**Archivo esperado:** `sdd/{project}/{feature}/design.md`
+**Expected file:** `sdd/{project}/{feature}/design.md`
 
-**Secciones requeridas:**
-- [ ] `## Architecture Decisions` — tabla con al menos 1 decisión
-- [ ] `## Data Model` — descripción de entidades/schemas
-- [ ] `## API Design` — endpoints o interfaces _(opcional)_ — no causa fail si ausente
+**Required sections:**
+- [ ] `## Architecture Decisions` — table with at least 1 decision
+- [ ] `## Data Model` — description of entities/schemas
+- [ ] `## API Design` — endpoints or interfaces _(optional)_ — does not cause fail if absent
 - [ ] `## Security` — auth, data handling, input validation
 - [ ] `## Error Handling` — failure modes + recovery
 - [ ] `## Observability` — logging, metrics
-- [ ] `## Decisiones aprobadas por Camilo` _(opcional)_ — no causa fail si ausente
-- [ ] `## Migration Plan` _(opcional)_ — no causa fail si ausente
+- [ ] `## Decisions approved by Camilo` _(optional)_ — does not cause fail if absent
+- [ ] `## Migration Plan` _(optional)_ — does not cause fail if absent
 
-**Validación extra:**
-- Cada Architecture Decision debe tener: Decision, Choice, Rationale, Alternative Rejected
-- Si `## Decisiones aprobadas por Camilo` está presente, validar que tenga al menos 1 fila de datos
+**Extra validation:**
+- Each Architecture Decision must have: Decision, Choice, Rationale, Alternative Rejected
+- If `## Decisions approved by Camilo` is present, validate that it has at least 1 data row
 
 ### Tasks
 
-**Archivo esperado:** `sdd/{project}/{feature}/tasks.md`
+**Expected file:** `sdd/{project}/{feature}/tasks.md`
 
-**Secciones requeridas:**
-- [ ] `## Task List` — al menos 1 tarea con title + description
-- [ ] `## Dependencies` — grafo de dependencias entre tareas
-- [ ] `## Estimated Effort` — tabla con estimados por tarea
+**Required sections:**
+- [ ] `## Task List` — at least 1 task with title + description
+- [ ] `## Dependencies` — dependency graph between tasks
+- [ ] `## Estimated Effort` — table with estimates per task
 
-**Validación extra:**
-- Cada tarea debe tener: Título, Descripción, Output
-- Cada tarea estimada en tiempo (minutos u horas)
+**Extra validation:**
+- Each task must have: Title, Description, Output
+- Each task estimated in time (minutes or hours)
 
 ### Apply
 
-**Archivo esperado:** `sdd/{project}/{feature}/apply.md`
+**Expected file:** `sdd/{project}/{feature}/apply.md`
 
-**Secciones requeridas:**
-- [ ] `## Files Modified` — tabla con File, Action, Description
-- [ ] `## What Was Implemented` — resumen no trivial
-- [ ] `## Tests` — tabla con test file, type, coverage
-- [ ] `## Notes` _(opcional)_ — no causa fail si ausente
-- [ ] `## Verification Instructions` _(opcional)_ — no causa fail si ausente
+**Required sections:**
+- [ ] `## Files Modified` — table with File, Action, Description
+- [ ] `## What Was Implemented` — non-trivial summary
+- [ ] `## Tests` — table with test file, type, coverage
+- [ ] `## Notes` _(optional)_ — does not cause fail if absent
+- [ ] `## Verification Instructions` _(optional)_ — does not cause fail if absent
 
-**Validación extra:**
-- Al menos 1 archivo modificado
-- Al menos 1 test file listado
-- Si hay desviación del design, debe haber `Reason for deviation`
+**Extra validation:**
+- At least 1 file modified
+- At least 1 test file listed
+- If there is a deviation from design, there must be `Reason for deviation`
 
 ### Verify
 
-**Archivo esperado:** `sdd/{project}/{feature}/verification.md`
+**Expected file:** `sdd/{project}/{feature}/verification.md`
 
-**Secciones requeridas:**
-- [ ] `## Spec Compliance` — checklist con requirements
-- [ ] `## Acceptance Criteria` — checklist con criterios del spec
+**Required sections:**
+- [ ] `## Spec Compliance` — checklist with requirements
+- [ ] `## Acceptance Criteria` — checklist with spec criteria
 - [ ] `## Code Quality` — checklist
 - [ ] `## Security` — checklist
 - [ ] `## Integration` — checklist
-- [ ] `## Final Verdict` — ✅ o ❌ con rationale
-- [ ] `## Issues Found` _(opcional)_ — no causa fail si ausente
+- [ ] `## Final Verdict` — ✅ or ❌ with rationale
+- [ ] `## Issues Found` _(optional)_ — does not cause fail if absent
 
-**Validación extra:**
-- Cada checklist debe tener al menos 1 item con ✅ o ❌
-- Final Verdict debe ser explícito (✅ Aprobado / ❌ Rechazado)
+**Extra validation:**
+- Each checklist must have at least 1 item with ✅ or ❌
+- Final Verdict must be explicit (✅ Approved / ❌ Rejected)
 
-### PR Review (post-Verify, antes de Archive)
+### PR Review (post-Verify, before Archive)
 
-**NO NEGOCIABLE:** Esta fase no se delega. Lucy maneja el feedback directo.
+**NON-NEGOTIABLE:** This phase is not delegated. Lucy handles feedback directly.
 
-**Validación de feedback de Camilo:**
-1. Leer comments de la PR (Lucy lo hace manual)
-2. Clasificar cada comment:
-   - **Minor** → fix directo sin re-delegar
-   - **Moderate** → Tasks → Apply → Verify (delegado)
-   - **Major** → Spec → Design → Tasks → Apply → Verify (ciclo completo)
-3. Proponer clasificación a Camilo antes de actuar
-4. Documentar cada comment resuelto en ARCHIVE.md
+**Camilo's feedback validation:**
+1. Read PR comments (Lucy does this manually)
+2. Classify each comment:
+   - **Minor** → direct fix without re-delegating
+   - **Moderate** → Tasks → Apply → Verify (delegated)
+   - **Major** → Spec → Design → Tasks → Apply → Verify (full cycle)
+3. Propose classification to Camilo before acting
+4. Document each resolved comment in ARCHIVE.md
 
-**Condición para Archive:**
-- [ ] PR mergeada en main/develop, O
-- [ ] Camilo decide explícitamente cerrar el ciclo (con rationale en state.json)
+**Archive condition:**
+- [ ] PR merged into main/develop, OR
+- [ ] Camilo explicitly decides to close the cycle (with rationale in state.json)
 
 ---
 
-## Formato de Reporte de Validación
+## Validation Report Format
 
-Cuando Lucy valida y encuentra problemas:
+When Lucy validates and finds problems:
 
 ```
-### Validación: {phase}
+### Validation: {phase}
 - [✅] Output file exists
 - [❌] Missing sections: {list}
 - [✅] All sections have content
@@ -149,10 +149,10 @@ Cuando Lucy valida y encuentra problemas:
 → **FAIL** — retry #{n}/3
 ```
 
-Cuando pasa:
+When it passes:
 
 ```
-### Validación: {phase}
+### Validation: {phase}
 - [✅] Output file exists
 - [✅] All required sections present
 - [✅] All sections have content

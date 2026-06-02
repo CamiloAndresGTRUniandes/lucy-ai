@@ -14,10 +14,10 @@
   - No secrets, tokens, or credentials in any template.
   - All changes are documentation-language normalization only — no policy or content rewrites.
   - Live workspace files must be updated from the same approved content so runtime and installer stay aligned.
-  - The `LANGUAGE` header fix in `AGENTS.md` is the primary mechanism for solving the runtime language-matching issue.
+  - The language-matching rule header in `AGENTS.md` is the primary mechanism for solving the runtime language-matching issue.
 
 - **Assumptions:**
-  - The LLM runtime respects the `LANGUAGE: English` header when placed at the top of `AGENTS.md` (early in the system prompt).
+  - The LLM runtime respects the language-matching rule header when placed at the top of `AGENTS.md` (early in the system prompt).
   - All Spanish content to be translated is pure documentation — no idioms, puns, or cultural references that lose meaning in translation.
   - Camilo will review and approve each translated file before it is synced to the live workspace.
   - The `lucy-ai` installer already copies workspace templates to `~/.openclaw/workspace/` — updating the templates in the repo is sufficient to fix future installs.
@@ -28,7 +28,7 @@
 
 | ID | Category | Requirement |
 |----|----------|-------------|
-| F1 | Language matching fix | Add `LANGUAGE: English` header at the very top of `AGENTS.md` to prime the model for English output before any Spanish content is loaded |
+| F1 | Language matching fix | Add `## ⛔ LANGUAGE MATCHING RULE (READ FIRST)` header block at the very top of `AGENTS.md` to establish language matching before any content loads |
 | F2 | Workspace translation | Translate all remaining Spanish sections in live workspace files to English: `AGENTS.md`, `SOUL.md`, `MEMORY.md`, `TOOLS.md`, `USER.md`, `IDENTITY.md` |
 | F3 | lucy-ai template translation | Translate all remaining Spanish sections in `lucy-ai` repo files to English: `README.md`, `docs/STANDARDS.md`, SDD orchestrator docs (`orchestrator-flow.md`, `validation-rules.md`, `task-string-format.md`), and SDD templates (`design.md.in`, `explore.md.in`, `verify.md.in`, `apply.md.in`) |
 | F4 | Template sync | Ensure workspace templates in `lucy-ai` match the approved English content of their live workspace counterparts (`AGENTS.md`, `SOUL.md`, `TOOLS.md`, `MEMORY.md`, `USER.md`, `IDENTITY.md`) |
@@ -49,7 +49,7 @@
 
 **Given** Camilo sends a message in English  
 **When** Lucy processes the system prompt  
-**Then** The `LANGUAGE: English` header at the top of `AGENTS.md` primes the model for English, and Lucy responds in English matching Camilo's language
+**Then** The language-matching rule header at the top of `AGENTS.md` primes the model to match Camilo's input, and Lucy responds in English matching Camilo's language
 
 ### Scenario 2: Fresh install of lucy-ai on a new machine
 
@@ -74,13 +74,13 @@
 - ❌ Translation of SDD workflow logic or phase sequencing — only the language of documentation describing the workflow changes
 - ❌ Changes to `CHANGELOG.md`, `SPEC.md`, or `SKILL.md` in the `lucy-ai` repo — these are already effectively English
 - ❌ Changes to `HEARTBEAT.md` — already English, no translation needed
-- ❌ Any behavioral, architectural, or policy changes to Lucy's runtime beyond the `LANGUAGE` header and documentation language
+- ❌ Any behavioral, architectural, or policy changes to Lucy's runtime beyond the language-matching rule header and documentation language
 - ❌ Translation of git commit history, issue comments, or PR descriptions — only tracked files
 - ❌ Changes to the installer script (`install.sh`) itself — only templates and docs are updated
 
 ## Acceptance Criteria
 
-- [ ] **AC1:** `LANGUAGE: English` header is present as the first line of `AGENTS.md` in both the live workspace and the `lucy-ai` template
+- [ ] **AC1:** `## ⛔ LANGUAGE MATCHING RULE (READ FIRST)` header is present as the first content block of `AGENTS.md` in both the live workspace and the `lucy-ai` template
 - [ ] **AC2:** All Spanish sections are translated to English in every file listed in F2 and F3, verified by diff against the original file
 - [ ] **AC3:** Live workspace files (`~/.openclaw/workspace/`) are updated from the same approved content used in `lucy-ai` templates — no divergence between runtime and installer
 - [ ] **AC4:** Every translated document preserves the original meaning — no rules, policies, architecture decisions, or process steps are altered

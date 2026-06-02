@@ -19,9 +19,9 @@
     "lastEvent": null
   },
   "pr": {
-    "url": null,
-    "branch": null,
-    "status": null,
+    "url": "https://github.com/CamiloAndresGTRUniandes/lucy-ai/pull/43",
+    "branch": "feat/english-documentation-language-matching",
+    "status": "open",
     "reviewComments": [],
     "resolvedComments": []
   },
@@ -149,7 +149,7 @@
     }
   ],
   "startedAt": "2026-06-02T08:52:26Z",
-  "updatedAt": "2026-06-02T10:45:00Z",
+  "updatedAt": "2026-06-02T11:04:00Z",
   "spawns": {
     "design": {
       "primary": "openai-codex/gpt-5.5",

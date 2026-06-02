@@ -426,7 +426,7 @@ if not validation_passed:
     if retry.count <= 3:
         feedback = "Missing sections: {sections}. Re-run with same instructions."
         spawn_feedback = task_string + f"\n\n### Previous attempt feedback:\n{feedback}"
-        spawn()  # same label, same model, task with additional feedback
+        spawn()  # same label, same agent profile, task with additional feedback
     else:
         escalate_to_camilo(...)
 ```

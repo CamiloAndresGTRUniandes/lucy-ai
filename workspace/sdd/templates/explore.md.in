@@ -4,20 +4,20 @@
 
 ## Codebase Overview
 
-- **Stack & Architecture:** Describe el stack tecnológico y la arquitectura general del área relevante.
-- **Key files:** Archivos y directorios relevantes para el feature.
-- **Entry points:** Puntos de entrada principales del flujo afectado.
+- **Stack & Architecture:** Describe the tech stack and overall architecture of the relevant area.
+- **Key files:** Files and directories relevant to the feature.
+- **Entry points:** Main entry points of the affected flow.
 
 ## Patterns Found
 
-- **Pattern 1:** Nombre del patrón — Ubicación en código (archivo:línea).
-- **Pattern 2:** Nombre del patrón — Ubicación en código (archivo:línea).
+- **Pattern 1:** Pattern name — Location in code (file:line).
+- **Pattern 2:** Pattern name — Location in code (file:line).
 
 ## Dependencies & Risks
 
-- **Dependency 1:** Descripción de dependencia externa/interna y cómo afecta el feature.
-- **Risk 1:** Riesgo identificado con nivel (alto/medio/bajo) y mitigación propuesta.
+- **Dependency 1:** Description of external/internal dependency and how it affects the feature.
+- **Risk 1:** Identified risk with level (high/medium/low) and proposed mitigation.
 
 ## Recommendations
 
-- **Recommendation 1:** Acción recomendada con rationale claro.
+- **Recommendation 1:** Recommended action with clear rationale.

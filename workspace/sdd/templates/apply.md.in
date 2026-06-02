@@ -8,10 +8,10 @@
 
 ## What Was Implemented
 
-- **Feature:** Resumen de lo implementado.
-- **Key decisions:** Decisiones de implementación que se tomaron durante Apply.
-- **Deviation from design:** Si hubo desviación del design, detallar.
-- **Reason for deviation:** Por qué se desvió.
+- **Feature:** Summary of what was implemented.
+- **Key decisions:** Implementation decisions made during Apply.
+- **Deviation from design:** If there was a deviation from design, detail it.
+- **Reason for deviation:** Why it deviated.
 
 ## Tests
 
@@ -21,13 +21,13 @@
 
 ## Notes
 
-- Cualquier nota adicional sobre la implementación.
-- Problemas encontrados.
-- Dependencias no previstas.
+- Any additional notes about the implementation.
+- Issues encountered.
+- Unforeseen dependencies.
 
 ## Verification Instructions
 
-Pasos para verificar manualmente que el feature funciona:
+Steps to manually verify the feature works:
 
 1.
 2.
