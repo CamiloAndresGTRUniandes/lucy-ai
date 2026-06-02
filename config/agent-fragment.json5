@@ -99,10 +99,10 @@
       {
         id: "sdd-verify",
         model: {
-          primary: "openai-codex/gpt-5.3-codex",
-          fallbacks: ["deepseek/deepseek-v4-flash"]
+          primary: "openai-codex/gpt-5.5",
+          fallbacks: ["deepseek/deepseek-v4-pro"]
         },
-        thinkingDefault: "high",
+        thinkingDefault: "low",
         timeoutSeconds: 1200
       },
       {
