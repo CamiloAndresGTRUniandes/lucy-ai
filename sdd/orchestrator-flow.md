@@ -1,14 +1,14 @@
-# SDD Orchestrator — Flow de Orquestación
+# SDD Orchestrator — Orchestration Flow
 
-## Propósito
+## Purpose
 
-Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a sub-agentes.
+Step-by-step guide for Lucy to execute a complete SDD cycle by delegating phases to sub-agents.
 
 ---
 
-## Anatomía de un Spawn
+## Spawn Anatomy
 
-### Parámetros base
+### Base Parameters
 
 ```text
 {
@@ -19,317 +19,317 @@ Guía paso a paso para que Lucy ejecute un ciclo SDD completo delegando fases a 
 }
 ```
 
-> ⚠️ **Note:** El `agentId` resuelve el modelo primario, fallback, thinking level y timeout automáticamente desde `config/agent-fragment.json5` → `agents.list[]`. NO pasar `model`, `thinking`, ni `runTimeoutSeconds` manualmente. El perfil lo tiene todo.
+> ⚠️ **Note:** The `agentId` automatically resolves the primary model, fallback, thinking level, and timeout from `config/agent-fragment.json5` → `agents.list[]`. Do NOT pass `model`, `thinking`, or `runTimeoutSeconds` manually. The profile has everything.
 
-### ⚠️ Pre-spawn: Agent Profile Validation (OBLIGATORIO)
+### ⚠️ Pre-spawn: Agent Profile Validation (MANDATORY)
 
-**ANTES de cada spawn, Lucy DEBE:**
-1. Verificar que el `agentId` existe en `agents.list[]` (ej. `sdd-design`, `sdd-apply`)
-2. Validar que la fase usa el `agentId` canónico (ver tabla de fases delegadas)
-3. Reportar a Camilo el perfil resuelto: modelo primario, proveedor, thinking
-4. Si el primario falla (timeout/error), re-spawnear — el fallback del perfil se aplica automáticamente
+**BEFORE each spawn, Lucy MUST:**
+1. Verify the `agentId` exists in `agents.list[]` (e.g., `sdd-design`, `sdd-apply`)
+2. Validate that the phase uses the canonical `agentId` (see delegated phases table)
+3. Report the resolved profile to Camilo: primary model, provider, thinking
+4. If the primary fails (timeout/error), re-spawn — the profile's fallback applies automatically
 
-**Regla inquebrantable:** NO pasar `model` manualmente en el spawn. El `agentId` es la única fuente de verdad. El modelo lo resuelve OpenClaw desde `agents.list[]`.
+**Non-negotiable rule:** Do NOT pass `model` manually in the spawn. The `agentId` is the single source of truth. OpenClaw resolves the model from `agents.list[]`.
 
-### Notificación a Camilo (OBLIGATORIO)
+### Notification to Camilo (MANDATORY)
 
-Cada vez que Lucy spawnea un sub-agente, DEBE informar a Camilo con:
+Every time Lucy spawns a sub-agent, she MUST inform Camilo with:
 
 ```
-Fase: {phase} → agentId: {agentId}
+Phase: {phase} → agentId: {agentId}
   Resolved: {provider/model} (thinking: {mode}, timeout: {N}s)
 ```
 
 Ejemplo:
 ```
-Fase: Design → agentId: sdd-design
+Phase: Design → agentId: sdd-design
   Resolved: openai-codex/gpt-5.5 (thinking: high, timeout: 1200s)
-Fase: Apply → agentId: sdd-apply
+Phase: Apply → agentId: sdd-apply
   Resolved: deepseek/deepseek-v4-pro (thinking: high, timeout: 1200s)
 ```
 
-Camilo necesita saber qué agentId y perfil resuelto se usa en cada fase para:
-- Monitorear costos (DeepSeek pay-per-token vs suscripciones $0)
-- Verificar que los perfiles fijos de `agents.list[]` se respetan
-- Poder diagnosticar rápidamente si un provider falla
+Camilo needs to know which agentId and resolved profile is used in each phase to:
+- Monitor costs (DeepSeek pay-per-token vs $0 subscriptions)
+- Verify that the fixed profiles from `agents.list[]` are respected
+- Quickly diagnose if a provider fails
 
-### Fases que delegar, fases que no
+### Phases to Delegate and Phases Not To
 
-**Fuente de verdad para modelos:** `config/agent-fragment.json5` → `agents.list[]`.
-Esta tabla define solo delegación, contexto y agentId canónico.
+**Source of truth for models:** `config/agent-fragment.json5` → `agents.list[]`.
+This table defines only delegation, context, and canonical agentId.
 
-| Fase | Delegar? | Contexto | agentId |
-|------|----------|----------|---------|
-| Explore | **Sí** | isolated | `sdd-explore` |
-| Propose | **No, Lucy directo** | — | `sdd-propose` |
-| Spec | **Sí** | isolated | `sdd-spec` |
-| Design | **Sí** | **fork** | `sdd-design` |
-| Tasks | **Sí** | isolated | `sdd-tasks` |
-| Apply | **Sí** | isolated | `sdd-apply` |
-| Verify | **Sí** | isolated | `sdd-verify` |
+| Phase | Delegate? | Context | agentId |
+|------|----------|--------|---------|
+| Explore | **Yes** | isolated | `sdd-explore` |
+| Propose | **No, Lucy directly** | — | `sdd-propose` |
+| Spec | **Yes** | isolated | `sdd-spec` |
+| Design | **Yes** | **fork** | `sdd-design` |
+| Tasks | **Yes** | isolated | `sdd-tasks` |
+| Apply | **Yes** | isolated | `sdd-apply` |
+| Verify | **Yes** | isolated | `sdd-verify` |
 | PR Review | **No, Camilo human review** | — | — |
-| Address changes | **Lucy directo** | — | — |
-| Archive | **No, Lucy directo** | — | `sdd-archive` |
+| Address changes | **Lucy directly** | — | — |
+| Archive | **No, Lucy directly** | — | `sdd-archive` |
 
 ---
 
-## Step-by-Step por Fase
+## Step-by-Step by Phase
 
 ### 0. Pre-flight: Project Standards Loading + Engram Context Assembly
 
-**Trigger:** Camilo inicia un ciclo SDD ("SDD para X", "explora Y", "implementa Z").
+**Trigger:** Camilo starts an SDD cycle ("SDD for X", "explore Y", "implement Z").
 
-**Lucy ejecuta (en orden):**
+**Lucy executes (in order):**
 
-**A. Project Standards Loading (OBLIGATORIO):**
-1. Resolver `project_root` = `/workspace/repos/{project}/`
-2. Leer `{project_root}/docs/STANDARDS.md`
-3. Si NO existe:
-   - Si es un proyecto nuevo → preguntar a Camilo si quiere crear standards primero (usar `sdd/templates/standards.md.in`)
-   - Si es proyecto existente → abortar fase y pedir a Camilo que cree `docs/STANDARDS.md`
-4. Extraer resumen: arquitectura, convenciones de commit, estándares de código, workflow de git
-5. Inyectar resumen en el task string bajo `### Standards`
+**A. Project Standards Loading (MANDATORY):**
+1. Resolve `project_root` = `/workspace/repos/{project}/`
+2. Read `{project_root}/docs/STANDARDS.md`
+3. If it does NOT exist:
+   - If it's a new project → ask Camilo if he wants to create standards first (using `sdd/templates/standards.md.in`)
+   - If it's an existing project → abort phase and ask Camilo to create `docs/STANDARDS.md`
+4. Extract summary: architecture, commit conventions, code standards, git workflow
+5. Inject summary into the task string under `### Standards`
 
-**Excepción:** Si el feature actual es explícitamente crear `docs/STANDARDS.md` o `sdd/templates/standards.md.in` para un proyecto nuevo, el task puede proceder con un template bootstrap.
+**Exception:** If the current feature is explicitly creating `docs/STANDARDS.md` or `sdd/templates/standards.md.in` for a new project, the task may proceed with a bootstrap template.
 
 **B. Engram Context Assembly:**
-1. `engram__mem_current_project()` → detecta proyecto activo
-2. `engram__mem_context(scope="project")` → carga sesiones recientes del proyecto
-3. `engram__mem_search("<project>", type="architecture|decision|pattern", limit=10)` → decisiones de arquitectura del proyecto
-4. `engram__mem_search("<feature keywords>", type="architecture|decision|pattern", limit=5)` → contexto específico del feature
-5. Ensambla **Pre-loaded Engram Context Block**:
-   - Si hay contexto → bloque markdown con sesiones recientes, decisiones top-5 con IDs, patrones
-   - Si NO hay contexto → marcar `contextFound=false`, incluir instrucción de collector
-6. Actualiza `state.json`:
+1. `engram__mem_current_project()` → detects active project
+2. `engram__mem_context(scope="project")` → loads recent project sessions
+3. `engram__mem_search("<project>", type="architecture|decision|pattern", limit=10)` → project architecture decisions
+4. `engram__mem_search("<feature keywords>", type="architecture|decision|pattern", limit=5)` → feature-specific context
+5. Assembles **Pre-loaded Engram Context Block**:
+   - If context exists → markdown block with recent sessions, top-5 decisions with IDs, patterns
+   - If NO context → mark `contextFound=false`, include collector instruction
+6. Updates `state.json`:
    - `state.engram.preflight.ranAt = now()`
    - `state.engram.preflight.contextFound = true|false`
-   - `state.engram.preflight.decisionCount = total encontradas`
+   - `state.engram.preflight.decisionCount = total found`
    - `state.engram.cycleSessionId = "SDD-{feature}-{timestamp}"`
 
 **Error handling:**
-- Si `docs/STANDARDS.md` no existe → abortar fase, pedir a Camilo crear standards (o confirmar excepción)
-- Si Engram no disponible (tool error):
-  - Log warning en state.json: `"engram.preflight.error": "engram_unavailable"`
-  - Continuar en modo degradado: Explore arranca sin contexto inyectado
-  - Notificar a Camilo: "⚠️ Engram no disponible. Continuamos sin contexto previo."
+- If `docs/STANDARDS.md` does not exist → abort phase, ask Camilo to create standards (or confirm exception)
+- If Engram unavailable (tool error):
+  - Log warning in state.json: `"engram.preflight.error": "engram_unavailable"`
+  - Continue in degraded mode: Explore starts without injected context
+  - Notify Camilo: "⚠️ Engram unavailable. Continuing without prior context."
 
-### 1. Explore (delegado)
+### 1. Explore (delegated)
 
-**Trigger:** Camilo dice "explora X" o inicia un SDD cycle.
+**Trigger:** Camilo says "explore X" or starts an SDD cycle.
 
-**Lucy hace:**
-1. Crea directorio `sdd/{project}/{feature}/`
-2. Escribe `state.json` inicial
-3. Ensambla task string desde `sdd/task-string-format.md` y template `sdd/templates/explore.md.in`
-3a. Incluye `Pre-loaded Engram Context Block` como sección del task string de Explore:
+**Lucy does:**
+1. Creates `sdd/{project}/{feature}/` directory
+2. Writes initial `state.json`
+3. Assembles task string from `sdd/task-string-format.md` and template `sdd/templates/explore.md.in`
+3a. Includes `Pre-loaded Engram Context Block` as a section of the Explore task string:
    ```markdown
    ## Pre-loaded Engram Context
-   (contenido del bloque ensamblado en Step 0)
+   (context block assembled in Step 0)
    ```
 
-   Si `contextFound=false` → el bloque incluye instrucciones de Context Collector:
-   > ⚠️ No se encontró contexto previo en Engram. DEBES recoger stack, patrones, estructura del proyecto y guardarlos con `engram__mem_save(type="discovery"|"pattern")`
-4. Spawnea sub-agente:
+   If `contextFound=false` → the block includes Context Collector instructions:
+   > ⚠️ No prior context found in Engram. You MUST collect the stack, patterns, project structure and save them with `engram__mem_save(type="discovery"|"pattern")`
+4. Spawns sub-agent:
    ```
    agentId: sdd-explore
    context: isolated
    label: sdd-{project}-explore-1
    ```
-5. Yield / espera
-6. **Valida output** según `sdd/validation-rules.md`
-7. Si PASS → actualiza state.json y reporta a Camilo
-7a. Si `contextFound=false` → verificar que el sub-agente guardó contexto en Engram
-7b. Inicia sesión Engram para Explore:
+5. Yield / wait
+6. **Validates output** according to `sdd/validation-rules.md`
+7. If PASS → updates state.json and reports to Camilo
+7a. If `contextFound=false` → verify the sub-agent saved context to Engram
+7b. Starts Engram session for Explore:
     `engram__mem_session_start(id="SDD-{feature}-explore")`
-7c. Guarda descubrimientos de Explore en Engram:
+7c. Saves Explore discoveries to Engram:
     `engram__mem_save(title="Explore: {feature}", type="discovery", content="...", session_id="SDD-{feature}-explore")`
-7d. Cierra sesión Explore:
+7d. Closes Explore session:
     `engram__mem_session_end(id="SDD-{feature}-explore", summary="...")`
-7e. Actualiza `state.engram.observations.explore` con los IDs guardados
-8. Si FAIL → retry (hasta 3)
+7e. Updates `state.engram.observations.explore` with saved IDs
+8. If FAIL → retry (up to 3)
 
-### 2. Propose (Lucy directo)
+### 2. Propose (Lucy directly)
 
-**Trigger:** Explore completado.
+**Trigger:** Explore completed.
 
-**Lucy hace:**
-0. Memory Prep: ejecutar `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)` para surfear prior art relacionado. Si encuentra decisiones contradictorias, surface a Camilo durante la presentación.
-1. Presenta findings + 2-3 approaches con trade-offs + recomendación
-2. Pregunta a Camilo: "¿Cuál es el problema?", "¿Constraints?", "¿Qué pasa si no lo hacemos?"
-3. Espera decisión de Camilo
-3a. Guarda dirección aprobada en Engram:
-    `engram__mem_save(type="decision", topic_key="sdd-direction/<feature>", content="**What**: Dirección aprobada para {feature}\n**Why**: {rationale de Camilo}")`
-3b. Actualiza `state.engram.observations.propose` con el ID guardado
-4. Actualiza state.json
+**Lucy does:**
+0. Memory Prep: run `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)` to surface related prior art. If conflicting decisions are found, surface them to Camilo during the presentation.
+1. Presents findings + 2-3 approaches with trade-offs + recommendation
+2. Asks Camilo: "What's the problem?", "What constraints?", "What happens if we don't do it?"
+3. Waits for Camilo's decision
+3a. Saves approved direction to Engram:
+    `engram__mem_save(type="decision", topic_key="sdd-direction/<feature>", content="**What**: Approved direction for {feature}\n**Why**: {Camilo's rationale}")`
+3b. Updates `state.engram.observations.propose` with saved ID
+4. Updates state.json
 
-### 3. Spec (delegado)
+### 3. Spec (delegated)
 
-**Trigger:** Camilo aprueba Propose.
+**Trigger:** Camilo approves Propose.
 
-**Lucy hace:**
-0. Memory Prep: ejecutar `engram__mem_context(scope="project")` para cargar resúmenes de sesiones recientes del proyecto.
-1. Lee template `sdd/templates/spec.md.in`
-2. Ensambla task string con: inputs (Propose discussion), template completo, validation rules
+**Lucy does:**
+0. Memory Prep: run `engram__mem_context(scope="project")` to load recent project session summaries.
+1. Reads template `sdd/templates/spec.md.in`
+2. Assembles task string with: inputs (Propose discussion), complete template, validation rules
 
    ```markdown
    ## Key Context from Prior Sessions
-   (resúmenes de sesiones recientes del proyecto)
+   (recent project session summaries)
    ```
-3. Spawnea sub-agente:
+3. Spawns sub-agent:
    ```
    agentId: sdd-spec
    context: isolated
    label: sdd-{project}-spec-1
    ```
-4. Yield / espera
-5. **Valida output** según validation-rules.md
-6. Si PASS → actualiza state, presenta a Camilo para revisión
-7. Si FAIL → retry
-8. **Espera aprobación explícita de Camilo** antes de continuar
-8a. Inicia sesión Engram: `engram__mem_session_start(id="SDD-{feature}-spec")`
-8b. Guarda summary de Spec: `engram__mem_save(type="discovery", title="Spec: {feature}", content="...", session_id="SDD-{feature}-spec")`
-8c. Cierra sesión: `engram__mem_session_end(id="SDD-{feature}-spec", summary="...")`
-8d. Actualiza `state.engram.observations.spec`
+4. Yield / wait
+5. **Validates output** according to validation-rules.md
+6. If PASS → updates state, presents to Camilo for review
+7. If FAIL → retry
+8. **Waits for Camilo's explicit approval** before continuing
+8a. Starts Engram session: `engram__mem_session_start(id="SDD-{feature}-spec")`
+8b. Saves Spec summary: `engram__mem_save(type="discovery", title="Spec: {feature}", content="...", session_id="SDD-{feature}-spec")`
+8c. Closes session: `engram__mem_session_end(id="SDD-{feature}-spec", summary="...")`
+8d. Updates `state.engram.observations.spec`
 
-### 4. Design (delegado)
+### 4. Design (delegated)
 
-**Trigger:** Camilo aprueba Spec.
+**Trigger:** Camilo approves Spec.
 
-**Lucy hace:**
+**Lucy does:**
 0. Memory Prep:
-   a. `engram__mem_context(scope="project")` → sesiones recientes
-   b. `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)` → decisiones previas
-1. Lee template `sdd/templates/design.md.in`
-2. Ensambla task string: inputs (spec.md), template, validation rules
+   a. `engram__mem_context(scope="project")` → recent sessions
+   b. `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)` → prior decisions
+1. Reads template `sdd/templates/design.md.in`
+2. Assembles task string: inputs (spec.md), template, validation rules
 2a. Include Technical Skills to Load section from task-string-format.md
 
    ```markdown
    ## Architectural Context (from Engram)
-   (decisiones de arquitectura previas con observation IDs y patrones establecidos)
+   (prior architecture decisions with observation IDs and established patterns)
    ```
-3. Spawnea sub-agente:
+3. Spawns sub-agent:
    ```
    agentId: sdd-design
-   context: fork   ← HEREDA el transcript para tener contexto de fases previas
+   context: fork   ← INHERITS the transcript to have context from prior phases
    label: sdd-{project}-design-1
    ```
-4. Yield / espera
-5. **Valida output**
-6. Si PASS → presenta a Camilo
-7. Si FAIL → retry
-8. **Espera aprobación explícita de Camilo** antes de continuar
-8a. Inicia sesión Engram: `engram__mem_session_start(id="SDD-{feature}-design")`
-8b. Para CADA decisión de arquitectura en el `design.md` aprobado:
-    - `engram__mem_suggest_topic_key(type="architecture", title="<decisión>")` → `topic_key`
+4. Yield / wait
+5. **Validates output**
+6. If PASS → presents to Camilo
+7. If FAIL → retry
+8. **Waits for Camilo's explicit approval** before continuing
+8a. Starts Engram session: `engram__mem_session_start(id="SDD-{feature}-design")`
+8b. For EACH architecture decision in the approved `design.md`:
+    - `engram__mem_suggest_topic_key(type="architecture", title="<decision>")` → `topic_key`
     - `engram__mem_save(type="architecture", topic_key="architecture/<slug>", content="**What**: ...\n**Why**: ...\n**Where**: ...", session_id="SDD-{feature}-design")`
-    - Si `judgment_required: true` → surface candidates a Camilo ANTES de continuar
-8c. Si algún save falla → reintentar 1 vez, si sigue fallando → escalar a Camilo
-8d. Cierra sesión: `engram__mem_session_end(id="SDD-{feature}-design", summary="...")`
-8e. Actualiza `state.engram.observations.design` con los IDs guardados
+    - If `judgment_required: true` → surface candidates to Camilo BEFORE continuing
+8c. If any save fails → retry once, if it continues failing → escalate to Camilo
+8d. Closes session: `engram__mem_session_end(id="SDD-{feature}-design", summary="...")`
+8e. Updates `state.engram.observations.design` with saved IDs
 
-### 5. Tasks (delegado)
+### 5. Tasks (delegated)
 
-**Trigger:** Camilo aprueba Design.
+**Trigger:** Camilo approves Design.
 
-**Lucy hace:**
-1. Lee template `sdd/templates/tasks.md.in`
-2. Ensambla task string: inputs (spec.md, design.md), template, validation
-3. Spawnea sub-agente:
+**Lucy does:**
+1. Reads template `sdd/templates/tasks.md.in`
+2. Assembles task string: inputs (spec.md, design.md), template, validation
+3. Spawns sub-agent:
    ```
    agentId: sdd-tasks
    context: isolated
    label: sdd-{project}-tasks-1
    ```
-4. Yield / espera
-5. **Valida output**
-6. Si PASS → presenta a Camilo para revisión
-6a. Inicia sesión Engram: `engram__mem_session_start(id="SDD-{feature}-tasks")`
-6b. Si hay patrones reutilizables o estructura novedosa:
+4. Yield / wait
+5. **Validates output**
+6. If PASS → presents to Camilo for review
+6a. Starts Engram session: `engram__mem_session_start(id="SDD-{feature}-tasks")`
+6b. If there are reusable patterns or novel structure:
     `engram__mem_save(type="pattern", title="Task structure: {feature}", content="...", session_id="SDD-{feature}-tasks")`
-6c. Cierra sesión: `engram__mem_session_end(id="SDD-{feature}-tasks", summary="...")`
-6d. Actualiza `state.engram.observations.tasks`
-7. Si FAIL → retry
+6c. Closes session: `engram__mem_session_end(id="SDD-{feature}-tasks", summary="...")`
+6d. Updates `state.engram.observations.tasks`
+7. If FAIL → retry
 
-### 6. Apply (delegado)
+### 6. Apply (delegated)
 
-**Trigger:** Tasks listo.
+**Trigger:** Tasks ready.
 
-**Lucy hace:**
+**Lucy does:**
 0. Memory Prep:
-   a. `engram__mem_context(scope="project")` → sesiones recientes
+   a. `engram__mem_context(scope="project")` → recent sessions
    b. `engram__mem_search("<feature>", type="architecture|decision|pattern", limit=5)`
-1. Lee template `sdd/templates/apply.md.in`
-2. Ensambla task string: inputs (spec.md, design.md, tasks.md), template, validation, skills
+1. Reads template `sdd/templates/apply.md.in`
+2. Assembles task string: inputs (spec.md, design.md, tasks.md), template, validation, skills
 2a. Include Technical Skills to Load section from task-string-format.md
 
    ```markdown
    ## Architectural Constraints (from Engram)
-   (constraints arquitectónicos del proyecto)
+   (architectural constraints of the project)
    ```
-3. Spawnea sub-agente:
+3. Spawns sub-agent:
    ```
    agentId: sdd-apply
    context: isolated
    label: sdd-{project}-apply-1
    ```
-4. Yield / espera
-5. **Valida output** — especialmente que el código existe y los tests están escritos
-6. Si PASS → presenta diff/output a Camilo para revisión conjunta
-6a. Inicia sesión Engram: `engram__mem_session_start(id="SDD-{feature}-apply")`
-6b. Guarda descubrimientos no previstos: `engram__mem_save(type="discovery", content="...", session_id="SDD-{feature}-apply")`
-6c. Si hubo desviación del Design, guardar rationale:
+4. Yield / wait
+5. **Validates output** — especially that code exists and tests are written
+6. If PASS → presents diff/output to Camilo for joint review
+6a. Starts Engram session: `engram__mem_session_start(id="SDD-{feature}-apply")`
+6b. Saves unforeseen discoveries: `engram__mem_save(type="discovery", content="...", session_id="SDD-{feature}-apply")`
+6c. If there was a deviation from Design, save rationale:
     `engram__mem_save(type="decision", topic_key="deviation/<feature>", content="...", session_id="SDD-{feature}-apply")`
-6d. Cierra sesión: `engram__mem_session_end(id="SDD-{feature}-apply", summary="...")`
-6e. Actualiza `state.engram.observations.apply`
-7. Si FAIL → retry
+6d. Closes session: `engram__mem_session_end(id="SDD-{feature}-apply", summary="...")`
+6e. Updates `state.engram.observations.apply`
+7. If FAIL → retry
 
-**Nota:** Los sub-agentes NO comitean. Lucy revisa con Camilo, crea branch, commit, push y PR. Esto dispara la fase PR Review.
+**Note:** Sub-agents do NOT commit. Lucy reviews with Camilo, creates branch, commits, pushes, and creates PR. This triggers the PR Review phase.
 
-### 7. Verify (delegado)
+### 7. Verify (delegated)
 
-**Trigger:** Apply completado y revisado con Camilo.
+**Trigger:** Apply completed and reviewed with Camilo.
 
-**Lucy hace:**
-1. Lee template `sdd/templates/verify.md.in`
-2. Ensambla task string: inputs (spec.md, design.md, apply output), template, validation
+**Lucy does:**
+1. Reads template `sdd/templates/verify.md.in`
+2. Assembles task string: inputs (spec.md, design.md, apply output), template, validation
 2a. Include Technical Skills to Load section from task-string-format.md
-3. Spawnea sub-agente:
+3. Spawns sub-agent:
    ```
    agentId: sdd-verify
    context: isolated
    label: sdd-{project}-verify-1
    ```
-4. Yield / espera
-5. **Valida output**
-6. Si PASS → presenta a Camilo
-6a. Inicia sesión Engram: `engram__mem_session_start(id="SDD-{feature}-verify")`
-6b. Guarda veredicto: `engram__mem_save(type="decision", title="Verify: {feature}", content="**What**: Verification result\n**Why**: PASS/FAIL + rationale", session_id="SDD-{feature}-verify")`
-6c. Cierra sesión: `engram__mem_session_end(id="SDD-{feature}-verify", summary="...")`
-6d. Actualiza `state.engram.observations.verify`
-7. Si FAIL → informe de issues encontrados
+4. Yield / wait
+5. **Validates output**
+6. If PASS → presents to Camilo
+6a. Starts Engram session: `engram__mem_session_start(id="SDD-{feature}-verify")`
+6b. Saves verdict: `engram__mem_save(type="decision", title="Verify: {feature}", content="**What**: Verification result\n**Why**: PASS/FAIL + rationale", session_id="SDD-{feature}-verify")`
+6c. Closes session: `engram__mem_session_end(id="SDD-{feature}-verify", summary="...")`
+6d. Updates `state.engram.observations.verify`
+7. If FAIL → report of issues found
 
 ---
 
-### 7.5 PR Review and Address Changes (NO NEGOCIABLE)
+### 7.5 PR Review and Address Changes (NON-NEGOTIABLE)
 
-**Trigger:** Verify aprobado → PR creado → Camilo review.
+**Trigger:** Verify approved → PR created → Camilo review.
 
-La review de la PR es parte del SDD cycle. **No se archive hasta que el PR está mergeado o Camilo decide cerrarlo.**
+The PR review is part of the SDD cycle. **Do not archive until the PR is merged or Camilo decides to close it.**
 
-#### Flujo de feedback
+#### Feedback Flow
 
 ```
-Verify → Lucy crea PR → Camilo review
+Verify → Lucy creates PR → Camilo review
                                 ↓
                ┌────────────────┤
                ↓                ↓
-         ¿Cambios?          ¿Approved?
+          Changes?         Approved?
                │                │
-               Sí                Sí
-               ↓                 ↓
-      ┌────────┤          Archive (PR mergeado)
+               Yes              Yes
+               ↓                ↓
+      ┌────────┤          Archive (PR merged)
       │        │
-  ¿Alcance?    │
+  Scope?      │
       │        │
   Minor ───── Apply fix → Re-verify
       │        │
@@ -340,42 +340,42 @@ Verify → Lucy crea PR → Camilo review
   Major ── Spec → Design → Tasks → Apply → Verify
 ```
 
-#### Reglas de clasificación:
+#### Classification Rules
 
-| Tipo de cambio | Ejemplo | Ruta |
-|---------------|---------|------|
+| Change Type | Example | Path |
+|-------------|--------|------|
 | **Minor** | Typos, naming, error msg, log level | Apply fix → Re-verify → Archive |
-| **Moderate** | Nueva variable/constante, cambio de validación | Tasks → Apply → Verify |
-| **Major** | Cambio de comportamiento, nuevo endpoint | Spec → Design → Tasks → Apply → Verify |
+| **Moderate** | New variable/constant, validation change | Tasks → Apply → Verify |
+| **Major** | Behavior change, new endpoint | Spec → Design → Tasks → Apply → Verify |
 
-**Lucy clasifica y presenta a Camilo:**
+**Lucy classifies and presents to Camilo:**
 
-> "Camilo, tus comments son minor (3 typos) y moderate (1 validation change).
-> Minor los resuelvo directo, moderate entra como T1 nuevo. ¿Dale?"
+> "Camilo, your comments are minor (3 typos) and moderate (1 validation change).
+> I'll handle minor ones directly, moderate goes in as a new T1. Cool?"
 
-**NO NEGOCIABLE:** Archive solo ocurre cuando:
-- PR mergeado, O
-- Camilo decide explícitamente cerrar el ciclo sin merge (con rationale documentado)
+**NON-NEGOTIABLE:** Archive only occurs when:
+- PR merged, OR
+- Camilo explicitly decides to close the cycle without merge (with documented rationale)
 
-### 8. Archive (Lucy directo)
+### 8. Archive (Lucy directly)
 
-**Trigger:** PR mergeado O Camilo decide cerrar ciclo explícitamente.
+**Trigger:** PR merged OR Camilo explicitly decides to close the cycle.
 
-**Lucy hace:**
-1. **Engram session summary del ciclo completo:**
+**Lucy does:**
+1. **Engram session summary of the complete cycle:**
    `engram__mem_session_summary(session_id=state.engram.cycleSessionId, content="## Goal\n...\n## Discoveries\n...\n## Accomplished\n...\n## Relevant Files\n...")`
-2. **Sincroniza decisiones finales:**
-   - Itera por todas las fases en `state.engram.observations`
-   - Si alguna fase tiene decisiones pendientes (no guardadas), guardarlas ahora
-   - Verifica que todas las decisiones de arquitectura estén persistidas
-3. Guarda decisiones finales del ciclo en `state.engram.observations.archive`
-4. Mueve `sdd/{project}/{feature}/` → `sdd/{project}/{feature-YYYY-MM-DD}/`
-5. Actualiza `state.json`:
+2. **Syncs final decisions:**
+   - Iterates through all phases in `state.engram.observations`
+   - If any phase has pending (unsaved) decisions, save them now
+   - Verifies that all architecture decisions are persisted
+3. Saves final cycle decisions to `state.engram.observations.archive`
+4. Moves `sdd/{project}/{feature}/` → `sdd/{project}/{feature-YYYY-MM-DD}/`
+5. Updates `state.json`:
    - `status: completed`
-   - Verifica que el bloque `engram` esté completo con todos los observation IDs
-6. Escribe resumen en `memory/YYYY-MM-DD-{project}-{feature}.md`
-7. Presenta resumen final a Camilo
-8. Pregunta: "¿Archivamos y pasamos al próximo feature?"
+   - Verifies the `engram` block is complete with all observation IDs
+6. Writes summary to `memory/YYYY-MM-DD-{project}-{feature}.md`
+7. Presents final summary to Camilo
+8. Asks: "Archive and move on to the next feature?"
 
 ---
 
@@ -390,35 +390,35 @@ Verify → Lucy crea PR → Camilo review
 | Apply | `csharp-dotnet`, `dotnet10-csharp14`, `zenticalab-security` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
 | Verify | `zenticalab-security`, `zenticalab-pr-review` |
 
-## Manejo de Errores
+## Error Handling
 
-### Timeout por fase (definido en agent profile)
+### Per-Phase Timeout (defined in agent profile)
 
-| Fase | agentId | Timeout | Rationale |
+| Phase | agentId | Timeout | Rationale |
 |------|---------|---------|-----------|
-| Explore | `sdd-explore` | **1200s** | Pro, lectura de codebases grandes, isolated context |
-| Spec | `sdd-spec` | 900s | Flash, task estructurada, <5k tokens output |
-| Design | `sdd-design` | **1200s** | Pro, fork, requiere leer todo el transcript previo |
-| Tasks | `sdd-tasks` | 900s | Flash, template estructurado |
-| Apply | `sdd-apply` | **1200s** | Pro, múltiples archivos, puede incluir tests |
-| Verify | `sdd-verify` | 1200s | Codex, requiere leer múltiples inputs |
+| Explore | `sdd-explore` | **1200s** | Pro, large codebase reading, isolated context |
+| Spec | `sdd-spec` | 900s | Flash, structured task, <5k tokens output |
+| Design | `sdd-design` | **1200s** | Pro, fork, needs to read the entire prior transcript |
+| Tasks | `sdd-tasks` | 900s | Flash, structured template |
+| Apply | `sdd-apply` | **1200s** | Pro, multiple files, may include tests |
+| Verify | `sdd-verify` | 1200s | Codex, needs to read multiple inputs |
 
-> Los timeouts se definen en `config/agent-fragment.json5` → `agents.list[].timeoutSeconds`. No se pasan manualmente en el spawn.
+> Timeouts are defined in `config/agent-fragment.json5` → `agents.list[].timeoutSeconds`. They are not passed manually in the spawn.
 
 ---
 
-### Timeout (excede el timeout del perfil)
+### Timeout (exceeds profile timeout)
 
 ```python
 if elapsed > agent_profile.timeoutSeconds:
     retry.count += 1
     if retry.count <= 3:
-        spawn()  # mismo agentId, label + 1 en attempt, mismo task string exacto
+        spawn()  # same agentId, label + 1 in attempt, same exact task string
     else:
-        escalar_a_camilo("Fase X falló tras 3 intentos. Último error: {error}")
+        escalate_to_camilo("Phase X failed after 3 attempts. Last error: {error}")
 ```
 
-### Output inválido (validación falla)
+### Invalid Output (validation fails)
 
 ```python
 if not validation_passed:
@@ -426,20 +426,20 @@ if not validation_passed:
     if retry.count <= 3:
         feedback = "Missing sections: {sections}. Re-run with same instructions."
         spawn_feedback = task_string + f"\n\n### Previous attempt feedback:\n{feedback}"
-        spawn()  # mismo label, mismo modelo, task con feedback adicional
+        spawn()  # same label, same model, task with additional feedback
     else:
-        escalar_a_camilo(...)
+        escalate_to_camilo(...)
 ```
 
-**Importante:** En el retry, el task string es **casi** el mismo — se agrega feedback de qué secciones faltaron para guiar al sub-agente, pero no se incluye el output fallido (para no contaminar).
+**Important:** On retry, the task string is **almost** the same — feedback on missing sections is added to guide the sub-agent, but the failed output is not included (to avoid contamination).
 
-### Camilo no responde
+### Camilo Doesn't Respond
 
 ```python
-if camilo_no_responde:  # no hay mensaje en ~10 min
+if camilo_no_response:  # no message in ~10 min
     state.status = "paused"
-    state.feedback.pending = "Esperando respuesta de Camilo sobre {phase}"
-    # Lucy espera. Cuando Camilo vuelve a hablar, retoma desde donde quedó.
+    state.feedback.pending = "Waiting for Camilo's response on {phase}"
+    # Lucy waits. When Camilo speaks again, resumes from where it left off.
 ```
 
 ### Missing Agent Profile
@@ -458,67 +458,67 @@ if not exists(f"{project_root}/docs/STANDARDS.md"):
     abort_phase()
     ask_camilo("docs/STANDARDS.md not found for {project}.")
     offer_options:
-      1. "Crear standards usando sdd/templates/standards.md.in como base"
-      2. "Si es un feature de bootstrap (creando standards), proceder con excepción"
+      1. "Create standards using sdd/templates/standards.md.in as a base"
+      2. "If it's a bootstrap feature (creating standards), proceed with exception"
 ```
 
 ---
 
-## Multi-Proyecto
+## Multi-Project
 
-Cada proyecto tiene su propio `sdd/{project}/state.json`. Lucy mantiene la pista de cuál proyecto está activo en la conversación actual.
+Each project has its own `sdd/{project}/state.json`. Lucy tracks which project is active in the current conversation.
 
-**Mecanismo:**
-- Cuando Camilo dice "SDD para [proyecto1]", Lucy activa ese proyecto
-- Si dice "SDD para [proyecto2]", Lucy pausa proyecto1, activa proyecto2
-- Cada proyecto mantiene su estado independiente en su `state.json`
+**Mechanism:**
+- When Camilo says "SDD for [project1]", Lucy activates that project
+- If he says "SDD for [project2]", Lucy pauses project1, activates project2
+- Each project maintains its independent state in its `state.json`
 
 ---
 
-## Check-list de Inicio (para Lucy, cada nuevo ciclo)
+## Startup Checklist (for Lucy, each new cycle)
 
 - [ ] **Pre-flight: Project Standards Loading**
-  - [ ] Resolver `project_root`
-  - [ ] Leer `{project_root}/docs/STANDARDS.md`
-  - [ ] Si falta → abortar o confirmar excepción (bootstrap)
-  - [ ] Inyectar standards en task string
+  - [ ] Resolve `project_root`
+  - [ ] Read `{project_root}/docs/STANDARDS.md`
+  - [ ] If missing → abort or confirm exception (bootstrap)
+  - [ ] Inject standards into task string
 - [ ] **Pre-flight Engram Context Assembly**
-  - [ ] `engram__mem_current_project()` → detectar proyecto
-  - [ ] `engram__mem_context(scope="project")` → sesiones recientes
-  - [ ] `engram__mem_search("<project>", type="architecture|decision|pattern")` → decisiones previas
+  - [ ] `engram__mem_current_project()` → detect project
+  - [ ] `engram__mem_context(scope="project")` → recent sessions
+  - [ ] `engram__mem_search("<project>", type="architecture|decision|pattern")` → prior decisions
   - [ ] `engram__mem_search("<feature>", type="architecture|decision|pattern")` → feature-specific
-  - [ ] Ensamblar Pre-loaded Engram Context Block
-  - [ ] Si Engram no disponible → modo degradado (notificar a Camilo)
-- [ ] Crear `sdd/{project}/{feature}/` directory
-- [ ] Crear `state.json` con estado inicial
-- [ ] Verificar que todos los templates existen en `sdd/templates/`
+  - [ ] Assemble Pre-loaded Engram Context Block
+  - [ ] If Engram unavailable → degraded mode (notify Camilo)
+- [ ] Create `sdd/{project}/{feature}/` directory
+- [ ] Create `state.json` with initial state
+- [ ] Verify all templates exist in `sdd/templates/`
   - [ ] `spec.md.in`, `design.md.in`, `tasks.md.in`, `apply.md.in`, `verify.md.in`, `explore.md.in`
-- [ ] Arrancar con la fase correcta según el estado
-- [ ] Si es nuevo ciclo: empezar por Explore → Propose
+- [ ] Start with the correct phase according to state
+- [ ] If new cycle: start with Explore → Propose
 
 ### Pre-flight Validation
 
-Lucy verifica:
-- [ ] Project standards cargados y no vacíos
-- [ ] `state.engram.preflight.ranAt` no es `null`
-- [ ] `state.engram.preflight.project` coincide con el proyecto activo
-- [ ] Si `contextFound=true` → `Pre-loaded Engram Context Block` tiene al menos 1 observación
-- [ ] Si `contextFound=false` → el task string de Explore incluye instrucción de collector
+Lucy verifies:
+- [ ] Project standards loaded and not empty
+- [ ] `state.engram.preflight.ranAt` is not `null`
+- [ ] `state.engram.preflight.project` matches the active project
+- [ ] If `contextFound=true` → `Pre-loaded Engram Context Block` has at least 1 observation
+- [ ] If `contextFound=false` → the Explore task string includes the collector instruction
 
-## Check-list de Finalización (Archive condicional)
+## Finalization Checklist (Conditional Archive)
 
-- [ ] PR creado y reviewer asignado
-- [ ] Camilo aprobó la PR (o decidió cerrar ciclo)
-- [ ] Address changes loops completados (si hubo feedback)
-- [ ] `state.json` actualizado con resultado final y PR URL
-- [ ] Session summary guardado en Engram (`engram__mem_session_summary`)
-- [ ] Decisiones finales sincronizadas en Engram (`state.engram.observations` completo)
-- [ ] `state.json` actualizado con bloque `engram` completo
-- [ ] Archive solo cuando: PR mergeado O Camilo decide cerrar
+- [ ] PR created and reviewer assigned
+- [ ] Camilo approved the PR (or decided to close the cycle)
+- [ ] Address changes loops completed (if there was feedback)
+- [ ] `state.json` updated with final result and PR URL
+- [ ] Session summary saved to Engram (`engram__mem_session_summary`)
+- [ ] Final decisions synced to Engram (`state.engram.observations` complete)
+- [ ] `state.json` updated with complete `engram` block
+- [ ] Archive only when: PR merged OR Camilo decides to close
 
-## Reglas NO NEGOCIABLES
+## NON-NEGOTIABLE RULES
 
-1. **Archive es condicional al merge de PR** — No archivar hasta que PR esté mergeado o Camilo explícitamente decida cerrar.
-2. **Lucy clasifica el feedback** — Decir si es minor/moderate/major y la ruta propuesta.
-3. **Sin PR mergeado, no hay ciclo cerrado.**
-4. **Si Camilo decide cerrar sin merge,** documentar rationale en ARCHIVE.md.
+1. **Archive is conditional on PR merge** — Do not archive until PR is merged or Camilo explicitly decides to close.
+2. **Lucy classifies feedback** — State if it's minor/moderate/major and the proposed path.
+3. **No PR merged, no closed cycle.**
+4. **If Camilo decides to close without merge,** document rationale in ARCHIVE.md.

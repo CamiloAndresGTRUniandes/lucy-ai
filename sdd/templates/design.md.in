@@ -10,43 +10,43 @@
 
 ## Data Model
 
-- **Entities:** Lista de entidades principales y su propósito.
-- **Schema:** Estructura de datos, relaciones, constraints.
-- **Migrations:** Cambios al schema existente (si aplica).
+- **Entities:** List of main entities and their purpose.
+- **Schema:** Data structure, relationships, constraints.
+- **Migrations:** Changes to existing schema (if applicable).
 
-## API Design _(opcional)_
+## API Design _(optional)_
 
-- **Endpoints:** Verbos, rutas, request/response contracts.
-- **Auth:** Mecanismo de autenticación y autorización.
-- **Versioning:** Estrategia de versionado.
+- **Endpoints:** Verbs, routes, request/response contracts.
+- **Auth:** Authentication and authorization mechanism.
+- **Versioning:** Versioning strategy.
 
 ## Security
 
-- **Auth/Authz:** ¿Quién puede hacer qué?
-- **Data handling:** ¿Cómo se protegen los datos?
-- **Input validation:** ¿Dónde se valida el input?
-- **Audit:** ¿Qué se loguea y qué no?
+- **Auth/Authz:** Who can do what?
+- **Data handling:** How is data protected?
+- **Input validation:** Where is input validated?
+- **Audit:** What is logged and what isn't?
 
 ## Error Handling
 
-- **Failure modes:** ¿Qué puede fallar?
-- **Recovery:** ¿Cómo se recupera cada fallo?
-- **User feedback:** ¿Qué ve el usuario cuando falla algo?
+- **Failure modes:** What can fail?
+- **Recovery:** How is each failure recovered?
+- **User feedback:** What does the user see when something fails?
 
 ## Observability
 
-- **Logging:** ¿Qué eventos se loguean?
-- **Metrics:** ¿Qué métricas se recolectan?
-- **Alerts:** ¿Qué condiciones generan alertas?
+- **Logging:** What events are logged?
+- **Metrics:** What metrics are collected?
+- **Alerts:** What conditions generate alerts?
 
 ## Migration Plan
 
-- **Breaking changes:** ¿Hay cambios que rompen compatibilidad?
-- **Rollback:** ¿Cómo se revierte si algo sale mal?
-- **Deployment steps:** Orden de despliegue.
+- **Breaking changes:** Are there breaking compatibility changes?
+- **Rollback:** How to rollback if something goes wrong?
+- **Deployment steps:** Deployment order.
 
-## Decisiones aprobadas por Camilo
+## Decisions approved by Camilo
 
-| Decisión | Valor | Rationale |
+| Decision | Value | Rationale |
 |----------|-------|-----------|
 | | | |

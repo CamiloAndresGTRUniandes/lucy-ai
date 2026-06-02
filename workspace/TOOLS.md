@@ -20,39 +20,39 @@ Tech-specific patterns live in `skills/{skill}/SKILL.md`.
 
 Skills define _how_ tools work. This file is for _your_ specifics — things unique to your setup, shared across all projects.
 
-### SDD Model Configuration (OBLIGATORIO)
+### SDD Model Configuration (MANDATORY)
 
-El modelo y thinking level dependen de la fase SDD activa. Ver `AGENTS.md`
-para la tabla completa. Lucy cambia automáticamente al entrar a cada fase.
+The model and thinking level depend on the active SDD phase. See `AGENTS.md`
+for the full table. Lucy switches automatically when entering each phase.
 
-- **Mecanismo de switch:** `session_status(model="deepseek/deepseek-v4-{pro|flash}")`
-- **Regla de escalación:** Si Lucy necesita Pro durante fase Flash, debe pedir
-  permiso explícito a Camilo.
-- **Modelos disponibles:** `deepseek/deepseek-v4-pro` (1.6T params, 49B activos)
-  y `deepseek/deepseek-v4-flash` (284B params, 13B activos, ~12x más barato).
-- **Thinking siempre `high`** — DeepSeek es binario en la práctica: `high` es
-  el único nivel de reasoning habilitado (además de `off`).
+- **Switch mechanism:** `session_status(model="deepseek/deepseek-v4-{pro|flash}")`
+- **Escalation rule:** If Lucy needs Pro during a Flash phase, she must ask
+  Camilo for explicit permission.
+- **Available models:** `deepseek/deepseek-v4-pro` (1.6T params, 49B active)
+  and `deepseek/deepseek-v4-flash` (284B params, 13B active, ~12x cheaper).
+- **Thinking always `high`** — DeepSeek is binary in practice: `high` is
+  the only reasoning level enabled (besides `off`).
 
 ### 📧 Email (Gmail SMTP)
 
-Lucy tiene correo y puede enviar emails con adjuntos.
+Lucy has email and can send emails with attachments.
 
 - **SMTP:** `smtp.gmail.com:587` (STARTTLS)
 - **Auth:** App password — configured outside this repo, never committed
-- **Uso:** Python `smtplib` + `email.mime` — enviar con `server.starttls()` + `server.login(user, password)`
-- **Nota:** Rotate app passwords regularly and update the external config
+- **Usage:** Python `smtplib` + `email.mime` — send with `server.starttls()` + `server.login(user, password)`
+- **Note:** Rotate app passwords regularly and update the external config
 
 ### 🧰 Lucy's Tool Inventory
 
 #### AI Models (chat/text)
-| Provider | Model | Uso |
+| Provider | Model | Usage |
 |----------|-------|-----|
-| DeepSeek | deepseek-v4-pro | Chat principal (SDD fases Explore/Propose/Design/Apply) |
-| DeepSeek | deepseek-v4-flash | Chat económico (SDD fases Spec/Tasks/Archive, casual) |
-| OpenAI Codex | gpt-5.5 | SDD fase Design (vía OAuth) |
-| OpenAI Codex | gpt-5.4 | SDD fase Explore (vía OAuth) |
-| OpenAI Codex | gpt-5.4-mini | SDD fase Archive (vía OAuth) |
-| OpenAI Codex | gpt-5.3-codex | SDD fase Verify (vía OAuth) |
+| DeepSeek | deepseek-v4-pro | Primary chat (SDD phases Explore/Propose/Design/Apply) |
+| DeepSeek | deepseek-v4-flash | Budget chat (SDD phases Spec/Tasks/Archive, casual) |
+| OpenAI Codex | gpt-5.5 | SDD phase Design (via OAuth) |
+| OpenAI Codex | gpt-5.4 | SDD phase Explore (via OAuth) |
+| OpenAI Codex | gpt-5.4-mini | SDD phase Archive (via OAuth) |
+| OpenAI Codex | gpt-5.3-codex | SDD phase Verify (via OAuth) |
 
 #### Media Generation
 | Provider | Capability | Auth |
@@ -84,7 +84,7 @@ Lucy tiene correo y puede enviar emails con adjuntos.
 #### Web & Search
 | Tool | Provider |
 |------|----------|
-| Web search | DuckDuckGo (sin API key) |
+| Web search | DuckDuckGo (without API key) |
 | Web fetch | Direct HTTP → markdown/text |
 | Web search grounding | Google Gemini (requires API key) |
 
@@ -107,7 +107,7 @@ Lucy tiene correo y puede enviar emails con adjuntos.
 #### Communications
 | Channel | Detail |
 |---------|--------|
-| Telegram | DM + grupos, bot token configured externally |
+| Telegram | DM + groups, bot token configured externally |
 | Email (Gmail SMTP) | Can send with attachments |
 | Discord | Plugin installed (requires config) |
 | Matrix | Plugin installed (requires config) |

@@ -39,22 +39,22 @@ Before any feature:
 7. Verify against spec
 8. Archive decisions to memory
 
-## Principios inquebrantables
+## Unbreakable Principles
 
-### Seguridad
-- **Secrets nunca en codigo** — usar secrets managers, variables de entorno
-- **Proteger datos de usuarios** — encrypt at rest y in transit
-- **Auth y authz siempre** — nunca endpoints sin autenticacion
-- **Input validation** — nunca confiar en input del usuario
+### Security
+- **Secrets never in code** — use secrets managers, environment variables
+- **Protect user data** — encrypt at rest and in transit
+- **Auth and authz always** — never unauthenticated endpoints
+- **Input validation** — never trust user input
 
-### Calidad
-- **Unit tests obligatorios** para todo feature — sin excepciones
-- Quality over speed — el rework es mas caro que el tiempo de especificacion
+### Quality
+- **Unit tests mandatory** for every feature — no exceptions
+- Quality over speed — rework is more expensive than specification time
 
 ### Git / Pull Requests
-- **Nunca push directo** a ramas protegidas (main, master, develop)
-- **Siempre PR** con revision estricta antes de merge
-- Commits atomicos con conventional commits: `feat/`, `fix/`, `refactor/`, `test/`
+- **Never push directly** to protected branches (main, master, develop)
+- **Always PR** with strict review before merge
+- Atomic commits with conventional commits: `feat/`, `fix/`, `refactor/`, `test/`
 
 ## Stack
 

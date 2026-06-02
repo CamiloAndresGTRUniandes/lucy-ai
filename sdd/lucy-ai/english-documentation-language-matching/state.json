@@ -1,0 +1,230 @@
+{
+  "project": "lucy-ai",
+  "currentFeature": "english-documentation-language-matching",
+  "status": "in_progress",
+  "currentPhase": "archive",
+  "currentModel": "openai-codex/gpt-5.4-mini",
+  "feedback": {
+    "pending": null,
+    "resolvedAt": null
+  },
+  "retries": {
+    "phase": null,
+    "max": 3,
+    "count": 0,
+    "lastError": null
+  },
+  "fallbacks": {
+    "triggered": [],
+    "lastEvent": null
+  },
+  "pr": {
+    "url": null,
+    "branch": null,
+    "status": null,
+    "reviewComments": [],
+    "resolvedComments": []
+  },
+  "archiveDecision": null,
+  "expectedModels": {
+    "explore": {
+      "primary": "openai-codex/gpt-5.4",
+      "fallback": "deepseek/deepseek-v4-pro",
+      "thinking": "high",
+      "timeout": 1200
+    },
+    "propose": {
+      "primary": "deepseek/deepseek-v4-pro",
+      "fallback": "openai-codex/gpt-5.4",
+      "thinking": "high",
+      "timeout": 900
+    },
+    "spec": {
+      "primary": "deepseek/deepseek-v4-flash",
+      "fallback": "openai-codex/gpt-5.4",
+      "thinking": "high",
+      "timeout": 900
+    },
+    "design": {
+      "primary": "openai-codex/gpt-5.5",
+      "fallback": "deepseek/deepseek-v4-pro",
+      "thinking": "high",
+      "timeout": 1200
+    },
+    "tasks": {
+      "primary": "deepseek/deepseek-v4-flash",
+      "fallback": "openai-codex/gpt-5.4",
+      "thinking": "high",
+      "timeout": 900
+    },
+    "apply": {
+      "primary": "deepseek/deepseek-v4-pro",
+      "fallback": "openai-codex/gpt-5.4",
+      "thinking": "high",
+      "timeout": 1200
+    },
+    "verify": {
+      "primary": "openai-codex/gpt-5.3-codex",
+      "fallback": "deepseek/deepseek-v4-flash",
+      "thinking": "high",
+      "timeout": 1200
+    },
+    "archive": {
+      "primary": "openai-codex/gpt-5.4-mini",
+      "fallback": "openai-codex/gpt-5.4",
+      "thinking": "low",
+      "timeout": 600
+    }
+  },
+  "phaseApprovals": {
+    "explore": {
+      "approved": true,
+      "timestamp": "2026-06-02T08:51:00Z"
+    },
+    "propose": {
+      "approved": true,
+      "timestamp": "2026-06-02T08:57:00Z"
+    },
+    "spec": {
+      "approved": true,
+      "timestamp": "2026-06-02T09:01:00Z"
+    },
+    "design": {
+      "approved": true,
+      "timestamp": "2026-06-02T09:07:00Z"
+    },
+    "tasks": {
+      "approved": true,
+      "timestamp": "2026-06-02T09:12:00Z"
+    },
+    "apply": {
+      "approved": true,
+      "timestamp": "2026-06-02T09:29:00Z"
+    },
+    "verify": {
+      "approved": true,
+      "timestamp": "2026-06-02T10:45:00Z"
+    },
+    "archive": {
+      "approved": false,
+      "timestamp": null
+    }
+  },
+  "history": [
+    {
+      "phase": "explore",
+      "status": "approved",
+      "timestamp": "2026-06-02T08:51:00Z"
+    },
+    {
+      "phase": "propose",
+      "status": "approved",
+      "timestamp": "2026-06-02T08:57:00Z",
+      "approach": "B \u2014 Canonical lucy-ai update + same-cycle live workspace sync"
+    },
+    {
+      "phase": "spec",
+      "status": "approved",
+      "timestamp": "2026-06-02T09:01:00Z"
+    },
+    {
+      "phase": "design",
+      "status": "approved",
+      "timestamp": "2026-06-02T09:07:00Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "approved",
+      "timestamp": "2026-06-02T09:12:00Z"
+    },
+    {
+      "phase": "apply",
+      "status": "approved",
+      "timestamp": "2026-06-02T09:29:00Z"
+    },
+    {
+      "phase": "verify",
+      "status": "approved",
+      "timestamp": "2026-06-02T10:45:00Z"
+    }
+  ],
+  "startedAt": "2026-06-02T08:52:26Z",
+  "updatedAt": "2026-06-02T10:45:00Z",
+  "spawns": {
+    "design": {
+      "primary": "openai-codex/gpt-5.5",
+      "fallback": "deepseek/deepseek-v4-pro",
+      "fallbackActivated": false,
+      "attempts": [
+        {
+          "n": 1,
+          "model": "openai-codex/gpt-5.5",
+          "status": "completed",
+          "at": "2026-06-02T09:04:00Z"
+        }
+      ]
+    },
+    "tasks": {
+      "primary": "deepseek/deepseek-v4-flash",
+      "fallback": "openai-codex/gpt-5.4",
+      "fallbackActivated": false,
+      "attempts": [
+        {
+          "n": 1,
+          "model": "deepseek/deepseek-v4-flash",
+          "status": "completed",
+          "at": "2026-06-02T09:08:00Z"
+        }
+      ]
+    },
+    "apply": {
+      "primary": "deepseek/deepseek-v4-pro",
+      "fallback": "openai-codex/gpt-5.4",
+      "fallbackActivated": false,
+      "attempts": [
+        {
+          "n": 1,
+          "model": "deepseek/deepseek-v4-pro",
+          "status": "completed",
+          "group": "A-agents-md",
+          "at": "2026-06-02T09:12:30Z"
+        },
+        {
+          "n": 1,
+          "model": "deepseek/deepseek-v4-pro",
+          "status": "completed",
+          "group": "B-templates-docs",
+          "at": "2026-06-02T09:12:30Z"
+        },
+        {
+          "n": 1,
+          "model": "deepseek/deepseek-v4-pro",
+          "status": "completed",
+          "group": "C-sdd-docs",
+          "at": "2026-06-02T09:12:30Z"
+        }
+      ]
+    }
+  },
+  "engram": {
+    "preflight": {
+      "ranAt": "2026-06-02T08:52:26Z",
+      "project": "lucy-ai",
+      "contextFound": false,
+      "sessionCount": 0,
+      "decisionCount": 0,
+      "observationIds": []
+    },
+    "observations": {
+      "explore": [],
+      "propose": [],
+      "spec": [],
+      "design": [],
+      "tasks": [],
+      "apply": [],
+      "verify": [],
+      "archive": []
+    },
+    "cycleSessionId": "SDD-english-documentation-language-matching-2026-06-02T08:52Z"
+  }
+}
