@@ -1,14 +1,14 @@
 # SDD Orchestrator — Task String Format
 
-## Propósito
+## Purpose
 
-Define la estructura canónica que Lucy usa para ensamblar el `task` parameter al spawnear un sub-agente.
+Defines the canonical structure Lucy uses to assemble the `task` parameter when spawning a sub-agent.
 
-Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesita saber.
+Each sub-agent receives a self-contained task string that contains EVERYTHING it needs to know.
 
 ---
 
-## Template Canónico
+## Canonical Template
 
 ```
 ## SDD Phase: {phase}
@@ -26,7 +26,7 @@ Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesit
 - Feature: {feature}
 
 ### Standards
-- {standard 1} — relevantes para esta fase
+- {standard 1} — relevant for this phase
 - {standard 2}
 
 ### Technical Skills to Load
@@ -40,25 +40,25 @@ Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesit
 | Apply | `csharp-dotnet`, `dotnet10-csharp14`, `zenticalab-security` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
 | Verify | `zenticalab-security`, `zenticalab-pr-review` |
 
-### Pre-loaded Engram Context (si aplica)
-{bloque de contexto ensamblado desde Step 0 del orchestrator-flow.md}
-{incluye: sesiones recientes, decisiones de arquitectura, patrones}
-{si es primer ciclo: instrucción de Context Collector}
+### Pre-loaded Engram Context (if applicable)
+{context block assembled from Step 0 of orchestrator-flow.md}
+{includes: recent sessions, architecture decisions, patterns}
+{if first cycle: Context Collector instruction}
 
 ### Key Context from Prior Sessions (Spec phase)
-{resúmenes de sesiones recientes del proyecto cargados vía engram__mem_context}
+{recent project session summaries loaded via engram__mem_context}
 
 ### Architectural Context from Engram (Design phase)
-{decisiones de arquitectura previas con observation IDs y patrones establecidos}
+{prior architecture decisions with observation IDs and established patterns}
 
 ### Architectural Constraints from Engram (Apply phase)
-{constraints arquitectónicos del proyecto cargados vía engram__mem_search}
+{architectural constraints of the project loaded via engram__mem_search}
 
 ### Read these inputs:
-{sdd/{project}/{feature}/input.md} — outputs de fases previas
+{sdd/{project}/{feature}/input.md} — outputs from prior phases
 
 ### Follow this template:
-{full template markdown inline — TODO el contenido del .md.in}
+{full template markdown inline — ALL content from .md.in}
 
 ### Write your output to:
 {sdd/{project}/{feature}/output.md}
@@ -69,19 +69,19 @@ Cada sub-agente recibe un task string autónomo que contiene TODO lo que necesit
   • {section 2}
 
 ### Key decisions from previous phases:
-{en fork context: incluir decisiones clave de fases anteriores}
-{en isolated: contexto suficiente con los inputs}
+{in fork context: include key decisions from prior phases}
+{in isolated: sufficient context with the inputs}
 
 ### Constraints:
-- NO hacer git commits
-- NO spawnear sub-agentes
-- Trabajar solo en los archivos indicados
-- Seguir las convenciones del proyecto indicadas en Standards
+- NO git commits
+- NO spawning sub-agents
+- Work only on the indicated files
+- Follow the project conventions indicated in Standards
 ```
 
 ---
 
-## Ejemplo: Task para Spec
+## Example: Task for Spec
 
 ```
 ## SDD Phase: spec
@@ -119,34 +119,34 @@ sdd/zenticalab/inventory-alerts-v2/spec.md
 - Required sections: Context, Requirements, User Scenarios, Acceptance Criteria
 
 ### Constraints:
-- NO hacer git commits
-- NO spawnear sub-agentes
-- Escribir en el archivo de output exactamente como se indica
+- NO git commits
+- NO spawning sub-agents
+- Write to the output file exactly as indicated
 ```
 
 ---
 
-## Variables por Fase
+## Variables by Phase
 
-| Fase | agentId | Context | Template | Input | Engram Context Injection | Skills |
+| Phase | agentId | Context | Template | Input | Engram Context Injection | Skills |
 |------|---------|---------|----------|-------|--------------------------|--------|
 | Explore | `sdd-explore` | isolated | explore.md.in | Pre-loaded Engram Context Block | `## Pre-loaded Engram Context` | `sdd` |
 | Spec | `sdd-spec` | isolated | spec.md.in | Propose discussion | `## Key Context from Prior Sessions` | — (no technical skills needed) |
 | Design | `sdd-design` | fork | design.md.in | spec.md | `## Architectural Context (from Engram)` | `csharp-dotnet`, `dotnet10-csharp14` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
-| Tasks | `sdd-tasks` | isolated | tasks.md.in | spec.md, design.md | — (no requiere) | — (no technical skills needed) |
+| Tasks | `sdd-tasks` | isolated | tasks.md.in | spec.md, design.md | — (none) | — (no technical skills needed) |
 | Apply | `sdd-apply` | isolated | apply.md.in | spec.md, design.md, tasks.md | `## Architectural Constraints (from Engram)` | `csharp-dotnet`, `dotnet10-csharp14`, `zenticalab-security` (backend) \|\| `typescript`, `tailwind-4`, `angular-core`, `angular-architecture`, `angular-forms`, `angular-performance` (frontend) |
-| Verify | `sdd-verify` | isolated | verify.md.in | spec.md, design.md, tasks.md, apply output | — (no requiere) | `zenticalab-security`, `zenticalab-pr-review` |
+| Verify | `sdd-verify` | isolated | verify.md.in | spec.md, design.md, tasks.md, apply output | — (none) | `zenticalab-security`, `zenticalab-pr-review` |
 
-**Nota:** La asignación exacta de modelo por fase se define exclusivamente en `config/agent-fragment.json5` → `agents.list[]`. Cada phase tiene un perfil con agentId fijo. Ver `sdd/orchestrator-flow.md` para el flujo completo incluyendo Agent Profile Validation y Project Standards Loading.
+**Note:** The exact model assignment per phase is defined exclusively in `config/agent-fragment.json5` → `agents.list[]`. Each phase has a profile with a fixed agentId. See `sdd/orchestrator-flow.md` for the complete flow including Agent Profile Validation and Project Standards Loading.
 
 ---
 
-## Reglas de Ensamblaje
+## Assembly Rules
 
-1. **Todo task string empieza con "## SDD Phase:"** — es lo primero que ve el sub-agente
-2. **El template se inyecta COMPLETO** — no references, no shortcuts
-3. **Los inputs se listan siempre como paths relativos a la raíz del workspace** — por ejemplo `sdd/{project}/{feature}/input.md`; el sub-agente los lee con `read`
-4. **Los outputs se listan como paths relativos a la raíz del workspace** — por ejemplo `sdd/{project}/{feature}/output.md`; el sub-agente los escribe con `write`
-5. **Excepción:** En el contexto fork de Design, Lucy resuelve los paths relativos al workspace antes de pasarlos al sub-agente
-6. **Las validation rules se incluyen** — para que el sub-agente pueda auto-verificar su output
-7. **Constraints son obligatorias** — no se asume nada
+1. **Every task string starts with "## SDD Phase:"** — it's the first thing the sub-agent sees
+2. **The template is injected in full** — no references, no shortcuts
+3. **Inputs are always listed as paths relative to the workspace root** — e.g., `sdd/{project}/{feature}/input.md`; the sub-agent reads them with `read`
+4. **Outputs are listed as paths relative to the workspace root** — e.g., `sdd/{project}/{feature}/output.md`; the sub-agent writes them with `write`
+5. **Exception:** In the Design fork context, Lucy resolves paths relative to the workspace before passing them to the sub-agent
+6. **Validation rules are included** — so the sub-agent can self-verify its output
+7. **Constraints are mandatory** — nothing is assumed

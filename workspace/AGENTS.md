@@ -2,6 +2,16 @@
 
 ---
 
+## ⛔ LANGUAGE MATCHING RULE (READ FIRST)
+
+**Respond in the SAME language as Camilo's message.**
+- English message → English reply.
+- Spanish message → Spanish reply.
+- Check the input language before EVERY reply.
+- This is a HARD RULE — non-negotiable.
+
+---
+
 ## ⛔ NON-NEGOTIABLE RULES (read first every session)
 
 ### 1. Repo Paths
@@ -117,13 +127,13 @@ Heartbeat vs Cron: heartbeat = batched periodic checks. Cron = exact timing, iso
 
 ---
 
-## SDD Workflow (OBLIGATORIO)
+## SDD Workflow (MANDATORY)
 
 Our ONLY development methodology. See `skills/sdd/SKILL.md` for full details.
 
 **Phases:** Explore → Propose → Spec → Design → Tasks → Apply → Verify → Archive
 **Core:** Spec before code. Lucy questions, Camilo decides.
-**Scope:** TODO cambio que involucre código. Sin excepciones.
+**Scope:** ANY change involving code. No exceptions.
 
 ### ⛔ Phase Gate Protocol (NON-NEGOTIABLE)
 
@@ -143,12 +153,12 @@ Gate check before ANY phase: read `state.json` → `phaseApprovals`. If previous
 
 ---
 
-## SDD Model Configuration (OBLIGATORIO)
+## SDD Model Configuration (MANDATORY)
 
-Cada fase tiene modelo primario y fallback FIJOS. Lucy cambia automáticamente al entrar a cada fase. **NO NEGOCIABLE** — no requiere solicitud de Camilo.
+Each phase has FIXED primary and fallback models. Lucy switches automatically on phase entry. **NON-NEGOTIABLE** — does not require Camilo's request.
 
-| # | Fase | Modelo Primario | Fallback | Thinking | Timeout |
-|---|------|-----------------|----------|----------|---------|
+| # | Phase | Primary Model | Fallback | Thinking | Timeout |
+|---|------|--------------|----------|----------|---------|
 | 1 | Explore | `openai-codex/gpt-5.4` | `deepseek/deepseek-v4-pro` | `high` | **1200s** |
 | 2 | Propose | `deepseek/deepseek-v4-pro` | `openai-codex/gpt-5.4` | `high` | 900s |
 | 3 | Spec | `deepseek/deepseek-v4-flash` | `openai-codex/gpt-5.4` | `high` | 900s |
@@ -158,65 +168,65 @@ Cada fase tiene modelo primario y fallback FIJOS. Lucy cambia automáticamente a
 | 7 | Verify | `openai-codex/gpt-5.3-codex` | `deepseek/deepseek-v4-flash` | `high` | **1200s** |
 | 8 | Archive | `openai-codex/gpt-5.4-mini` | `openai-codex/gpt-5.4` | `low` | 600s |
 | — | Lucy Orchestrator | `deepseek/deepseek-v4-pro` | — | `high` | — |
-| — | Conversación casual | `deepseek/deepseek-v4-flash` | — | `high` | — |
+| — | Casual conversation | `deepseek/deepseek-v4-flash` | — | `high` | — |
 
-**Escalación:** Si Flash requiere razonamiento profundo no previsto → pedir permiso explícito antes de subir a Pro.
+**Escalation:** If Flash requires unforeseen deep reasoning → request explicit permission before upgrading to Pro.
 
 ### Provider Configuration
 
-| Provider | Auth | Modelos en uso | Costo |
-|----------|------|---------------|-------|
+| Provider | Auth | Models in use | Cost |
+|----------|------|--------------|------|
 | `deepseek` | API key | `deepseek-v4-pro`, `deepseek-v4-flash` | Pay-per-token |
-| `openai-codex` | OAuth (ChatGPT Plus) | `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini` | $0 (suscripción) |
+| `openai-codex` | OAuth (ChatGPT Plus) | `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini` | $0 (subscription) |
 
-**Excluidos:** ❌ `minimax/*` — DeepSeek Flash es más barato y tiene 5x más contexto.
+**Excluded:** ❌ `minimax/*` — DeepSeek Flash is cheaper and has 5x more context.
 
-**⚠️ DeepSeek V4 Pro 75% discount expires 2026-05-31.** Post-discount: $1.74/M input, $3.48/M output. Evaluar mover Apply a `openai-codex/gpt-5.4` si costo se vuelve prohibitivo. Explore, Design, Archive no cambian — ya usan OpenAI.
+**⚠️ DeepSeek V4 Pro 75% discount expired 2026-05-31.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
 
-**Fallback:** Si primario no disponible → automáticamente usa fallback. Mayoría converge en DeepSeek (API key = siempre disponible).
+**Fallback:** If primary unavailable → automatically uses fallback. Most converge on DeepSeek (API key = always available).
 
 ---
 
 ## SDD Orchestrator
 
-Ciclos SDD se ejecutan delegando fases a sub-agentes (`sessions_spawn`).
-Documentación: `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`, `sdd/validation-rules.md`, `sdd/templates/`.
+SDD cycles execute by delegating phases to sub-agents (`sessions_spawn`).
+Documentation: `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`, `sdd/validation-rules.md`, `sdd/templates/`.
 
-**Uso de agentes SDD:** Siempre spawnear con el `agentId` correcto (ej. `sdd-design`, `sdd-apply`) — el perfil ya tiene modelo, thinking y timeout fijos. Nunca pasar `model` manualmente.
+**SDD Agent Usage:** Always spawn with the correct `agentId` (e.g. `sdd-design`, `sdd-apply`) — the profile already has fixed model, thinking, and timeout. Never pass `model` manually.
 
-**Fases delegadas (sub-agentes):**
+**Delegated phases (sub-agents):**
 - Explore, Spec, Tasks, Apply, Verify → `context: isolated`
 - Design → `context: fork`
 
-**Fases directas (Lucy):**
+**Direct phases (Lucy):**
 - Propose, PR Review, Archive
 
-**Reglas inquebrantables:**
-- Sub-agentes NUNCA hacen git commits — solo Lucy tras revisión con Camilo
-- Sub-agente fallido → re-spawn (misma instrucción exacta) → max 3 intentos → escalar
-- Validación estricta de outputs: fail si falta sección requerida del template
-- Archive condicional al merge de PR (o Camilo decide cerrar)
-- Lucy actualiza `state.json` post-aprobación
-- Precarga de skills antes de cada spawn (ver `task-string-format.md` § Skills Pre-Loading Protocol)
+**Unbreakable rules:**
+- Sub-agents NEVER make git commits — only Lucy after review with Camilo
+- Failed sub-agent → re-spawn (same exact instruction) → max 3 attempts → escalate
+- Strict output validation: fail if required template section is missing
+- Archive conditional on PR merge (or Camilo decides to close)
+- Lucy updates `state.json` post-approval
+- Skills pre-loading before each spawn (see `task-string-format.md` § Skills Pre-Loading Protocol)
 
-**Engram por fase SDD:** Ver `skills/sdd/SKILL.md` § Engram Memory Protocol y `sdd/orchestrator-flow.md` para el flujo completo.
+**Engram per SDD phase:** See `skills/sdd/SKILL.md` § Engram Memory Protocol and `sdd/orchestrator-flow.md` for the complete flow.
 
 ---
 
 ## Decision Memory Protocol
 
-**Antes de decisiones de arquitectura:**
+**Before architecture decisions:**
 1. `engram__mem_search("<keywords>", type="architecture")`
-2. `memory_search` en memoria local
-3. Si existe decisión previa → invocar con observation ID
-4. Si `mem_save` retorna `judgment_required: true` → surface a Camilo
+2. `memory_search` in local memory
+3. If previous decision exists → invoke with observation ID
+4. If `mem_save` returns `judgment_required: true` → surface to Camilo
 
-**Cambiar decisión existente** → responder:
-1. ¿Por qué cambiar? 2. ¿Qué ganamos? 3. ¿Qué perdemos? 4. Old vs New. 5. ¿Merece la pena?
+**Changing an existing decision** → answer:
+1. Why change? 2. What do we gain? 3. What do we lose? 4. Old vs New. 5. Is it worth it?
 
-**Conflict resolution:** `confidence < 0.7` o `relation ∈ {supersedes, conflicts_with}` + tipo architecture/policy/decision → preguntar a Camilo.
+**Conflict resolution:** `confidence < 0.7` or `relation ∈ {supersedes, conflicts_with}` + type architecture/policy/decision → ask Camilo.
 
-**Ser crítica:** Cuestionar cada decisión nueva. Consistencia es valor. Escrutinio obligatorio.
+**Be critical:** Question every new decision. Consistency is value. Mandatory scrutiny.
 
 ---
 
