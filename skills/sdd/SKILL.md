@@ -33,7 +33,7 @@ metadata:
 
 ### Mandatory steps at EVERY phase transition:
 1. **PRESENT** the phase output to Camilo (summary, not raw dump)
-2. **ASK** explicitly: "¿Camilo, aprobás el {phase} para continuar?"
+2. **ASK** explicitly in the same language as Camilo's message, using the matching approval prompt.
 3. **WAIT** for explicit approval (not interpretation, not assumption)
 4. **RECORD** approval in `state.phaseApprovals.{phase}` before spawning next phase
 5. **Only then** proceed to next phase
@@ -44,7 +44,7 @@ metadata:
 3. If `approved === true` → continue normally.
 
 ### If Camilo seems to approve but doesn't use explicit phrase:
-> "Camilo, solo para confirmar: ¿aprobás formalmente el {phase}? Necesito un 'approved' explícito para registrarlo en state.json y continuar."
+> "Camilo, please confirm: do you formally approve the {phase}? I need an explicit 'approved' to record it in state.json and continue."
 
 > **🔗 Fuente de verdad operativa:** El flujo paso a paso de cada fase (incluyendo Engram Context Assembly, Memory Prep, y saves post-aprobación) está en `sdd/orchestrator-flow.md`. Este skill define el qué; el orchestrator-flow.md define el cómo exacto.
 

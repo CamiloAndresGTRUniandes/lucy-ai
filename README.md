@@ -30,7 +30,7 @@
 ## ⚡ What's New in v1.8
 
 - 🧠 **Orchestrator Doctrine** — `orchestrator-doctrine` skill: master routing layer for SDD, sub-agents, decision critique, mentoring, and specialist skills
-- 🛠️ **32 new bundled skills** — Software architecture, security, Azure DevOps, Ignite UI Angular, C# best practices, SQL optimization, mentoring, judgment-day, git workflow, and more
+- 🛠️ **31 new bundled skills** — Software architecture, security, Azure DevOps, Ignite UI Angular, C# best practices, SQL optimization, mentoring, judgment-day, git workflow, and more
 - 🌐 **Language-matching enforcement** — Lucy now matches the user's language in every reply (English/Spanish), no guessing
 - 🤖 **Updated SDD agent profiles** — Verify phase bumped to `openai-codex/gpt-5.5`, main agent defaults to `openai-codex/gpt-5.5` with DeepSeek Pro fallback
 - 📖 **English-standardized docs** — All SDD workflow docs and templates now in English

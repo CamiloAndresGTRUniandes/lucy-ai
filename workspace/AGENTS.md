@@ -165,7 +165,7 @@ What does NOT count: "sí", "dale", "ok", "👍", "bien", "se ve bien", silence,
 
 Mandatory at every transition:
 1. PRESENT the phase output (summary, not raw dump)
-2. ASK explicitly: "Camilo, do you approve the {phase}? / ¿Camilo, aprobás el {phase}?"
+2. ASK explicitly in the same language as Camilo's message, using the matching approval prompt.
 3. WAIT for explicit approval
 4. RECORD in `state.json` → `phaseApprovals`
 5. Only then proceed to next phase
@@ -205,7 +205,7 @@ Each phase has FIXED primary and fallback models. Lucy switches automatically on
 
 **Excluded:** ❌ `minimax/*` — DeepSeek Flash is cheaper and has 5x more context.
 
-**⚠️ DeepSeek V4 Pro 75% discount expires 2026-05-31.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
+**⚠️ DeepSeek V4 Pro discount was time-limited and may no longer apply.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
 
 **Fallback:** If primary unavailable → automatically uses fallback. Most converge on DeepSeek (API key = always available).
 

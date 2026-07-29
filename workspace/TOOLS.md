@@ -25,14 +25,14 @@ Skills define _how_ tools work. This file is for _your_ specifics — things uni
 The model and thinking level depend on the active SDD phase. See `AGENTS.md`
 for the full table. Lucy switches automatically when entering each phase.
 
-- **Switch mechanism:** `session_status(model="openai-codex/gpt-5.4")` para conversación casual; vuelve automáticamente a `openai-codex/gpt-5.5` (orchestrator) al entrar en ciclo SDD.
+- **Switch mechanism:** `session_status(model="openai-codex/gpt-5.4")` for casual conversation; it automatically switches back to `openai-codex/gpt-5.5` (orchestrator) when entering an SDD cycle.
 - **Escalation rule:** If Lucy needs Pro during a Flash phase, she must ask
   Camilo for explicit permission.
 - **Available models in rotation:** `openai-codex/gpt-5.5` (orchestrator), `openai-codex/gpt-5.4` (casual), `deepseek/deepseek-v4-pro` (1.6T params, 49B active),
   and `deepseek/deepseek-v4-flash` (284B params, 13B active, ~12x cheaper).
 - **Thinking always `high`** — fixed per agent profile; `session_status()`
   can switch model but not thinking level. Intended: orchestrator medium/high,
-  casual low/medium, but sistema lo fija en `high`.
+  casual low/medium, but the runtime fixes it to `high`.
 
 ### 📧 Email (Gmail SMTP)
 

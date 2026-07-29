@@ -16,7 +16,7 @@
 | F1 | Sync workspace templates: `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md` from live to repo |
 | F2 | Sync SDD core docs: `orchestrator-flow.md`, `task-string-format.md`, `validation-rules.md` |
 | F3 | Sync SDD templates: `apply.md.in`, `design.md.in`, `explore.md.in`, `spec.md.in`, `standards.md.in`, `verify.md.in` |
-| F4 | Add 32 new bundled skills from live workspace to repo `skills/` |
+| F4 | Add 31 new bundled skills from live workspace to repo `skills/` |
 | F5 | Remove deprecated `zenticalab-pr-review` and `zenticalab-security` from repo `skills/` |
 | F6 | Update 7 existing skills that have newer versions in live workspace |
 | F7 | Update `config/agent-fragment.json5`: main agent primary model → `openai-codex/gpt-5.5` |
@@ -120,7 +120,7 @@ These **must not** be modified or copied from live:
 **When** the installer copies workspace templates and config  
 **Then** AGENTS.md contains the language-matching rule, orchestrator-doctrine preload, updated model matrix, and current skill references  
 **And** the `main` agent profile points to `openai-codex/gpt-5.5`  
-**And** all 44+ bundled skills are available
+**And** all 43 bundled skills are available
 
 ### Scenario 2: Update from v1.7.0 to v1.8.0
 
@@ -138,7 +138,7 @@ These **must not** be modified or copied from live:
 **Given** the v1.8.0 release branch  
 **When** `verify.sh` runs  
 **Then** all workspace template checks pass  
-**And** all 44+ bundled skills are detected  
+**And** all 43 bundled skills are detected  
 **And** deprecated skill names are not present  
 **And** no project-specific content leaks into any template
 
@@ -148,7 +148,7 @@ These **must not** be modified or copied from live:
 - [ ] **AC2:** `workspace/SOUL.md` contains language section and English security wording
 - [ ] **AC3:** `workspace/USER.md` has English principle sections
 - [ ] **AC4:** `workspace/TOOLS.md` reflects current model inventory (gpt-5.5, gpt-5.4, gpt-5.4-mini as primary; deepseek-v4-pro/flash as fallback/specialized)
-- [ ] **AC5:** `skills/` contains 44+ bundled skills (14 existing + 32 new - 2 removed)
+- [ ] **AC5:** `skills/` contains 43 bundled skills (43 unique `SKILL.md` entries)
 - [ ] **AC6:** `skills/zenticalab-pr-review/` and `skills/zenticalab-security/` no longer exist
 - [ ] **AC7:** All 7 updated skills match their live versions
 - [ ] **AC8:** `config/agent-fragment.json5` main agent primary is `openai-codex/gpt-5.5`
