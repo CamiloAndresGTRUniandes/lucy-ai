@@ -68,7 +68,7 @@ LUCY_DIR="${LHOME:-$HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.7.0"
+CURRENT_VERSION="1.8.0"
 
 # Flags
 SKIP_CLAWHUB=false
@@ -446,7 +446,7 @@ tui_install_mode() {
       if ! tag_input=$(dialog --stdout \
         --backtitle "lucy-agent v${CURRENT_VERSION}" \
         --title "Specific tag" \
-        --inputbox "Enter the release tag to install (example: v1.7.0)." 10 72 "v${CURRENT_VERSION}"); then
+        --inputbox "Enter the release tag to install (example: v1.8.0)." 10 72 "v${CURRENT_VERSION}"); then
         log_info "Installer cancelled during tag entry"
         exit 0
       fi

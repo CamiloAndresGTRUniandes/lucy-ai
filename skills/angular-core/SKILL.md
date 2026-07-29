@@ -230,3 +230,13 @@ Remove from `angular.json` polyfills: `zone.js` and `zone.js/testing`.
 - https://angular.dev/guide/signals
 - https://angular.dev/guide/templates/control-flow
 - https://angular.dev/guide/zoneless
+
+## Imported Angular Signals Reference Pack
+
+Additional Angular signal patterns were imported under `references/frontend-pack-angular-signals/`:
+
+- `overview.md` — `signal`, `computed`, `linkedSignal`, `effect`, RxJS interop
+- `references/signal-patterns.md` — component/service state patterns and edge cases
+
+Use these as supporting references. Prefer the canonical `angular-core` guidance when conflicts appear.
+

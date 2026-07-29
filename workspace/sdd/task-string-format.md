@@ -144,7 +144,7 @@ sdd/zenticalab/inventory-alerts-v2/spec.md
 ## Assembly Rules
 
 1. **Every task string starts with "## SDD Phase:"** — it's the first thing the sub-agent sees
-2. **The template is injected in full** — no references, no shortcuts
+2. **The template is injected COMPLETE** — no references, no shortcuts
 3. **Inputs are always listed as paths relative to the workspace root** — e.g., `sdd/{project}/{feature}/input.md`; the sub-agent reads them with `read`
 4. **Outputs are listed as paths relative to the workspace root** — e.g., `sdd/{project}/{feature}/output.md`; the sub-agent writes them with `write`
 5. **Exception:** In the Design fork context, Lucy resolves paths relative to the workspace before passing them to the sub-agent

@@ -167,3 +167,11 @@ After creating the skill, add it to `AGENTS.md`:
 ## Resources
 
 - **Templates**: See [assets/](assets/) for SKILL.md template
+
+## OpenClaw Skill Authoring Notes
+
+- Keep skills reusable and deterministic.
+- Include clear trigger conditions in frontmatter `description`.
+- Avoid one-off task-specific skills.
+- Store reusable references under `references/` or `assets/` when needed.
+- For imported skills, evaluate conflicts with AGENTS.md/SOUL.md/USER.md before installing.

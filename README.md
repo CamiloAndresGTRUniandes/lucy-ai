@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.7.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.7.0">
+  <img src="https://img.shields.io/badge/Version-1.8.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.8.0">
   <img src="https://img.shields.io/github/stars/CamiloAndresGTRUniandes/lucy-ai?style=for-the-badge&logo=github&color=0D1117" alt="GitHub stars">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
@@ -27,15 +27,16 @@
 
 ---
 
-## ⚡ What's New in v1.7
+## ⚡ What's New in v1.8
 
-- 🏗️ **Harness Engineering** — Full 7-layer agent infrastructure: models, memory, tools, orchestration, observability, knowledge, and goal definition
-- 🌍 **Agnostic configuration** — AGENTS.md and TOOLS.md are now project-agnostic templates with content boundary enforcement
-- 🤖 **Fixed SDD agent profiles** — 9 profiles in `config/agent-fragment.json5`, auto-injected into `openclaw.json`
-- 🛡️ **Content boundary enforcement** — pre-commit hook blocks project-specific content in locked files
-- 📋 **Project standards template** — `sdd/templates/standards.md.in` for consistent project setup
-- 🧠 **MEMORY.md template** — sanitized long-term memory template with privacy guidance
-- 🔧 **Contributor setup** — `install.sh --contributor` installs the pre-commit hook
+- 🧠 **Orchestrator Doctrine** — `orchestrator-doctrine` skill: master routing layer for SDD, sub-agents, decision critique, mentoring, and specialist skills
+- 🛠️ **32 new bundled skills** — Software architecture, security, Azure DevOps, Ignite UI Angular, C# best practices, SQL optimization, mentoring, judgment-day, git workflow, and more
+- 🌐 **Language-matching enforcement** — Lucy now matches the user's language in every reply (English/Spanish), no guessing
+- 🤖 **Updated SDD agent profiles** — Verify phase bumped to `openai-codex/gpt-5.5`, main agent defaults to `openai-codex/gpt-5.5` with DeepSeek Pro fallback
+- 📖 **English-standardized docs** — All SDD workflow docs and templates now in English
+- 🧹 **Deprecated cleanup** — Replaced `zenticalab-security` and `zenticalab-pr-review` with project-agnostic equivalents
+- 📋 **Release notes** — `RELEASE_NOTES.md` for GitHub-compatible release descriptions
+- ⚙️ **Config fragment updated** — Main agent profile uses `openai-codex/gpt-5.5` with `deepseek/deepseek-v4-pro` fallback
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
@@ -57,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
 
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.7.0
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.8.0
 ```
 
 > 💡 Run without flags for an interactive TUI wizard to choose components and install mode.
@@ -157,7 +158,7 @@ lucy-ai implements all 7 layers of the agent harness:
 | **TUI Wizard** | `curl ... | bash` | Guided setup with dialog menus (install mode, components, confirm) |
 | **Contributor** | `curl ... | bash -s -- --contributor` | Like template + installs pre-commit hook for repo contributions |
 | **Automation** | `curl ... | bash -s -- --clone --accept-defaults` | CI/CD pipelines — no prompts needed |
-| **Specific version** | `curl ... | bash -s -- --tag v1.7.0` | Pin to a known release |
+| **Specific version** | `curl ... | bash -s -- --tag v1.8.0` | Pin to a known release |
 
 ## Post-install
 
@@ -207,7 +208,7 @@ cd ~/.openclaw/lucy-agent
 ./update.sh
 
 # Pin to a specific version
-./update.sh --tag v1.7.0
+./update.sh --tag v1.8.0
 
 # Show version info
 ./update.sh --version
@@ -236,7 +237,7 @@ cd ~/.openclaw/lucy-agent
 # Install flags
 install.sh --clone             # Clone Lucy's exact config
 install.sh --template          # Use generic templates
-install.sh --tag <version>     # Install specific release (e.g. v1.7.0)
+install.sh --tag <version>     # Install specific release (e.g. v1.8.0)
 install.sh --contributor       # Install with pre-commit hook for contributors
 install.sh --no-tui            # Force text prompts (skip TUI wizard)
 install.sh --accept-defaults   # Accept all defaults (CI-friendly)
