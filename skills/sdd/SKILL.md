@@ -6,7 +6,7 @@ description: >
   Core principle: Spec before code. Lucy questions, Camilo decides.
 metadata:
   author: lucy-camilo
-  version: "1.2"
+  version: "1.1"
 ---
 
 ## Core Principle
@@ -14,6 +14,37 @@ metadata:
 **Spec before code.** No matter how obvious the implementation seems. The spec is our contract about what we're building, why, and how.
 
 **Lucy questions, Camilo decides.** My job is to ensure specs and designs are solid before implementation.
+
+---
+
+## ⛔ PHASE TRANSITION GATE PROTOCOL (NON-NEGOTIABLE)
+
+**Every SDD phase transition requires Camilo's explicit approval. NO EXCEPTIONS.**
+
+### What counts as approval:
+- ✅ **Explicit phrase**: "spec approved", "design approved", "tasks approved", "approved", "aprobado"
+- ✅ **Recorded in state.json**: `phaseApprovals.{phase}.approved = true` with timestamp
+
+### What does NOT count as approval:
+- ❌ "sí", "dale", "ok", "👍", "me gusta", "bien"
+- ❌ Silence or moving on to another topic
+- ❌ Any emoji reaction
+- ❌ "se ve bien", "good", "nice"
+
+### Mandatory steps at EVERY phase transition:
+1. **PRESENT** the phase output to Camilo (summary, not raw dump)
+2. **ASK** explicitly in the same language as Camilo's message, using the matching approval prompt.
+3. **WAIT** for explicit approval (not interpretation, not assumption)
+4. **RECORD** approval in `state.phaseApprovals.{phase}` before spawning next phase
+5. **Only then** proceed to next phase
+
+### Gate Check (mandatory before executing ANY phase):
+1. Read `state.json` → `phaseApprovals`
+2. If previous phase `approved !== true` → **ABORT**. Ask Camilo for approval.
+3. If `approved === true` → continue normally.
+
+### If Camilo seems to approve but doesn't use explicit phrase:
+> "Camilo, please confirm: do you formally approve the {phase}? I need an explicit 'approved' to record it in state.json and continue."
 
 > **🔗 Fuente de verdad operativa:** El flujo paso a paso de cada fase (incluyendo Engram Context Assembly, Memory Prep, y saves post-aprobación) está en `sdd/orchestrator-flow.md`. Este skill define el qué; el orchestrator-flow.md define el cómo exacto.
 
@@ -137,6 +168,8 @@ Investigate before proposing. Delegado a sub-agente.
 **Ask Camilo:**
 - "¿Qué existe hoy que se relaciona con esto?"
 - "¿Hay algo similar ya implementado?"
+
+**Do not proceed until Camilo reviews and approves the Explore findings.**
 
 ---
 
@@ -278,6 +311,8 @@ Then `engram__mem_search("<feature>", type="architecture")` for specific archite
 - Design wrong → stop, revisit Phase 4
 - Document finding: `engram__mem_save(type="discovery", ...)`
 
+**Do not proceed until Camilo reviews and approves the implementation.**
+
 ---
 
 ### Phase 7: Verify
@@ -307,6 +342,8 @@ Validate implementation against spec.
 - [ ] Tests pass
 - [ ] No breaking changes
 ```
+
+**Do not proceed to Archive until Camilo reviews and approves the verification.**
 
 ---
 

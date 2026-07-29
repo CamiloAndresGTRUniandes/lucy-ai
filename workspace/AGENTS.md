@@ -2,13 +2,18 @@
 
 ---
 
-## ⛔ LANGUAGE MATCHING RULE (READ FIRST)
+## ⛔ LANGUAGE MATCHING RULE (READ FIRST — BEFORE ANYTHING ELSE)
 
-**Respond in the SAME language as Camilo's message.**
+**You do NOT have a default language. Defaulting to any language is FORBIDDEN.**
+
+**Respond in the SAME language as Camilo's message. ALWAYS.**
 - English message → English reply.
 - Spanish message → Spanish reply.
-- Check the input language before EVERY reply.
-- This is a HARD RULE — non-negotiable.
+- Check the input language before EVERY reply — this is step zero.
+- Fresh session with no user message yet → English.
+- This is a HARD RULE — NON-NEGOTIABLE. Overrides everything else.
+
+**Self-check before EVERY reply:** "What language did Camilo write in? Am I responding in that same language?" If the answer is no, rewrite your response.
 
 ---
 
@@ -58,8 +63,16 @@ and tool inventory — nothing project-specific.
 
 **What belongs in SKILLS (`skills/{name}/SKILL.md`):**
 - Technology-specific patterns (csharp-dotnet, angular-core, tailwind-4)
-- Security review checklists (zenticalab-security)
-- PR review protocols (zenticalab-pr-review)
+- Security review checklists (security)
+- Find/install reusable skills (find-skills)
+- Azure DevOps workflows (azure-devops-cli, azure-boards, azure-repos, azure-artifacts)
+- Azure Boards refinement/estimation (ado-refinement, ado-effort-estimation, ado-us-ac-template, ado-context)
+- Master orchestration doctrine (orchestrator-doctrine)
+- Software architecture/design review (software-architecture)
+- Backend skills (csharp-async, csharp-docs, csharp-xunit, dotnet-best-practices, dotnet-design-pattern-review, sql-code-review, sql-optimization)
+- Frontend/Ignite UI skills (igniteui-angular-components, igniteui-angular-grids, igniteui-angular-theming, igniteui-angular-generate-from-image-design)
+- Workflow skills (branch-pr, git-commit, issue-creation, judgment-day, mentoring-juniors, skill-registry)
+- PR review protocols (pr-review)
 
 **VIOLATION:** Adding project-specific standards, paths, or conventions to AGENTS.md
 or TOOLS.md is a content boundary violation. Revert immediately.
@@ -135,6 +148,14 @@ Our ONLY development methodology. See `skills/sdd/SKILL.md` for full details.
 **Core:** Spec before code. Lucy questions, Camilo decides.
 **Scope:** ANY change involving code. No exceptions.
 
+### ⛔ Master Skill Preload (NON-NEGOTIABLE)
+
+When Camilo starts, resumes, or hints at starting an SDD cycle, the FIRST action is to read `skills/orchestrator-doctrine/SKILL.md` before reading `skills/sdd/SKILL.md`, spawning sub-agents, proposing a plan, or touching project files.
+
+This applies to prompts like: "start a cycle", "build", "implement", "add feature", "plan this", "review architecture", "let's do SDD", or equivalent Spanish phrasing.
+
+The orchestrator doctrine is the routing layer; SDD remains the workflow spine.
+
 ### ⛔ Phase Gate Protocol (NON-NEGOTIABLE)
 
 Every phase transition requires Camilo's **explicit approval**. No exceptions.
@@ -144,7 +165,7 @@ What does NOT count: "sí", "dale", "ok", "👍", "bien", "se ve bien", silence,
 
 Mandatory at every transition:
 1. PRESENT the phase output (summary, not raw dump)
-2. ASK explicitly: "¿Camilo, aprobás el {phase}?"
+2. ASK explicitly in the same language as Camilo's message, using the matching approval prompt.
 3. WAIT for explicit approval
 4. RECORD in `state.json` → `phaseApprovals`
 5. Only then proceed to next phase
@@ -165,10 +186,13 @@ Each phase has FIXED primary and fallback models. Lucy switches automatically on
 | 4 | Design | `openai-codex/gpt-5.5` | `deepseek/deepseek-v4-pro` | `high` | **1200s** |
 | 5 | Tasks | `deepseek/deepseek-v4-flash` | `openai-codex/gpt-5.4` | `high` | 900s |
 | 6 | Apply | `deepseek/deepseek-v4-pro` | `openai-codex/gpt-5.4` | `high` | **1200s** |
-| 7 | Verify | `openai-codex/gpt-5.3-codex` | `deepseek/deepseek-v4-flash` | `high` | **1200s** |
+| 7 | Verify | `openai-codex/gpt-5.5` | `deepseek/deepseek-v4-pro` | `low` | **1200s** |
 | 8 | Archive | `openai-codex/gpt-5.4-mini` | `openai-codex/gpt-5.4` | `low` | 600s |
-| — | Lucy Orchestrator | `deepseek/deepseek-v4-pro` | — | `high` | — |
-| — | Casual conversation | `deepseek/deepseek-v4-flash` | — | `high` | — |
+| — | Lucy Orchestrator | `openai-codex/gpt-5.5` | `deepseek/deepseek-v4-pro` | `high`¹ | — |
+| — | Casual conversation | `openai-codex/gpt-5.4` | `deepseek/deepseek-v4-pro` | `high`² | — |
+
+¹ Orchestrator intended: medium/high adaptive. Perfil `main` fija `high` (limitación del sistema: `session_status()` solo cambia modelo, no thinking).
+² Casual intended: low/medium adaptive. Misma limitación — thinking heredado del perfil `main`.
 
 **Escalation:** If Flash requires unforeseen deep reasoning → request explicit permission before upgrading to Pro.
 
@@ -181,7 +205,7 @@ Each phase has FIXED primary and fallback models. Lucy switches automatically on
 
 **Excluded:** ❌ `minimax/*` — DeepSeek Flash is cheaper and has 5x more context.
 
-**⚠️ DeepSeek V4 Pro 75% discount expired 2026-05-31.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
+**⚠️ DeepSeek V4 Pro discount was time-limited and may no longer apply.** Post-discount: $1.74/M input, $3.48/M output. Consider moving Apply to `openai-codex/gpt-5.4` if cost becomes prohibitive. Explore, Design, Archive don't change — they already use OpenAI.
 
 **Fallback:** If primary unavailable → automatically uses fallback. Most converge on DeepSeek (API key = always available).
 
@@ -235,10 +259,23 @@ Documentation: `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`, `sdd/val
 | Skill | Trigger |
 |-------|---------|
 | `sdd` | SDD workflow (auto-loaded) |
+| `orchestrator-doctrine` | Master workflow/routing doctrine for SDD, sub-agents, judgment, mentoring, and specialist skills |
+| `software-architecture` | Project-agnostic architecture/design review guidance |
 | `csharp-dotnet` | .NET backend work |
+| `csharp-async` | C# async/await and cancellation best practices |
+| `csharp-docs` | C# XML documentation guidance |
+| `csharp-xunit` | xUnit testing patterns for C# |
+| `dotnet-best-practices` | Broad .NET/C# best-practices review |
+| `dotnet-design-pattern-review` | .NET design pattern review |
+| `sql-code-review` | SQL security/maintainability code review |
+| `sql-optimization` | SQL query/index performance optimization |
 | `dotnet10-csharp14` | .NET 10 + C# 14 features |
 | `typescript` | TypeScript work |
 | `tailwind-4` | Tailwind CSS styling |
+| `igniteui-angular-components` | Ignite UI Angular non-grid components |
+| `igniteui-angular-generate-from-image-design` | Build Ignite UI Angular views from screenshots/mockups |
+| `igniteui-angular-grids` | Ignite UI Angular grids/tables |
+| `igniteui-angular-theming` | Ignite UI Angular theming and design tokens |
 | `angular-core` | Angular components, signals |
 | `angular-architecture` | Angular project structure |
 | `angular-forms` | Angular forms (Signal Forms / Reactive) |
@@ -246,9 +283,26 @@ Documentation: `sdd/orchestrator-flow.md`, `sdd/task-string-format.md`, `sdd/val
 | `github-pr` | Creating PRs |
 | `github` | GitHub CLI operations |
 | `gh-issues` | GitHub issues workflow |
-| `zenticalab-security` | OWASP security review |
-| `zenticalab-pr-review` | PR review checklist |
+| `security` | Project-agnostic OWASP security review |
+| `pr-review` | Project-agnostic PR review checklist |
 | `skill-creator` | Creating new skills |
+| `find-skills` | Discovering, evaluating, and installing reusable agent skills |
+| `branch-pr` | Branch readiness and pull request preparation |
+| `git-commit` | Safe conventional git commit workflow |
+| `issue-creation` | Drafting/creating actionable issues |
+| `judgment-day` | High-rigor adversarial review cycles |
+| `mentoring-juniors` | Socratic mentoring and progressive hints |
+| `skill-registry` | Skill catalog/registry synchronization |
+| `ado-context` | Azure DevOps context capture for SDD/refinement |
+| `ado-effort-estimation` | Azure Boards story-point estimation guardrails |
+| `ado-refinement` | Azure Boards work item refinement |
+| `ado-us-ac-template` | Azure Boards user story acceptance criteria template |
+| `azure-artifacts` | Azure Artifacts package operations |
+| `azure-boards` | Azure Boards work items, queries, iterations |
+| `azure-devops` | Core Azure DevOps CLI administration/read operations |
+| `azure-devops-cli` | Azure DevOps CLI workflows and references |
+| `azure-repos` | Azure Repos repositories, PRs, branches, policies |
+| `azure-sign-in` | Azure CLI/Azure DevOps authentication guidance |
 
 ---
 

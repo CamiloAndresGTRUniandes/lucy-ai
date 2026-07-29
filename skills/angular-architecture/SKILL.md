@@ -145,3 +145,17 @@ ng g g core/guards/auth --functional
 ## Resources
 
 - https://angular.dev/style-guide
+
+## Imported Frontend Reference Pack
+
+Additional Angular architecture references were imported under `references/frontend-pack-angular-architect/`:
+
+- `overview.md` — standalone components, RxJS, NgRx, routing, testing overview
+- `references/components.md` — component architecture patterns
+- `references/routing.md` — lazy routing and guards
+- `references/ngrx.md` — NgRx patterns
+- `references/rxjs.md` — RxJS patterns
+- `references/testing.md` — Angular testing patterns
+
+Use these as supporting references only. Local Angular skills, project `docs/STANDARDS.md`, and SDD approvals remain authoritative.
+

@@ -1,227 +1,232 @@
 ---
 name: dotnet10-csharp14
 description: >
-  .NET 10 + C# 14 best practices for ZENTICALAB. field keyword, params Span,
-  field-backed properties, and other C# 14 features for Clean Architecture.
+  Project-agnostic .NET 10 and C# 14 best practices: field keyword,
+  null-conditional assignment, extension members, unbound generic nameof,
+  runtime improvements, ASP.NET Core, and EF Core guidance.
+  Trigger: When using .NET 10, C# 14, ASP.NET Core 10, EF Core 10, or deciding whether to adopt new language/runtime features.
+license: Apache-2.0
 metadata:
   author: lucy-camilo
-  version: "1.0"
-  project: ZENTICALAB
+  version: "1.1"
 ---
 
-# .NET 10 + C# 14 — ZENTICALAB Best Practices
+# .NET 10 + C# 14 Best Practices
 
-Skill para usar .NET 10 y C# 14 con las mejores prácticas en el codebase ZENTICALAB.
+## When to Use
 
-## Fuente
-- [.NET 10 Overview](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview) (LTS, 3 años de soporte)
-- [C# 14 What's New](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14)
+Use this skill when:
+- Writing or reviewing .NET 10 / C# 14 code
+- Deciding whether to adopt a new C# 14 feature
+- Modernizing .NET projects without rewriting stable code unnecessarily
+- Reviewing ASP.NET Core 10, EF Core 10, or runtime-related changes
 
-## Regla de adopción
+Always combine this with the repo's own `docs/STANDARDS.md` and the generic `csharp-dotnet` skill when broader .NET architecture guidance is needed.
 
-> Solo aplicar features de C# 14 / .NET 10 cuando mejoren expresividad, seguridad o performance del código existente. **No reescribir código funcional solo por usar features nuevas.**
+## Adoption Rule
 
----
+> Use .NET 10 / C# 14 features only when they improve clarity, safety, maintainability, or performance. Do not rewrite working code just to use new syntax.
 
-## C# 14 — Features de alto impacto para ZENTICALAB
+Before adopting new features, verify:
+- [ ] The project targets .NET 10 and LangVersion supports C# 14
+- [ ] CI/build images have the .NET 10 SDK installed
+- [ ] Team/editor tooling supports the syntax
+- [ ] Existing tests still pass
+- [ ] The feature fits the project's architecture and style guide
 
-### 1. `field` keyword — Properties con validación inline
+## C# 14 Features Worth Using
 
-**Antes (C# 13):**
-```csharp
-private string _name;
-public string Name
-{
-    get => _name;
-    set => _name = value ?? throw new ArgumentNullException(nameof(value));
-}
-```
+### 1. `field` keyword — validated properties without explicit backing field
 
-**Con C# 14 `field`:**
+Use when a property needs simple validation or normalization in the setter.
+
 ```csharp
 public string Name
 {
     get;
-    set => field = value ?? throw new ArgumentNullException(nameof(value));
+    set => field = string.IsNullOrWhiteSpace(value)
+        ? throw new ArgumentException("Name is required.", nameof(value))
+        : value.Trim();
 }
 ```
 
-**Dónde usar en ZENTICALAB:**
-- DTOs con validación `value ?? throw` — FluentValidation ya cubre esto, pero útil para setters internos rápidos
-- Entidades con invariantes de dominio simples
+Good fits:
+- Small invariants on DTOs or domain objects
+- Normalization such as trimming strings
+- Replacing trivial private backing fields
 
-**Cuidado:** Si la clase tiene un símbolo llamado `field`, usar `@field` o `this.field` para desambiguar.
-
----
+Avoid when:
+- Validation belongs in FluentValidation or another validation layer
+- The setter becomes complex
+- The class already has a member named `field`; use `@field` or rename to avoid confusion
 
 ### 2. Null-conditional assignment — `?.=`
 
-**Antes:**
+Use when assigning only if the target exists; right-hand side is not evaluated if the receiver is null.
+
 ```csharp
-if (customer is not null)
-{
-    customer.Order = GetCurrentOrder(); // GetCurrentOrder() se evalúa aunque customer sea null
-}
+currentUser?.LastSeenAt = clock.UtcNow;
 ```
 
-**Con C# 14:**
-```csharp
-customer?.Order = GetCurrentOrder(); // GetCurrentOrder() NO se llama si customer es null
-```
+Good fits:
+- Optional state updates
+- Defensive assignments in mapping code
+- Optional telemetry/log enrichment
 
-**Dónde usar en ZENTICALAB:**
-- Asignación de propiedades en servicios donde el target puede ser null
-- Logging con campos opcionales
-- UI state en componentes que pueden desmontarse
+Avoid when:
+- Null should be treated as an error
+- Assignment hides an unexpected missing dependency
+- Increment/decrement is needed (`++` / `--` are not supported)
 
-**No usar con:** incremento/decremento (`++` / `--`) — no permitido en C# 14.
+### 3. Extension members — extension properties and static extension methods
 
----
-
-### 3. Extension members — Extension properties y static extension methods
+Use for tiny, broadly useful helpers where fluent/readable syntax matters.
 
 ```csharp
-public static class InventoryAlertExtensions
+public static class CollectionExtensions
 {
-    extension<T>(IList<T> list)
+    extension<T>(IReadOnlyCollection<T> source)
     {
-        // Extension property
-        public bool IsEmpty => list.Count == 0;
-
-        // Extension method
-        public IList<T> AddIfNotNull(T? item) where T : class
-        {
-            if (item is not null) list.Add(item);
-            return list;
-        }
-    }
-
-    // Static extension — se invoca como IEnumerable<int>.Identity
-    extension<T>(IEnumerable<T>)
-    {
-        public static IEnumerable<T> EmptyOrSelf(IEnumerable<T>? source)
-            => source ?? Enumerable.Empty<T>();
+        public bool IsEmpty => source.Count == 0;
     }
 }
 ```
 
-**Dónde usar en ZENTICALAB:**
-- `IsEmpty` para null-safety de listas
-- `EmptyOrSelf()` para reemplazar `?? Enumerable.Empty<T>()` de forma más legible
-- Operadores estáticos personalizados para tipos de dominio
+Good fits:
+- Small collection/string/result helpers
+- Domain-specific readability improvements
+- Avoiding repeated utility boilerplate
 
----
+Avoid when:
+- The extension hides expensive work
+- A normal method would be clearer
+- It encourages an anemic domain model by moving real behavior out of domain types
 
-### 4. `nameof(List<>)` — Unbound generics
+### 4. `nameof(List<>)` — unbound generic `nameof`
+
+Use when referring to generic type names without inventing a type argument.
 
 ```csharp
-// C# 13
-nameof(List<int>)  // "List"
-
-// C# 14 — unbound generic
-nameof(List<>)     // "List"
-nameof(Dictionary<,>)  // "Dictionary"
+var collectionType = nameof(List<>);        // "List"
+var mapType = nameof(Dictionary<,>);        // "Dictionary"
 ```
 
-**Dónde usar en ZENTICALAB:**
-- Atributos `[JsonPropertyName]` con tipos genéricos
-- Validación runtime de tipo genérico sin instanciar
+Good fits:
+- Diagnostics and exception messages
+- Metadata or validation involving generic type definitions
+- Source generators/analyzers
 
----
+### 5. Partial constructors and partial events
 
-### 5. Partial constructors y partial events
+Use to split generated and handwritten code safely.
 
 ```csharp
-public partial class TenantSchemaMigrator
+public partial class ReportBuilder
 {
-    // Defining declaration
-    partial void OnMigrationFailed(string schema, Exception ex);
-
-    // Implementing declaration
-    partial void OnMigrationFailed(string schema, Exception ex)
-    {
-        _telemetry.TrackFailure(schema, ex);
-    }
+    partial void OnBuildFailed(Exception exception);
 }
 ```
 
-**Dónde usar en ZENTICALAB:**
-- `TenantSchemaMigrator` — ya usa partial class, puede separar logging/telemetry
-- Separación de concerns en constructors de entidades complejas
+Good fits:
+- Source generators
+- Separating generated code from custom hooks
+- Optional telemetry hooks in partial classes
 
----
+Avoid when:
+- It makes object construction harder to understand
+- A normal constructor or event is simpler
 
-### 6. Lambda parameter modifiers sin tipo explícito
+### 6. Lambda parameter modifiers without explicit types
+
+Use when delegates need `out`, `ref`, or `in` parameters and the type is obvious.
 
 ```csharp
-// C# 13 — requería tipos explícitos
-Func<string, int, bool> tryParse = (string text, out int result)
-    => int.TryParse(text, out result);
-
-// C# 14 — modificador sin tipo
-Func<string, int, bool> tryParse = (text, out result)
-    => int.TryParse(text, out result);
+TryParse<int> parser = (text, out result) => int.TryParse(text, out result);
 ```
 
-**Dónde usar en ZENTICALAB:**
-- Delegates con `out` / `ref` / `in`
-- Callbacks con muchos parámetros en servicios
+Good fits:
+- Callback-heavy code
+- Parsers and low-level helpers
 
----
+Avoid when:
+- Explicit types improve readability
+- The delegate signature is not obvious nearby
 
-## .NET 10 Runtime — Relevante para ZENTICALAB
+## .NET 10 Runtime Guidance
 
-### JIT Inlining y devirtualization mejorados
-Métodos pequeños ahora se inline más agresivamente. Queries SQL en servicios como `InventoryAlertService` pueden ejecutarse más rápido sin cambios de código.
+### JIT inlining and devirtualization
 
-### NativeAOT enhancements
-Start-up más rápido. **Aplicable a:** Azure Functions, serverless. Para ZENTICALAB (containers/IIS) es menos crítico.
+Small methods and interface calls may perform better without code changes. Prefer clear code first; measure before introducing micro-optimizations.
 
-### AVX10.2 support
-Optimización vectorizada para operaciones numéricas. **Aplicable a:** reportes, cálculo de inventario.
+### NativeAOT improvements
 
----
+Consider NativeAOT for:
+- CLI tools
+- Serverless/functions
+- Small worker services
+- Fast startup / low memory scenarios
 
-## ASP.NET Core 10
+Avoid NativeAOT when the app relies heavily on reflection, dynamic loading, or libraries that are not AOT-friendly unless tested carefully.
 
-### OpenAPI improvements
-- Mejorado soporte para Required properties en schemas
-- Validación de form data más estricta
+### Vectorization improvements
 
-### Blazor preloading (WebAssembly)
-- Si el frontend usa Blazor, carga más rápida en segunda visita
+Use built-in APIs (`System.Numerics`, spans, memory APIs) before custom SIMD code. Only optimize numerical hot paths after profiling.
 
----
+## ASP.NET Core 10 Guidance
 
-## EF Core 10 (si actualizan desde EF Core 9)
+- Keep validation explicit and consistent with project standards.
+- Verify generated OpenAPI schemas for required properties and nullability.
+- Preserve secure defaults: HTTPS, auth/authz, CORS restrictions, safe headers, and production-safe error handling.
+- Avoid framework-version upgrades without smoke tests for middleware ordering, auth, serialization, and model binding.
+
+## EF Core 10 Guidance
 
 ### Named query filters
+
+Use named filters when the project needs independently disabled filters, such as soft-delete plus tenant or region filtering.
+
 ```csharp
-modelBuilder.Entity<SupplyItem>()
-    .HasQueryFilter(s => s.TenantId == _tenantId, "TenantFilter");
-modelBuilder.Entity<SupplyItem>()
-    .IgnoreQueryFilter("TenantFilter");
+modelBuilder.Entity<Order>()
+    .HasQueryFilter(o => !o.IsDeleted, "SoftDeleteFilter")
+    .HasQueryFilter(o => o.TenantId == tenantContext.TenantId, "TenantFilter");
 ```
-**ZENTICALAB ya maneja tenant filtering via middleware — no cambiar la estrategia existente.**
 
-### LINQ enhancements
-- Mejor inferencia de tipos en queries complejas
-- Traducción más eficiente de `string.Join` a SQL
+Rules:
+- Do not disable filters casually; require an explicit use case and tests.
+- Keep authorization checks separate from convenience query filters.
+- Verify generated SQL for critical queries.
 
----
+### LINQ translation improvements
 
-## Checklist para usar C# 14 / .NET 10 en ZENTICALAB
+Prefer clear LINQ, but inspect generated SQL for complex queries, aggregation, pagination, or string operations.
 
-- [ ] La feature mejora el código, no solo lo cambia
-- [ ] Todos los devs tienen .NET 10 SDK instalado
-- [ ] Tests existentes siguen pasando
-- [ ] No contradice Clean Architecture (lógica de dominio en Domain layer, no en presentation)
-- [ ] No rompe compatibilidad con entornos de producción existentes
+## Review Checklist
 
----
+- [ ] New syntax improves the code instead of adding novelty.
+- [ ] Behavior is covered by tests.
+- [ ] Public API contracts remain compatible or breaking changes are documented.
+- [ ] Nullability annotations are correct.
+- [ ] Performance claims are backed by profiling or benchmarks.
+- [ ] Framework upgrades include build/test/CI updates.
+- [ ] EF Core changes include migration and rollback implications.
 
-## Referencias
+## Imported Backend Reference Pack
+
+Additional backend-specific .NET 10/C# 14 references were imported under `references/backend-pack/`:
+
+- `overview.md` — quick-start patterns and decision flowcharts
+- `csharp-14.md` — extension blocks, `field`, null-conditional assignment
+- `minimal-apis.md` — validation, TypedResults, endpoint filters, vertical slices
+- `security.md` — JWT, CORS, rate limiting, OpenAPI security, middleware order
+- `infrastructure.md` — options, resilience, channels, health checks, caching, Serilog, EF Core
+- `testing.md` — WebApplicationFactory, integration tests, auth testing
+- `anti-patterns.md` — HttpClient, DI captive dependencies, blocking async, N+1
+- `libraries.md` — MediatR, FluentValidation, Mapster, ErrorOr, Polly, Aspire
+
+Use these as supporting references only. Project `docs/STANDARDS.md`, SDD approvals, and the main skill guidance remain authoritative.
+
+## References
 
 - [.NET 10 Overview](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview)
 - [C# 14 What's New](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14)
-- [C# 14 Breaking Changes](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/breaking-changes/compiler%20breaking-changes%20-%20dotnet%2010)
+- [C# compiler breaking changes for .NET 10](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/breaking-changes/compiler%20breaking-changes%20-%20dotnet%2010)

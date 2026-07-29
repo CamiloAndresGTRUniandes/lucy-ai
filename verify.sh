@@ -75,7 +75,7 @@ done
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 2.0: Workspace agnostic content checks (v1.7.0)
+# Check 2.0: Workspace agnostic content checks (v1.8.0)
 # ---------------------------------------------------------------------------
 echo "Workspace agnostic content checks:"
 check "AGENTS.md has NON-NEGOTIABLE RULES" "grep -q 'NON-NEGOTIABLE' '$LUCY_DIR/workspace/AGENTS.md'" "agnostic-agents-nonnegotiable"
@@ -107,7 +107,7 @@ check "AGENTS.md has SDD Orchestrator reference" "grep -q 'SDD Orchestrator' '$L
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 2.2: SDD docs sync checks (v1.7.0)
+# Check 2.2: SDD docs sync checks (v1.8.0)
 # ---------------------------------------------------------------------------
 echo "SDD docs sync checks:"
 check "sdd/templates/standards.md.in exists (root)" "[ -f '$LUCY_DIR/sdd/templates/standards.md.in' ]" "sdd-root-standards-tmpl"
@@ -129,13 +129,13 @@ echo ""
 # Check 3: Bundled skills
 # ---------------------------------------------------------------------------
 echo "Bundled skill checks:"
-for skill in sdd github-pr zenticalab-pr-review csharp-dotnet dotnet10-csharp14 tailwind-4 typescript angular-core angular-architecture angular-forms angular-performance zenticalab-security skill-creator; do
+for skill in sdd github-pr csharp-dotnet dotnet10-csharp14 tailwind-4 typescript angular-core angular-architecture angular-forms angular-performance skill-creator; do
   check "skill/$skill exists" "[ -f '$SKILLS_DIR/$skill/SKILL.md' ]" "skill-$skill"
 done
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 4: Config fragment (expanded in v1.7.0)
+# Check 4: Config fragment (expanded in v1.8.0)
 # ---------------------------------------------------------------------------
 echo "Config checks:"
 check "agent-fragment.json5 exists" "[ -f '$LUCY_DIR/config/agent-fragment.json5' ]" "config-fragment"
@@ -208,7 +208,7 @@ done
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 5.5: Content boundary hook scripts (v1.7.0)
+# Check 5.5: Content boundary hook scripts (v1.8.0)
 # ---------------------------------------------------------------------------
 echo "Content boundary hook checks:"
 check "check-content-boundaries.sh exists" "[ -f '$LUCY_DIR/scripts/check-content-boundaries.sh' ]" "hook-checker-exists"
@@ -252,18 +252,18 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 6.5: README and version consistency (v1.7.0)
+# Check 6.5: README and version consistency (v1.8.0)
 # ---------------------------------------------------------------------------
 echo "README / version checks:"
-check "README has version 1.7.0 badge" "grep -q '1.7.0' '$LUCY_DIR/README.md'" "readme-version-badge"
+check "README has version 1.8.0 badge" "grep -q '1.8.0' '$LUCY_DIR/README.md'" "readme-version-badge"
 check "README mentions agnostic configuration" "grep -qi 'agnostic.configuration\|agnostic.config' '$LUCY_DIR/README.md'" "readme-agnostic-config"
 check "README mentions content boundary enforcement" "grep -qi 'content.boundary' '$LUCY_DIR/README.md'" "readme-content-boundary"
 check "README mentions config fragment" "grep -q 'agent-fragment.json5\|openclaw.json' '$LUCY_DIR/README.md'" "readme-config-fragment"
 check "README mentions contributor setup" "grep -q 'contributor' '$LUCY_DIR/README.md'" "readme-contributor"
 check "README no longer says TUI configures SDD models" "! grep -q 'configure SDD phase models' '$LUCY_DIR/README.md'" "readme-no-tui-sdd-models"
 check "README doesn't reference lucy-config branch" "! grep -q 'lucy-config' '$LUCY_DIR/README.md'" "readme-no-lucy-config"
-check "CHANGELOG has 1.7.0 entry" "grep -q '\\[1.7.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.7.0"
-check "install.sh version is 1.7.0" "grep -q 'CURRENT_VERSION=\"1.7.0\"' '$LUCY_DIR/install.sh'" "install-version-1.7.0"
+check "CHANGELOG has 1.8.0 entry" "grep -q '\\[1.8.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.8.0"
+check "install.sh version is 1.8.0" "grep -q 'CURRENT_VERSION=\"1.8.0\"' '$LUCY_DIR/install.sh'" "install-version-1.8.0"
 check "README mentions Harness Engineering" "grep -qi 'harness.engineering' '$LUCY_DIR/README.md'" "readme-harness-engineering"
 check "README has 7-layer harness table" "grep -q '7 layer' '$LUCY_DIR/README.md'" "readme-harness-layers"
 check "install.sh auto-injects config fragment" "grep -q 'agent-fragment.json5' '$LUCY_DIR/install.sh' && grep -q 'openclaw.json' '$LUCY_DIR/install.sh'" "install-auto-include"

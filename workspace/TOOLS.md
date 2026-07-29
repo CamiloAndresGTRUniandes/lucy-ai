@@ -25,13 +25,14 @@ Skills define _how_ tools work. This file is for _your_ specifics — things uni
 The model and thinking level depend on the active SDD phase. See `AGENTS.md`
 for the full table. Lucy switches automatically when entering each phase.
 
-- **Switch mechanism:** `session_status(model="deepseek/deepseek-v4-{pro|flash}")`
+- **Switch mechanism:** `session_status(model="openai-codex/gpt-5.4")` for casual conversation; it automatically switches back to `openai-codex/gpt-5.5` (orchestrator) when entering an SDD cycle.
 - **Escalation rule:** If Lucy needs Pro during a Flash phase, she must ask
   Camilo for explicit permission.
-- **Available models:** `deepseek/deepseek-v4-pro` (1.6T params, 49B active)
+- **Available models in rotation:** `openai-codex/gpt-5.5` (orchestrator), `openai-codex/gpt-5.4` (casual), `deepseek/deepseek-v4-pro` (1.6T params, 49B active),
   and `deepseek/deepseek-v4-flash` (284B params, 13B active, ~12x cheaper).
-- **Thinking always `high`** — DeepSeek is binary in practice: `high` is
-  the only reasoning level enabled (besides `off`).
+- **Thinking always `high`** — fixed per agent profile; `session_status()`
+  can switch model but not thinking level. Intended: orchestrator medium/high,
+  casual low/medium, but the runtime fixes it to `high`.
 
 ### 📧 Email (Gmail SMTP)
 
@@ -47,12 +48,11 @@ Lucy has email and can send emails with attachments.
 #### AI Models (chat/text)
 | Provider | Model | Usage |
 |----------|-------|-----|
-| DeepSeek | deepseek-v4-pro | Primary chat (SDD phases Explore/Propose/Design/Apply) |
-| DeepSeek | deepseek-v4-flash | Budget chat (SDD phases Spec/Tasks/Archive, casual) |
-| OpenAI Codex | gpt-5.5 | SDD phase Design (via OAuth) |
-| OpenAI Codex | gpt-5.4 | SDD phase Explore (via OAuth) |
+| OpenAI Codex | gpt-5.5 | Orchestrator + SDD phases Design/Verify (via OAuth) |
+| OpenAI Codex | gpt-5.4 | Casual conversation + SDD phases Explore (via OAuth) |
 | OpenAI Codex | gpt-5.4-mini | SDD phase Archive (via OAuth) |
-| OpenAI Codex | gpt-5.3-codex | SDD phase Verify (via OAuth) |
+| DeepSeek | deepseek-v4-pro | SDD phases Propose/Apply + fallback general |
+| DeepSeek | deepseek-v4-flash | SDD phases Spec/Tasks + budget chat |
 
 #### Media Generation
 | Provider | Capability | Auth |

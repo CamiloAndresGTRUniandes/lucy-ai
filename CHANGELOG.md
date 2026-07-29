@@ -5,6 +5,30 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-07-29
+
+### Added
+
+- **Orchestrator Doctrine skill** — `orchestrator-doctrine`: master routing layer for SDD, sub-agents, decision critique, mentoring, and specialist skills. Mandatory preload before any SDD cycle.
+- **31 new bundled skills** — software-architecture, security, find-skills, skill-registry, branch-pr, git-commit, issue-creation, judgment-day, mentoring-juniors, csharp-async, csharp-docs, csharp-xunit, dotnet-best-practices, dotnet-design-pattern-review, sql-code-review, sql-optimization, azure-devops, azure-devops-cli, azure-boards, azure-repos, azure-artifacts, azure-sign-in, ado-context, ado-effort-estimation, ado-refinement, ado-us-ac-template, igniteui-angular-components, igniteui-angular-grids, igniteui-angular-generate-from-image-design, igniteui-angular-theming, angular-forms
+- **Language-matching rule** — AGENTS.md now enforces response language matching (English/Spanish) as a hard, non-negotiable rule.
+- **English-standardized docs** — All SDD workflow docs and templates (orchestrator-flow, task-string-format, validation-rules, phase templates) translated to English.
+- **RELEASE_NOTES.md** — GitHub-compatible release notes at repo root.
+
+### Changed
+
+- **SDD model matrix updated** — Verify phase primary model changed from `openai-codex/gpt-5.3-codex` to `openai-codex/gpt-5.5`. Orchestrator model changed from `deepseek/deepseek-v4-pro` to `openai-codex/gpt-5.5`. Casual conversation model changed from `deepseek/deepseek-v4-flash` to `openai-codex/gpt-5.4`.
+- **Config fragment** — `config/agent-fragment.json5` main agent primary model changed from `deepseek/deepseek-v4-pro` to `openai-codex/gpt-5.5` with `deepseek/deepseek-v4-pro` fallback.
+- **Workspace templates synced** — AGENTS.md, SOUL.md, USER.md, TOOLS.md updated from live workspace (English standardization, language-matching, updated model inventory).
+- **SDD docs/templates synced** — orchestrator-flow.md, task-string-format.md, validation-rules.md, and 6 phase templates updated from live workspace (English version).
+- **SDD skill updated to v1.1 from live workspace** — Engram Memory Protocol, stricter phase gate rules.
+- **7 skills updated to live versions** — angular-architecture, angular-core, dotnet10-csharp14, pr-review, sdd, skill-creator, tailwind-4.
+- **README.md** — version badge updated to v1.8.0, What's New section rewritten for v1.8.0 features.
+
+### Removed
+
+- **Deprecated skills removed** — `zenticalab-pr-review` and `zenticalab-security` replaced by project-agnostic `pr-review` and `security`.
+
 ## [1.7.0] - 2026-05-21
 
 ### Added

@@ -1,62 +1,80 @@
-# {project_name} — Project Standards
+# {Project} — Project Standards
 
-> {project_description}
+> {Brief project description}
 >
-> **Language**: {code_language}
-> **Repo**: {repo_url}
+> **Language**: English (code, variables, seeding, comments)
+> **UI language**: {UI language, e.g. "Colombian Spanish"}
 
 ---
 
 ## Project Identity
 
-- **Type**: {project_type}
-- **Branches**: `main`, `develop`
-- **Repo**: `{repo_owner}/{repo_name}`
-- **GitHub user**: `{github_user}` | **Reviewer**: `{reviewer}`
+- **Stack**: {Technology stack}
+- **Backend repo**: `{org}/{repo}`
+- **Frontend repo**: `{org}/{repo}` (if applicable)
+- **GitHub user**: `{user}` | **Reviewer**: `{reviewer}`
+- **Local repos**: `/workspace/repos/{project}/`
 
 ---
 
 ## Architecture Principles
 
-### Stack
-
-- **Backend**: {backend_stack_description}
-- **Frontend**: {frontend_stack_description}
-- **Database**: {database_description}
-- **Infrastructure**: {infra_description}
-
-### Design Principles
-
-- {principle_1}
-- {principle_2}
-- {principle_3}
-
-### Layer Structure
-
-```
-{layer_diagram}
-```
-
-{architecture_description}
+{Project-specific architecture patterns}
 
 ---
 
-## File Structure
+## Backend Standards (if applicable)
 
+**Location**: `/workspace/repos/{project}/backend/`
+
+### DTOs
+- **Located**: `{dto_path}`
+- **Format**: `{format convention}`
+- **Naming**: `{naming convention}`
+- **Validation**: {validation strategy}
+
+### Services
+- **Interface**: `{interface_pattern}` in `{interface_path}`
+- **Implementation**: `{impl_pattern}` in `{impl_path}`
+
+### SQL / Data Access Patterns
+- {data access patterns}
+
+### Controller Patterns
+- {controller conventions}
+
+### Tests
+- **Unit**: `{unit_test_path}` — {framework}
+- **Integration**: `{integration_test_path}` — {framework}
+
+---
+
+## Frontend Standards (if applicable)
+
+**Location**: `/workspace/repos/{project}/frontend/`
+
+### Architecture
+- {framework} {version} - {key architectural decisions}
+
+### Component Structure
 ```
-{project_name}/
-├── {directory_1}/
-│   ├── {subdirectory_1}/
-│   └── ...
-├── {directory_2}/
-└── ...
+{component structure diagram}
 ```
+
+### Patterns
+- {key patterns and conventions}
+
+### Naming
+- {naming conventions}
+
+### Tests
+- {test framework and patterns}
 
 ---
 
 ## Commit Convention
 
-Format: `{commit_format}`
+Format: `{commit format}`
 
 Types:
 - `feat`: new feature
@@ -64,13 +82,6 @@ Types:
 - `refactor`: internal improvement (no behavior change)
 - `docs`: documentation only
 - `test`: test-only changes
-- `chore`: maintenance, tooling, CI
-
-Examples:
-```
-{commit_example_1}
-{commit_example_2}
-```
 
 ---
 
@@ -78,35 +89,25 @@ Examples:
 
 ### Protected branches — NO EXCEPTIONS
 
-- `main` — release branch, **never push directly**
-- `develop` — integration branch, **never push directly**
+- {protected branches} — **never push directly**, always via PR
 
 ### Flow
-
-1. All work on **feature branches** (`feat/{description}`)
-2. Never push/merge directly to `main` or `develop`
+1. All work on **feature branches** (`{branch pattern}`)
+2. **Never** push/merge directly to protected branches
 3. Open PR → assign `{reviewer}` as reviewer
-4. PR requires approved review before merge
+4. PR requires at minimum one approved review before merge
 
-### Release Process
-
-1. Feature branch → PR → merge to `develop`
-2. Release branch from `develop` → PR → merge to `main`
-3. Tag release with version: `git tag vX.Y.Z`
+### Review checklist (before opening PR)
+- [ ] {check 1}
+- [ ] {check 2}
+- [ ] {check 3}
+- [ ] Tests: unit tests added for new services?
+- [ ] No secrets in code (env vars for everything)
 
 ---
 
 ## Environment & Secrets
 
-- **Never commit**: API keys, tokens, OAuth credentials, passwords
 - **Local dev**: `.env` file (git-ignored)
-- **Production**: {secret_storage_description}
-- **Placeholder format**: `{placeholder_format}` (resolved at runtime)
-
----
-
-## Workspace Context
-
-- **Project root**: `/workspace/repos/{repo_name}/`
-- **SDD cycle outputs**: `sdd/{repo_name}/{feature}/`
-- **Engram project**: `{engram_project_name}`
+- **Production**: {secrets strategy}
+- **Never commit**: connection strings, keys, passwords, credentials

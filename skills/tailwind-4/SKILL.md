@@ -197,3 +197,10 @@ const CHART_COLORS = {
 
 ## Keywords
 tailwind, css, styling, cn, utility classes, responsive
+
+## Imported Tailwind Design System Reference Pack
+
+Additional Tailwind v4 design-system guidance was imported under `references/frontend-pack-tailwind-design-system/overview.md`.
+
+Use it for component-library/design-token inspiration only. The canonical `tailwind-4` rules remain authoritative, especially avoiding `var()` inside class names.
+
