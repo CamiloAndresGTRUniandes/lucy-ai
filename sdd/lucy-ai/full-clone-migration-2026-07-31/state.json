@@ -66,5 +66,20 @@
     "base": "main",
     "commit": "38d0a4ea3c1c",
     "ci": "passing (6/6)"
+  },
+  "prReview": {
+    "copilot": {
+      "status": "addressed",
+      "timestamp": "2026-07-31T17:36:00Z",
+      "fixes": [
+        "return+cleanup instead of exit in step_restore_full_clone",
+        "cleanup downloaded URL bundles",
+        "explicit openclaw config validate/models list post-restore",
+        "broaden default secret-like exclusions",
+        "add update.sh version check",
+        "extend CI nested secret fixture"
+      ],
+      "localVerification": "bash verify.sh 119/119; nested-secret export test; isolated restore validation smoke"
+    }
   }
 }

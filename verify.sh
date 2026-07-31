@@ -264,6 +264,7 @@ check "README no longer says TUI configures SDD models" "! grep -q 'configure SD
 check "README doesn't reference lucy-config branch" "! grep -q 'lucy-config' '$LUCY_DIR/README.md'" "readme-no-lucy-config"
 check "CHANGELOG has 1.9.0 entry" "grep -q '\\[1.9.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.9.0"
 check "install.sh version is 1.9.0" "grep -q 'CURRENT_VERSION=\"1.9.0\"' '$LUCY_DIR/install.sh'" "install-version-1.9.0"
+check "update.sh version is 1.9.0" "grep -q 'CURRENT_VERSION=\"1.9.0\"' '$LUCY_DIR/update.sh'" "update-version-1.9.0"
 check "exporter script exists" "[ -f '$LUCY_DIR/scripts/export-full-clone.sh' ]" "export-script-exists"
 check "install.sh supports --full-clone" "grep -q -- '--full-clone' '$LUCY_DIR/install.sh'" "install-full-clone-flag"
 check "README mentions Harness Engineering" "grep -qi 'harness.engineering' '$LUCY_DIR/README.md'" "readme-harness-engineering"

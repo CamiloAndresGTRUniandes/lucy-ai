@@ -1106,6 +1106,7 @@ step_restore_full_clone() {
   local bundle_file=""
   local tmp_dir=""
   local restore_root="${HOME}/.openclaw"
+  local downloaded_bundle=false
 
   # Resolve bundle: local file or remote URL
   if [[ "$bundle_source" =~ ^https?:// ]]; then
@@ -1115,16 +1116,17 @@ step_restore_full_clone() {
     else
       log_info "Downloading bundle from $bundle_source ..."
       bundle_file="$(mktemp)"
+      downloaded_bundle=true
       if ! curl -fsSL --connect-timeout 15 --max-time 600 "$bundle_source" -o "$bundle_file"; then
         log_fail "Could not download bundle from $bundle_source"
         rm -f "$bundle_file"
-        exit 1
+        return 1
       fi
     fi
   else
     if [ ! -f "$bundle_source" ]; then
       log_fail "Bundle not found: $bundle_source"
-      exit 1
+      return 1
     fi
     bundle_file="$bundle_source"
   fi
@@ -1136,11 +1138,16 @@ step_restore_full_clone() {
 
   # Extract to temp dir and verify structure
   tmp_dir="$(mktemp -d)"
-  cleanup_tmp() { [ -n "${tmp_dir:-}" ] && rm -rf "$tmp_dir"; }
-  trap cleanup_tmp RETURN
+  cleanup_tmp() {
+    [ -n "${tmp_dir:-}" ] && rm -rf "$tmp_dir"
+    if $downloaded_bundle && [ -n "${bundle_file:-}" ]; then
+      rm -f "$bundle_file"
+    fi
+  }
   if ! tar -xzf "$bundle_file" -C "$tmp_dir" --no-same-owner 2>/dev/null; then
     log_fail "Could not extract bundle (not a valid tar.gz?)"
-    exit 1
+    cleanup_tmp
+    return 1
   fi
 
   # Bundle may contain .openclaw/ prefix or be the openclaw root directly
@@ -1152,7 +1159,8 @@ step_restore_full_clone() {
   # Verify bundle has expected content
   if [ ! -f "$bundle_root/openclaw.json" ] && [ ! -d "$bundle_root/lucy-agent" ] && [ ! -d "$bundle_root/workspace" ]; then
     log_fail "Bundle does not contain expected .openclaw structure (openclaw.json, lucy-agent/, or workspace/)"
-    exit 1
+    cleanup_tmp
+    return 1
   fi
 
   # Backup existing ~/.openclaw
@@ -1162,7 +1170,8 @@ step_restore_full_clone() {
     log_info "Backing up existing $restore_root to $backup_dir"
     if ! mv "$restore_root" "$backup_dir"; then
       log_fail "Could not back up existing $restore_root. Check disk space."
-      exit 1
+      cleanup_tmp
+      return 1
     fi
   fi
 
@@ -1171,14 +1180,46 @@ step_restore_full_clone() {
   mkdir -p "$restore_root"
   if ! cp -a "$bundle_root/." "$restore_root/"; then
     log_fail "Restore failed. Your original config is at $backup_dir"
-    exit 1
+    cleanup_tmp
+    return 1
   fi
   log_ok "Restore complete (backup: $backup_dir)"
+  cleanup_tmp
 
   # If the bundle did not include lucy-agent, ensure it is present for later steps
   if [ ! -d "${LUCY_DIR}" ]; then
     log_warn "Bundle did not contain lucy-agent/ — cloning latest instead"
     step_clone_or_pull
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Step 7c: Validate restored OpenClaw config (--full-clone)
+# ---------------------------------------------------------------------------
+step_post_restore_validation() {
+  log_step "Validating restored OpenClaw config"
+
+  if $DRY_RUN; then
+    log_info "[DRY-RUN] Would run: openclaw config validate"
+    log_info "[DRY-RUN] Would run: openclaw models list"
+    return 0
+  fi
+
+  if ! command -v openclaw >/dev/null 2>&1; then
+    log_warn "OpenClaw CLI not available — skipping post-restore validation"
+    return 0
+  fi
+
+  if openclaw config validate >/dev/null; then
+    log_ok "openclaw config validate passed"
+  else
+    log_warn "openclaw config validate reported issues; review config before restarting"
+  fi
+
+  if openclaw models list >/dev/null; then
+    log_ok "openclaw models list passed"
+  else
+    log_warn "openclaw models list reported issues; re-authenticate providers if needed"
   fi
 }
 
@@ -1319,6 +1360,9 @@ main() {
   step_install_bundled_skills
   step_install_clawhub_skills
   step_include_config_fragment
+  if [ -n "$FULL_CLONE_SOURCE" ]; then
+    step_post_restore_validation
+  fi
   step_verify
   step_report
 }

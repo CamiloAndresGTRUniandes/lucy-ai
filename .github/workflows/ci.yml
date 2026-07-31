@@ -100,22 +100,26 @@ jobs:
 
       - name: Create mock ~/.openclaw fixture
         run: |
-          mkdir -p "$HOME/.openclaw/credentials" "$HOME/.openclaw/identity" "$HOME/.openclaw/workspace"
+          mkdir -p "$HOME/.openclaw/credentials" "$HOME/.openclaw/identity" "$HOME/.openclaw/workspace/project/config"
           echo '{}' > "$HOME/.openclaw/openclaw.json"
           echo 'fake-token' > "$HOME/.openclaw/credentials/token.txt"
           echo 'fake-id' > "$HOME/.openclaw/identity/device.json"
           echo 'config' > "$HOME/.openclaw/workspace/AGENTS.md"
+          echo 'repo-env' > "$HOME/.openclaw/workspace/project/.env"
+          echo 'secret' > "$HOME/.openclaw/workspace/project/config/api_key.txt"
+          echo 'secret' > "$HOME/.openclaw/workspace/project/token-cache.json"
 
-      - name: Export default bundle excludes identity/credentials
+      - name: Export default bundle excludes identity/credentials/secrets
         run: |
           mkdir -p out
           bash scripts/export-full-clone.sh --output out
           BUNDLE=$(ls out/lucy-full-clone-*.tar.gz)
-          if tar -tzf "$BUNDLE" | grep -qE 'identity|credentials'; then
-            echo "FAIL: default bundle leaked identity/credentials"
+          if tar -tzf "$BUNDLE" | grep -qE 'identity|credentials|\.env|token|secret|api_key'; then
+            echo "FAIL: default bundle leaked identity/credentials/secrets"
+            tar -tzf "$BUNDLE"
             exit 1
           fi
-          echo "OK: default bundle excludes identity/credentials"
+          echo "OK: default bundle excludes identity/credentials/secrets"
 
       - name: Export with --include-identity includes them
         run: |

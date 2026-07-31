@@ -57,3 +57,16 @@
 3. **CI pipeline updated** — the new `test-full-clone` job exercises the full export-restore lifecycle including mutual exclusion guards.
 
 4. **Ready for PR** — branch `feat/v1.9.0-full-clone-migration` with all commits clean for review.
+
+## PR Review Re-Verification
+
+After Copilot review feedback:
+
+| Check | Result |
+|-------|--------|
+| `bash -n` for all shell scripts | ✅ |
+| `bash verify.sh` | ✅ 119/119 |
+| Default export excludes nested `.env`, `.env` suffixes, token/secret/api_key filenames | ✅ |
+| `--include-identity` keeps sensitive files when explicitly requested | ✅ |
+| Isolated full-clone restore invokes `openclaw config validate` and `openclaw models list` | ✅ |
+| `git diff --check` | ✅ |

@@ -62,3 +62,13 @@
 2. **Trap RETURN + `set -u`:** `trap 'rm -rf "$tmp_dir"' RETURN` fails when `tmp_dir` is a local variable and `set -u` is active — fixed with `cleanup_tmp()` function using `${tmp_dir:-}`
 3. **lucy-agent detection check:** `[ ! -d "${LUCY_DIR}/install.sh" ]` was checking if a file is a directory — fixed to `[ ! -d "${LUCY_DIR}" ]`
 4. **Mode label in main():** full-clone mode was not shown in the non-TUI mode label — added `FULL_CLONE_SOURCE` checks in both TUI and non-TUI branches
+
+## PR Review Fixes (Copilot)
+
+- Replaced `exit 1` inside `step_restore_full_clone()` post-temp-dir flow with `return 1` plus explicit cleanup, preventing temp extraction/download leaks.
+- Removed the `RETURN` trap after discovering it can fire outside the intended local scope under `set -u`; cleanup is now explicit and deterministic.
+- Clean up downloaded URL bundles on success and failure.
+- Added explicit post-restore validation step: `openclaw config validate` and `openclaw models list` run after config fragment linking in `--full-clone` mode.
+- Broadened default exporter exclusions to nested `.env`, `*.env`, `*token*`, `*secret*`, `*api_key*`, and `*apikey*` paths across `.openclaw` unless `--include-identity` is set.
+- Added `verify.sh` drift check for `update.sh CURRENT_VERSION=1.9.0`.
+- Extended CI full-clone fixture to verify nested workspace secrets are excluded by default.

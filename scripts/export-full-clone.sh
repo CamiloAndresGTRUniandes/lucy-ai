@@ -68,14 +68,25 @@ build_exclusions() {
     ".openclaw/*.backup-*"
   )
 
-  # Identity/security — excluded unless --include-identity
+  # Identity/security — excluded unless --include-identity.
+  # Keep this intentionally broad: workspace repos may contain nested .env files
+  # or secret-like filenames that should not leave the source machine by default.
   if ! $INCLUDE_IDENTITY; then
     always+=(
       ".openclaw/identity"
       ".openclaw/credentials"
-      ".openclaw/.env"
-      ".openclaw/workspace/.env"
-      ".openclaw/lucy-agent/.env"
+      ".openclaw/**/.env"
+      ".openclaw/**/*.env"
+      ".openclaw/**/*token*"
+      ".openclaw/**/*Token*"
+      ".openclaw/**/*TOKEN*"
+      ".openclaw/**/*secret*"
+      ".openclaw/**/*Secret*"
+      ".openclaw/**/*SECRET*"
+      ".openclaw/**/*api_key*"
+      ".openclaw/**/*API_KEY*"
+      ".openclaw/**/*apikey*"
+      ".openclaw/**/*ApiKey*"
     )
   fi
 
