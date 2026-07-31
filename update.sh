@@ -28,7 +28,7 @@ LUCY_DIR="${HOME}/.openclaw/lucy-agent"
 WORKSPACE_DIR="${HOME}/.openclaw/workspace"
 SKILLS_DIR="${WORKSPACE_DIR}/skills"
 VERSION_FILE="${LUCY_DIR}/.version"
-CURRENT_VERSION="1.6.3"
+CURRENT_VERSION="1.9.0"
 
 TAG=""
 FORCE=false
