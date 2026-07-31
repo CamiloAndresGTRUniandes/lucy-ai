@@ -32,6 +32,7 @@ jobs:
           bash -n verify.sh
           bash -n uninstall.sh
           bash -n scripts/common.sh
+          bash -n scripts/export-full-clone.sh
 
   format-check:
     runs-on: ubuntu-latest
@@ -45,7 +46,7 @@ jobs:
           sudo apt-get install -y shfmt
 
       - name: Check shell formatting
-        run: shfmt -d -i 2 -ci install.sh update.sh verify.sh uninstall.sh scripts/common.sh
+        run: shfmt -d -i 2 -ci install.sh update.sh verify.sh uninstall.sh scripts/common.sh scripts/export-full-clone.sh
 
   verify-check:
     runs-on: ubuntu-latest
@@ -90,3 +91,47 @@ jobs:
           bash install.sh --version
           bash install.sh --help
           bash update.sh --version
+
+  test-full-clone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create mock ~/.openclaw fixture
+        run: |
+          mkdir -p "$HOME/.openclaw/credentials" "$HOME/.openclaw/identity" "$HOME/.openclaw/workspace"
+          echo '{}' > "$HOME/.openclaw/openclaw.json"
+          echo 'fake-token' > "$HOME/.openclaw/credentials/token.txt"
+          echo 'fake-id' > "$HOME/.openclaw/identity/device.json"
+          echo 'config' > "$HOME/.openclaw/workspace/AGENTS.md"
+
+      - name: Export default bundle excludes identity/credentials
+        run: |
+          mkdir -p out
+          bash scripts/export-full-clone.sh --output out
+          BUNDLE=$(ls out/lucy-full-clone-*.tar.gz)
+          if tar -tzf "$BUNDLE" | grep -qE 'identity|credentials'; then
+            echo "FAIL: default bundle leaked identity/credentials"
+            exit 1
+          fi
+          echo "OK: default bundle excludes identity/credentials"
+
+      - name: Export with --include-identity includes them
+        run: |
+          mkdir -p out2
+          bash scripts/export-full-clone.sh --include-identity --output out2
+          BUNDLE=$(ls out2/lucy-full-clone-*.tar.gz)
+          if ! tar -tzf "$BUNDLE" | grep -qE 'identity/device.json|credentials/token.txt'; then
+            echo "FAIL: --include-identity bundle missing identity/credentials"
+            exit 1
+          fi
+          echo "OK: --include-identity bundle includes identity/credentials"
+
+      - name: Mutually exclusive flags are rejected
+        run: |
+          if bash install.sh --full-clone ./out/lucy-full-clone-*.tar.gz --skip-workspace --dry-run 2>/dev/null; then
+            echo "FAIL: --full-clone + --skip-workspace should be rejected"
+            exit 1
+          fi
+          echo "OK: --full-clone rejects conflicting flags"

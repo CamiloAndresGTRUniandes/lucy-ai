@@ -5,6 +5,27 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-07-31
+
+### Added
+
+- **Full-clone export script** — `scripts/export-full-clone.sh` creates a portable `lucy-full-clone-YYYYMMDD-HHMMSS.tar.gz` bundle from the current OpenClaw installation (`openclaw.json`, `lucy-agent/`, `workspace/`).
+- **`--include-identity` flag** — opt-in inclusion of `identity/`, `credentials/`, `.env` files, and auth profiles for private full clones. Prints a security warning when used.
+- **`--exclude-memories` flag** — excludes session memory data (`workspace/MEMORY.md`, `workspace/memory/`, `memory/`) from the bundle. Composable with `--include-identity`.
+- **`install.sh --full-clone <path-or-url>`** — new installer mode that restores an exported bundle on a target server. Accepts local paths and HTTP/HTTPS URLs.
+- **Automatic pre-restore backup** — `--full-clone` moves the existing `~/.openclaw` to `~/.openclaw.backup.YYYYMMDD-HHMMSS/` before restoring.
+- **Post-restore validation** — runs `openclaw config validate` and `openclaw models list` after restore, and reminds the user to re-authenticate providers/channels.
+- **Mutual exclusion guard** — `--full-clone` is rejected when combined with `--clone`, `--template`, or `--skip-workspace`.
+- **verify.sh checks** — new checks for exporter script presence, `--full-clone` support, and v1.9.0 version consistency.
+
+### Changed
+
+- **install.sh** — `CURRENT_VERSION` bumped to `1.9.0`; new `step_restore_full_clone()`; `compute_tui_mode()` and `main()` handle full-clone mode; help text and header comments document `--full-clone`.
+- **update.sh** — `CURRENT_VERSION` bumped to `1.9.0`.
+- **verify.sh** — README/version consistency checks updated to v1.9.0, plus new full-clone checks.
+- **README.md** — version badge, What's New section, and install examples updated for v1.9.0.
+- **RELEASE_NOTES.md** — rewritten for v1.9.0.
+
 ## [1.8.0] - 2026-07-29
 
 ### Added

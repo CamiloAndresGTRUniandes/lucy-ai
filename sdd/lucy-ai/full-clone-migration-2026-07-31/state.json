@@ -1,0 +1,70 @@
+{
+  "cycle": "full-clone-migration-2026-07-31",
+  "project": "lucy-ai",
+  "branch": "feat/v1.9.0-full-clone-migration",
+  "feature": "Full-clone export/import script for server migration",
+  "currentModel": "openai-codex/gpt-5.5",
+  "startedAt": "2026-07-31T15:30:00Z",
+  "phaseApprovals": {
+    "explore": {
+      "approved": true,
+      "timestamp": "2026-07-31T15:40:00Z",
+      "summary": "Identified: need exporter script + --full-clone installer mode. Bundle excludes auth/tokens by default. --include-identity flag for private full clone."
+    },
+    "propose": {
+      "approved": true,
+      "timestamp": "2026-07-31T15:50:00Z",
+      "summary": "Option B approved: exporter script + --full-clone installer flag. Exporter includes --include-identity flag to optionally bundle auth/tokens/security for private migration."
+    },
+    "spec": {
+      "approved": true,
+      "written": true,
+      "timestamp": "2026-07-31T16:00:00Z",
+      "approvedAt": "2026-07-31T16:00:00Z",
+      "path": "sdd/lucy-ai/full-clone-migration-2026-07-31/spec.md"
+    },
+    "design": {
+      "approved": true,
+      "written": true,
+      "timestamp": "2026-07-31T16:04:00Z",
+      "approvedAt": "2026-07-31T16:04:00Z",
+      "path": "sdd/lucy-ai/full-clone-migration-2026-07-31/design.md"
+    },
+    "tasks": {
+      "approved": true,
+      "written": true,
+      "timestamp": "2026-07-31T16:25:00Z",
+      "approvedAt": "2026-07-31T16:31:00Z",
+      "path": "sdd/lucy-ai/full-clone-migration-2026-07-31/tasks.md"
+    },
+    "apply": {
+      "approved": true,
+      "written": true,
+      "timestamp": "2026-07-31T16:58:00Z",
+      "approvedAt": "2026-07-31T16:58:00Z",
+      "path": "sdd/lucy-ai/full-clone-migration-2026-07-31/apply.md",
+      "summary": "Implementation accepted together with Verify approval."
+    },
+    "verify": {
+      "approved": true,
+      "written": true,
+      "timestamp": "2026-07-31T16:42:00Z",
+      "path": "sdd/lucy-ai/full-clone-migration-2026-07-31/verify.md",
+      "verdict": "PASS \u2014 16/17 ACs pass, AC14 needs real-server verification",
+      "approvedAt": "2026-07-31T16:58:00Z",
+      "summary": "Verify approved by Camilo after PASS summary (16/17 ACs, AC14 real-server caveat)."
+    },
+    "archive": {
+      "approved": false
+    }
+  },
+  "pullRequest": {
+    "number": 46,
+    "url": "https://github.com/CamiloAndresGTRUniandes/lucy-ai/pull/46",
+    "title": "feat(migration): add full-clone export and restore",
+    "head": "feat/v1.9.0-full-clone-migration",
+    "base": "main",
+    "commit": "38d0a4ea3c1c",
+    "ci": "passing (6/6)"
+  }
+}

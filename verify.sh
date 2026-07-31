@@ -252,18 +252,20 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
-# Check 6.5: README and version consistency (v1.8.0)
+# Check 6.5: README and version consistency (v1.9.0)
 # ---------------------------------------------------------------------------
 echo "README / version checks:"
-check "README has version 1.8.0 badge" "grep -q '1.8.0' '$LUCY_DIR/README.md'" "readme-version-badge"
+check "README has version 1.9.0 badge" "grep -q '1.9.0' '$LUCY_DIR/README.md'" "readme-version-badge"
 check "README mentions agnostic configuration" "grep -qi 'agnostic.configuration\|agnostic.config' '$LUCY_DIR/README.md'" "readme-agnostic-config"
 check "README mentions content boundary enforcement" "grep -qi 'content.boundary' '$LUCY_DIR/README.md'" "readme-content-boundary"
 check "README mentions config fragment" "grep -q 'agent-fragment.json5\|openclaw.json' '$LUCY_DIR/README.md'" "readme-config-fragment"
 check "README mentions contributor setup" "grep -q 'contributor' '$LUCY_DIR/README.md'" "readme-contributor"
 check "README no longer says TUI configures SDD models" "! grep -q 'configure SDD phase models' '$LUCY_DIR/README.md'" "readme-no-tui-sdd-models"
 check "README doesn't reference lucy-config branch" "! grep -q 'lucy-config' '$LUCY_DIR/README.md'" "readme-no-lucy-config"
-check "CHANGELOG has 1.8.0 entry" "grep -q '\\[1.8.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.8.0"
-check "install.sh version is 1.8.0" "grep -q 'CURRENT_VERSION=\"1.8.0\"' '$LUCY_DIR/install.sh'" "install-version-1.8.0"
+check "CHANGELOG has 1.9.0 entry" "grep -q '\\[1.9.0\\]' '$LUCY_DIR/CHANGELOG.md'" "changelog-1.9.0"
+check "install.sh version is 1.9.0" "grep -q 'CURRENT_VERSION=\"1.9.0\"' '$LUCY_DIR/install.sh'" "install-version-1.9.0"
+check "exporter script exists" "[ -f '$LUCY_DIR/scripts/export-full-clone.sh' ]" "export-script-exists"
+check "install.sh supports --full-clone" "grep -q -- '--full-clone' '$LUCY_DIR/install.sh'" "install-full-clone-flag"
 check "README mentions Harness Engineering" "grep -qi 'harness.engineering' '$LUCY_DIR/README.md'" "readme-harness-engineering"
 check "README has 7-layer harness table" "grep -q '7 layer' '$LUCY_DIR/README.md'" "readme-harness-layers"
 check "install.sh auto-injects config fragment" "grep -q 'agent-fragment.json5' '$LUCY_DIR/install.sh' && grep -q 'openclaw.json' '$LUCY_DIR/install.sh'" "install-auto-include"
