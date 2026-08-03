@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.9.0-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.9.0">
+  <img src="https://img.shields.io/badge/Version-1.9.1-30%25?style=for-the-badge&logo=semver&logoColor=%2300C853" alt="v1.9.1">
   <img src="https://img.shields.io/github/stars/CamiloAndresGTRUniandes/lucy-ai?style=for-the-badge&logo=github&color=0D1117" alt="GitHub stars">
   <img src="https://img.shields.io/badge/OpenClaw-Powered-30%25?style=for-the-badge&logoColor=%2300C853" alt="OpenClaw">
   <img src="https://img.shields.io/badge/MIT-License-0D1117?style=for-the-badge&logoColor=%2300C853" alt="MIT">
@@ -27,7 +27,13 @@
 
 ---
 
-## ⚡ What's New in v1.9
+## ⚡ What's New in v1.9.1
+
+- 🪶 **Lighter bootstrap defaults** — fresh installs now ship `bootstrapMaxChars: 16000` and `bootstrapTotalMaxChars: 48000` for a leaner direct-chat profile
+- 📋 **Shipped SDD notification rule stays aligned** — both orchestrator doc copies preserve the pre-spawn phase/model/timeout/fallback notification format
+- 🎯 **Patch-scoped release only** — `v1.9.1` packages repo-owned runtime/orchestration improvements without bundling host-local allowlists, watchdogs, or live runtime patches
+
+## Previous in v1.9.0
 
 - 📦 **Full-clone export/import** — migrate your entire Lucy/OpenClaw setup between servers
 - 📤 **`export-full-clone.sh`** — new script that bundles `openclaw.json`, `lucy-agent/`, and `workspace/` into a portable `lucy-full-clone-*.tar.gz`
@@ -55,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/mai
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash
 
 # Install a specific version
-curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.9.0
+curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --tag v1.9.1
 
 # Restore a full-clone bundle on a new server
 curl -fsSL https://raw.githubusercontent.com/camiloandresgtruniandes/lucy-ai/main/install.sh | bash -s -- --full-clone ./lucy-full-clone-20260731-150000.tar.gz
@@ -158,7 +164,7 @@ lucy-ai implements all 7 layers of the agent harness:
 | **TUI Wizard** | `curl ... | bash` | Guided setup with dialog menus (install mode, components, confirm) |
 | **Contributor** | `curl ... | bash -s -- --contributor` | Like template + installs pre-commit hook for repo contributions |
 | **Automation** | `curl ... | bash -s -- --clone --accept-defaults` | CI/CD pipelines — no prompts needed |
-| **Specific version** | `curl ... | bash -s -- --tag v1.9.0` | Pin to a known release |
+| **Specific version** | `curl ... | bash -s -- --tag v1.9.1` | Pin to a known release |
 
 ## Post-install
 
@@ -197,7 +203,7 @@ openclaw gateway restart
 
 ### ClawHub (auto-installed)
 
-`weather` · `browser-automation` · `acp-router`
+`weather`
 
 ## Update your agent
 
@@ -208,7 +214,7 @@ cd ~/.openclaw/lucy-agent
 ./update.sh
 
 # Pin to a specific version
-./update.sh --tag v1.9.0
+./update.sh --tag v1.9.1
 
 # Show version info
 ./update.sh --version
@@ -237,7 +243,7 @@ cd ~/.openclaw/lucy-agent
 # Install flags
 install.sh --clone             # Clone Lucy's exact config
 install.sh --template          # Use generic templates
-install.sh --tag <version>     # Install specific release (e.g. v1.9.0)
+install.sh --tag <version>     # Install specific release (e.g. v1.9.1)
 install.sh --contributor       # Install with pre-commit hook for contributors
 install.sh --no-tui            # Force text prompts (skip TUI wizard)
 install.sh --accept-defaults   # Accept all defaults (CI-friendly)

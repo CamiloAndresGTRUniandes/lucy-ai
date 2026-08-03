@@ -1,0 +1,135 @@
+{
+  "project": "lucy-ai",
+  "currentFeature": "release-runtime-orchestration-hardening",
+  "status": "in_progress",
+  "currentPhase": "archive",
+  "currentModel": "openai-codex/gpt-5.5",
+  "feedback": {
+    "pending": "Spec version target adjusted from v1.8.0 to v1.9.1 because Camilo clarified v1.9.0 is already published.",
+    "resolvedAt": "2026-08-03T12:11:46Z"
+  },
+  "retries": {
+    "phase": null,
+    "max": 3,
+    "count": 0,
+    "lastError": null
+  },
+  "fallbacks": {
+    "triggered": [],
+    "lastEvent": null
+  },
+  "pr": {
+    "url": null,
+    "branch": null,
+    "status": "not_created",
+    "reviewComments": [],
+    "resolvedComments": []
+  },
+  "archiveDecision": null,
+  "phaseApprovals": {
+    "explore": {
+      "approved": true,
+      "timestamp": "2026-08-03T10:58:52Z"
+    },
+    "propose": {
+      "approved": true,
+      "timestamp": "2026-08-03T11:49:05Z",
+      "comment": "Balanced release approved: ship safe project-owned improvements, exclude host-local mitigations."
+    },
+    "spec": {
+      "approved": true,
+      "timestamp": "2026-08-03T12:25:16Z",
+      "comment": "Approved after retargeting the release from v1.8.0 to v1.9.1 and pulling latest main."
+    },
+    "design": {
+      "approved": true,
+      "timestamp": "2026-08-03T12:42:54Z",
+      "comment": "Approved with explicit reminder to send the pre-spawn user message before delegated phases."
+    },
+    "tasks": {
+      "approved": true,
+      "timestamp": "2026-08-03T12:54:42Z",
+      "comment": "Approved after validation of the 3-task patch plan."
+    },
+    "apply": {
+      "approved": true,
+      "timestamp": "2026-08-03T15:10:14Z",
+      "comment": "Approved after all repo quality gates passed (117/117)."
+    },
+    "verify": {
+      "approved": true,
+      "timestamp": "2026-08-03T15:56:17Z",
+      "comment": "Verify artifact approved after full repo verification passed (117/117)."
+    },
+    "archive": {
+      "approved": false,
+      "timestamp": null
+    }
+  },
+  "history": [
+    {
+      "phase": "explore",
+      "status": "approved",
+      "timestamp": "2026-08-03T10:58:52Z"
+    },
+    {
+      "phase": "propose",
+      "status": "approved",
+      "timestamp": "2026-08-03T11:49:05Z",
+      "approach": "Balanced release"
+    },
+    {
+      "phase": "spec",
+      "status": "approved",
+      "timestamp": "2026-08-03T12:25:16Z",
+      "comment": "Retargeted to v1.9.1 after confirming published baseline is v1.9.0 and pulled latest main."
+    },
+    {
+      "phase": "design",
+      "status": "approved",
+      "timestamp": "2026-08-03T12:42:54Z",
+      "comment": "Pre-spawn notification requirement reiterated before moving to tasks."
+    },
+    {
+      "phase": "tasks",
+      "status": "approved",
+      "timestamp": "2026-08-03T12:54:42Z",
+      "comment": "3-task patch plan approved for apply."
+    },
+    {
+      "phase": "apply",
+      "status": "approved",
+      "timestamp": "2026-08-03T15:10:14Z",
+      "comment": "All quality gates passed after reconciling stale ClawHub skill expectations."
+    },
+    {
+      "phase": "verify",
+      "status": "approved",
+      "timestamp": "2026-08-03T15:56:17Z",
+      "comment": "Verification artifact approved with 117/117 repo checks passing."
+    }
+  ],
+  "startedAt": "2026-08-03T10:31:55Z",
+  "updatedAt": "2026-08-03T15:56:17Z",
+  "engram": {
+    "preflight": {
+      "ranAt": null,
+      "project": "lucy-ai",
+      "contextFound": false,
+      "sessionCount": 0,
+      "decisionCount": 0,
+      "observationIds": []
+    },
+    "observations": {
+      "explore": [],
+      "propose": [],
+      "spec": [],
+      "design": [],
+      "tasks": [],
+      "apply": [],
+      "verify": [],
+      "archive": []
+    },
+  "cycleSessionId": null
+  }
+}
