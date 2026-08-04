@@ -36,19 +36,26 @@ Step-by-step guide for Lucy to execute a complete SDD cycle by delegating phases
 Every time Lucy spawns a sub-agent, she MUST inform Camilo with:
 
 ```
-Phase: {phase} → agentId: {agentId}
-  Resolved: {provider/model} (thinking: {mode}, timeout: {N}s)
+📋 **SDD Phase: {phase}**
+🧠 Primary: `{provider/model}` (thinking: {mode})
+⏱️ Timeout: {N}s
+🆘 Fallback: `{fallback_model}`
 ```
 
 Ejemplo:
 ```
-Phase: Design → agentId: sdd-design
-  Resolved: openai-codex/gpt-5.5 (thinking: high, timeout: 1200s)
-Phase: Apply → agentId: sdd-apply
-  Resolved: deepseek/deepseek-v4-pro (thinking: high, timeout: 1200s)
+📋 **SDD Phase: Design**
+🧠 Primary: `openai-codex/gpt-5.5` (thinking: high)
+⏱️ Timeout: 1200s
+🆘 Fallback: `deepseek/deepseek-v4-pro`
+
+📋 **SDD Phase: Apply**
+🧠 Primary: `deepseek/deepseek-v4-pro` (thinking: high)
+⏱️ Timeout: 1200s
+🆘 Fallback: `openai-codex/gpt-5.4`
 ```
 
-Camilo needs to know which agentId and resolved profile is used in each phase to:
+Camilo needs to know which resolved profile is used in each phase to:
 - Monitor costs (DeepSeek pay-per-token vs $0 subscriptions)
 - Verify that the fixed profiles from `agents.list[]` are respected
 - Quickly diagnose if a provider fails

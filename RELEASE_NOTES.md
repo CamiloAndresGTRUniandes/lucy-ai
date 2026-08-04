@@ -1,53 +1,35 @@
-# v1.9.0 — Full-Clone Export/Import for Server Migration
+# v1.9.1 — Runtime + Orchestration Hardening Patch
 
-> **Release date:** 2026-07-31
+> **Release date:** 2026-08-03
 
-Migrate your entire Lucy/OpenClaw setup between servers in two commands.
+Package the safe runtime/orchestration improvements from the live workspace into a narrow Lucy-ai patch release.
 
 ---
 
 ## What's New
 
-- 📦 **Full-clone export** — New `scripts/export-full-clone.sh` bundles your complete OpenClaw installation (`openclaw.json`, `lucy-agent/`, `workspace/`) into a portable `lucy-full-clone-YYYYMMDD-HHMMSS.tar.gz`
-- 📥 **Full-clone restore** — `install.sh --full-clone <path-or-url>` restores the bundle on a new server, with automatic backup, config validation, and model verification
-- 🔒 **Safe by default** — auth tokens, credentials, device identity, and `.env` files are excluded unless you explicitly opt in
-- 🔑 **`--include-identity`** — opt-in flag to include `identity/`, `credentials/`, `.env`, and auth profiles for a private full clone (prints a security warning)
-- 🧠 **`--exclude-memories`** — export your config without session memory history (`MEMORY.md`, `memory/`)
-- 🛡️ **Automatic backup** — existing `~/.openclaw` is moved to `~/.openclaw.backup.<timestamp>/` before any restore
+- 🪶 **Lighter bootstrap defaults** — `config/agent-fragment.json5` now ships `bootstrapMaxChars: 16000` and `bootstrapTotalMaxChars: 48000`
+- 📋 **Aligned SDD pre-spawn notification** — the shipped orchestrator docs preserve the approved notification format with phase, primary model, timeout, and fallback model
+- 🔁 **Consistent release surfaces** — installer, updater, verifier, README, changelog, and release notes now all reflect `v1.9.1`
+- 🚫 **Honest scope boundary** — host-local mitigations stay out of the product release
 
-## How It Works
+## What This Release Does Not Ship
 
-**On the source server (export):**
-
-```bash
-bash ~/.openclaw/lucy-agent/scripts/export-full-clone.sh
-# → lucy-full-clone-20260731-150000.tar.gz (no auth/identity/.env)
-
-# Include auth + identity (private clone):
-bash ~/.openclaw/lucy-agent/scripts/export-full-clone.sh --include-identity
-
-# Config without conversation history:
-bash ~/.openclaw/lucy-agent/scripts/export-full-clone.sh --exclude-memories
-```
-
-**On the target server (restore):**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/CamiloAndresGTRUniandes/lucy-ai/main/install.sh | bash -s -- --full-clone ./lucy-full-clone-20260731-150000.tar.gz
-```
-
-The installer backs up the existing `~/.openclaw`, restores the bundle, runs `openclaw config validate` + `openclaw models list`, and reminds you to re-authenticate providers/channels (unless the bundle included identity).
+- Personal `plugins.allow` or `tools.allow` policy
+- Watchdog services or timers added only to one host
+- Direct edits to regenerated runtime files under `~/.openclaw/agents/`
+- Claims that upstream OpenClaw runtime bugs are fixed by this Lucy-ai patch
 
 ## What's Changed
 
-- **install.sh** — new `--full-clone` flag, `step_restore_full_clone()`, full-clone mode in TUI/main flow, mutual exclusion with `--clone`/`--template`/`--skip-workspace`
-- **update.sh / verify.sh** — version bumped to v1.9.0, new full-clone checks
-- **README.md** — What's New section, install examples, version badge
-- **CHANGELOG.md** — v1.9.0 entry
+- **config/agent-fragment.json5** — bootstrap defaults reduced from `24000/80000` to `16000/48000`
+- **sdd/orchestrator-flow.md** and **workspace/sdd/orchestrator-flow.md** — approved pre-spawn notification wording preserved in both shipped copies
+- **install.sh / update.sh / verify.sh** — version-sensitive surfaces updated to `v1.9.1`
+- **README.md / CHANGELOG.md / RELEASE_NOTES.md** — patch release framing updated for `v1.9.1`
 
 ## Upgrade Notes
 
-1. **New feature, no breaking changes.** All existing install modes and flags continue to work.
-2. **For existing installations:** run `cd ~/.openclaw/lucy-agent && ./update.sh` to get the exporter script.
-3. **Security:** the default bundle contains no authentication material. If you use `--include-identity`, keep the bundle private and delete it when no longer needed.
-4. **Re-auth reminder:** after a `--full-clone` restore without identity, re-authenticate with `openclaw configure --section model`.
+1. **Patch release, no workflow break expected.** Existing install and update flows stay the same.
+2. **For existing installations:** run `cd ~/.openclaw/lucy-agent && ./update.sh` to get the lighter bootstrap defaults and synchronized release metadata.
+3. **For fresh installs:** `install.sh` now seeds the lower bootstrap limits by default through `config/agent-fragment.json5`.
+4. **Scope boundary:** if you applied extra host-local runtime mitigations on one machine, keep managing those separately; they are not part of `v1.9.1`.

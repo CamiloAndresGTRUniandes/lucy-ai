@@ -5,6 +5,18 @@ All notable changes to lucy-agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2026-08-03
+
+### Changed
+
+- **Bootstrap defaults reduced** — `config/agent-fragment.json5` now ships `bootstrapMaxChars: 16000` and `bootstrapTotalMaxChars: 48000` so fresh installs inherit the lighter direct-chat profile.
+- **Orchestrator docs preserved** — both shipped copies of `sdd/orchestrator-flow.md` keep the approved pre-spawn notification format with phase, primary model, timeout, and fallback model.
+- **Version surfaces reconciled** — `README.md`, `install.sh`, `update.sh`, `verify.sh`, and release-facing docs now consistently reflect `v1.9.1`.
+
+### Notes
+
+- **Host-local mitigations remain out of scope** — this patch does not ship personal `plugins.allow` or `tools.allow` policy, watchdog services, or direct edits to live `~/.openclaw/agents/` runtime state.
+
 ## [1.9.0] - 2026-07-31
 
 ### Added

@@ -7,8 +7,8 @@
       },
       thinkingDefault: "high",
       workspace: "~/.openclaw/workspace",
-      bootstrapMaxChars: 24000,
-      bootstrapTotalMaxChars: 80000,
+      bootstrapMaxChars: 16000,
+      bootstrapTotalMaxChars: 48000,
       timeoutSeconds: 600,
       skills: [
         "sdd",
@@ -25,7 +25,6 @@
         "github-pr",
         "github",
         "gh-issues",
-        "browser-automation",
         "weather",
         "healthcheck",
         "skill-creator"

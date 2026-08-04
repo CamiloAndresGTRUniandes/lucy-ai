@@ -60,7 +60,7 @@ cd ~/.openclaw/lucy-agent && ./verify.sh
 ## What's included
 
 - **Bundled skills:** sdd, github-pr, pr-review, csharp-dotnet, tailwind-4, typescript, skill-creator
-- **ClawHub skills:** weather, browser-automation, acp-router (auto-installed)
+- **ClawHub skills:** weather (auto-installed)
 - **Workspace seed:** SOUL.md, IDENTITY.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md
 - **Config fragment:** agent defaults (skills, model, thinking level)
 
