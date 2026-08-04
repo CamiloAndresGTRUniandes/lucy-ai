@@ -82,9 +82,9 @@
 ## Acceptance Criteria
 
 - [ ] **AC1:** Lucy-ai defines a `v1.9.1` release scope that includes only safe, project-owned runtime/orchestration improvements.
-- [ ] **AC2:** [`config/agent-fragment.json5`](/home/lucygtr/.openclaw/workspace/lucy-ai/config/agent-fragment.json5) ships `bootstrapMaxChars: 16000` and `bootstrapTotalMaxChars: 48000`.
-- [ ] **AC3:** [`sdd/orchestrator-flow.md`](/home/lucygtr/.openclaw/workspace/lucy-ai/sdd/orchestrator-flow.md) documents the pre-spawn message format with phase, primary, timeout, and fallback.
-- [ ] **AC4:** [`workspace/sdd/orchestrator-flow.md`](/home/lucygtr/.openclaw/workspace/lucy-ai/workspace/sdd/orchestrator-flow.md) matches the same pre-spawn notification rule.
+- [ ] **AC2:** [`config/agent-fragment.json5`](../../../config/agent-fragment.json5) ships `bootstrapMaxChars: 16000` and `bootstrapTotalMaxChars: 48000`.
+- [ ] **AC3:** [`sdd/orchestrator-flow.md`](../../orchestrator-flow.md) documents the pre-spawn message format with phase, primary, timeout, and fallback.
+- [ ] **AC4:** [`workspace/sdd/orchestrator-flow.md`](../../../workspace/sdd/orchestrator-flow.md) matches the same pre-spawn notification rule.
 - [ ] **AC5:** Release/version references in Lucy-ai are updated consistently so the repo reflects the published `1.9.0` baseline and this patch release as `1.9.1`.
 - [ ] **AC6:** Changelog entry for `1.9.1` explains the shipped runtime/orchestration improvements and clearly separates them from non-shipped host-local mitigations.
 - [ ] **AC7:** No repo change in this release introduces personal machine policy such as local plugin allowlists, local tool allowlists, watchdog services, or direct runtime-agent-state patches.

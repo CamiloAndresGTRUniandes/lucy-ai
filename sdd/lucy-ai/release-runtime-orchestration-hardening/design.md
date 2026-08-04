@@ -67,15 +67,15 @@
 
 | File | Planned change |
 |------|----------------|
-| [config/agent-fragment.json5](/home/lucygtr/.openclaw/workspace/lucy-ai/config/agent-fragment.json5) | Reduce `bootstrapMaxChars` to `16000` and `bootstrapTotalMaxChars` to `48000` |
-| [sdd/orchestrator-flow.md](/home/lucygtr/.openclaw/workspace/lucy-ai/sdd/orchestrator-flow.md) | Keep the standardized pre-spawn phase/model/timeout/fallback notification wording |
-| [workspace/sdd/orchestrator-flow.md](/home/lucygtr/.openclaw/workspace/lucy-ai/workspace/sdd/orchestrator-flow.md) | Mirror the same notification wording |
-| [CHANGELOG.md](/home/lucygtr/.openclaw/workspace/lucy-ai/CHANGELOG.md) | Add `1.9.1` entry describing the shipped patch scope |
-| [RELEASE_NOTES.md](/home/lucygtr/.openclaw/workspace/lucy-ai/RELEASE_NOTES.md) | Rewrite for `v1.9.1` patch notes |
-| [README.md](/home/lucygtr/.openclaw/workspace/lucy-ai/README.md) | Update version badge/examples and, if needed, mention the runtime/orchestration patch in the current release framing |
-| [install.sh](/home/lucygtr/.openclaw/workspace/lucy-ai/install.sh) | Bump `CURRENT_VERSION` to `1.9.1` |
-| [update.sh](/home/lucygtr/.openclaw/workspace/lucy-ai/update.sh) | Bump `CURRENT_VERSION` to `1.9.1` |
-| [verify.sh](/home/lucygtr/.openclaw/workspace/lucy-ai/verify.sh) | Update version-sensitive checks from `1.9.0` to `1.9.1` |
+| [config/agent-fragment.json5](../../../config/agent-fragment.json5) | Reduce `bootstrapMaxChars` to `16000` and `bootstrapTotalMaxChars` to `48000` |
+| [sdd/orchestrator-flow.md](../../orchestrator-flow.md) | Keep the standardized pre-spawn phase/model/timeout/fallback notification wording |
+| [workspace/sdd/orchestrator-flow.md](../../../workspace/sdd/orchestrator-flow.md) | Mirror the same notification wording |
+| [CHANGELOG.md](../../../CHANGELOG.md) | Add `1.9.1` entry describing the shipped patch scope |
+| [RELEASE_NOTES.md](../../../RELEASE_NOTES.md) | Rewrite for `v1.9.1` patch notes |
+| [README.md](../../../README.md) | Update version badge/examples and, if needed, mention the runtime/orchestration patch in the current release framing |
+| [install.sh](../../../install.sh) | Bump `CURRENT_VERSION` to `1.9.1` |
+| [update.sh](../../../update.sh) | Bump `CURRENT_VERSION` to `1.9.1` |
+| [verify.sh](../../../verify.sh) | Update version-sensitive checks from `1.9.0` to `1.9.1` |
 
 ## Decisions approved by Camilo
 
